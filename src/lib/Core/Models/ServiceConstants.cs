@@ -3,7 +3,12 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace RmqLib {
+
+	/// <summary>
+	/// TODO comment
+	/// </summary>
 	internal static class ServiceConstants {
+		// TODO translate
 		/// <summary>
 		/// Топики с признаком "rpc" библиотека обрабатывает как
 		/// команды которые должны вернуть ответ, в отличие от Топиков оповещения

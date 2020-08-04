@@ -5,11 +5,29 @@ using System.Reflection;
 using System.Text;
 
 namespace RmqLib {
+    /// <summary>
+    /// TODO comment
+    /// </summary>
     public class RmqConfig {
+        /// <summary>
+        /// TODO comment
+        /// </summary>
         public string AppId { get; set; }
+        /// <summary>
+        /// TODO comment
+        /// </summary>
         public string HostName { get; set; }
+        /// <summary>
+        /// TODO comment
+        /// </summary>
         public string UserName { get; set; }
+        /// <summary>
+        /// TODO comment
+        /// </summary>
         public string Password { get; set; }
+        /// <summary>
+        /// TODO comment
+        /// </summary>
         public string Exchange { get; set; }
         /// <summary>
         /// Данные для подключения к плагину менеджмента rabbitmq для получения статистики

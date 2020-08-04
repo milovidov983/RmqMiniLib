@@ -6,39 +6,44 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 
-namespace RmqLib.Core {
+namespace RmqLib {
 	/// <summary>
-	/// Обработчики событий соединения с RMQ
+	/// TODO comment
 	/// </summary>
-	public class ConnectionEventHandlers {
-		/// <summary>
-		/// Raised when the connection is destroyed.
-		/// </summary>
-		public EventHandler<ShutdownEventArgs> ConnectionShutdown;
-		/// <summary>
-		///  Signalled when an exception occurs in a callback invoked by the connection.
-		/// </summary>
-		public EventHandler<CallbackExceptionEventArgs> CallbackException;
-	}
-
-	public interface IConnection {
-		RabbitMQ.Client.IConnection RmqConnection { get; }
-	}
-
 	public class Connection: IConnection {
+		/// <summary>
+		/// TODO comment
+		/// </summary>
 		public RabbitMQ.Client.IConnection RmqConnection { get; private set; }
-		private ConnectionFactory factory;
-		private readonly RmqConfig rmqConfig;
-		private ConnectionEventHandlers connectionEventHandlers;
-		private ILogger logger;
 
+		/// <summary>
+		/// TODO comment
+		/// </summary>
+		private ConnectionFactory factory;
+		/// <summary>
+		/// TODO comment
+		/// </summary>
+		private readonly RmqConfig rmqConfig;
+		/// <summary>
+		/// TODO comment
+		/// </summary>
+		private ConnectionEventHandlers connectionEventHandlers;
+		/// <summary>
+		/// TODO comment
+		/// </summary>
+		private ILogger logger;
+		/// <summary>
+		/// TODO comment
+		/// </summary>
 		public Connection(RmqConfig rmqConfig, ConnectionEventHandlers connectionEventHandlers, ILogger logger) {
 			this.rmqConfig = rmqConfig;
 			this.connectionEventHandlers = connectionEventHandlers;
 			this.logger = logger;
 		}
-
-		private void ConnectToRmq() {
+		/// <summary>
+		/// TODO comment
+		/// </summary>
+		public void ConnectToRmq() {
 			factory = new ConnectionFactory {
 				HostName = rmqConfig.HostName,
 				Password = rmqConfig.Password,
@@ -48,15 +53,17 @@ namespace RmqLib.Core {
 			factory.AutomaticRecoveryEnabled = true;
 			RmqConnection = factory.CreateConnection();
 
-			if (connectionEventHandlers.ConnectionShutdown != null) {
+			if (connectionEventHandlers?.ConnectionShutdown != null) {
 				RmqConnection.ConnectionShutdown += connectionEventHandlers.ConnectionShutdown;
 			}
-			if (connectionEventHandlers.CallbackException != null) {
+			if (connectionEventHandlers?.CallbackException != null) {
 				RmqConnection.CallbackException += connectionEventHandlers.CallbackException;
 			}
 		}
-
-		private void RetryConnection() {
+		/// <summary>
+		/// TODO comment
+		/// </summary>
+		public void RetryConnection() {
 			int timeoutMs = 1000;
 			var d = 1;
 			while (!RmqConnection.IsOpen) {
