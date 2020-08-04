@@ -16,10 +16,7 @@ namespace RmqLib {
 		/// TODO comment
 		/// </summary>
 		private readonly string exchange;
-		/// <summary>
-		/// TODO comment
-		/// </summary>
-		private const string replyQueueName = "amq.rabbitmq.reply-to";
+
 
 		/// <summary>
 		/// TODO comment
@@ -40,7 +37,7 @@ namespace RmqLib {
 			var correlationId = Guid.NewGuid().ToString();
 
 			props.CorrelationId = correlationId;
-			props.ReplyTo = replyQueueName;
+			props.ReplyTo = ServiceConstants.REPLY_QUEUE_NAME;
 
 			channel.BasicPublish(
 				exchange: exchange,
