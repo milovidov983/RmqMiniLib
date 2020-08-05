@@ -43,7 +43,7 @@ namespace RmqLib {
 		/// <summary>
 		/// TODO comment
 		/// </summary>
-		public void ConnectToRmq() {
+		public void ConnectToRmq(bool reconnectIfFailed = true) {
 			factory = new ConnectionFactory {
 				HostName = rmqConfig.HostName,
 				Password = rmqConfig.Password,
@@ -51,8 +51,19 @@ namespace RmqLib {
 			};
 			factory.DispatchConsumersAsync = true;
 			factory.AutomaticRecoveryEnabled = true;
-			RmqConnection = factory.CreateConnection();
 
+			try {
+				Connect();
+			} catch (Exception e) {
+				logger?.LogError($"failed to connect to the RabbitMQ: {e.Message}");
+				if (reconnectIfFailed) {
+					RetryConnection();
+				}
+			}
+		}
+
+		private void Connect() {
+			RmqConnection = factory.CreateConnection();
 			if (connectionEventHandlers?.ConnectionShutdown != null) {
 				RmqConnection.ConnectionShutdown += connectionEventHandlers.ConnectionShutdown;
 			}
@@ -60,6 +71,7 @@ namespace RmqLib {
 				RmqConnection.CallbackException += connectionEventHandlers.CallbackException;
 			}
 		}
+
 		/// <summary>
 		/// TODO comment
 		/// </summary>
@@ -69,7 +81,7 @@ namespace RmqLib {
 			while (!RmqConnection.IsOpen) {
 				Thread.Sleep(timeoutMs);
 				try {
-					ConnectToRmq();
+					Connect();
 				} catch (Exception ex) {
 					timeoutMs += 1000 / d++;
 					logger?.LogWarning(

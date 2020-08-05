@@ -6,9 +6,9 @@ namespace RmqLib {
 	public class Startup {
 		public static void Init(
 			IServiceCollection services, 
-			IConnectionFactory connectionFactory, 
+			IConnectionFactory connectionFactory,
 			RmqConfig config, 
-			ILogger logger) {
+			ILogger logger) { 
 
 			var connection = connectionFactory.Create();
 
@@ -26,6 +26,8 @@ namespace RmqLib {
 			// 1. create connection
 			// 2. create channel
 			// ok  теперь допилить ResponseHandelr с упрощением, не разделять обработчик и инициализацию
+			// ResponseHandelr унаследовать от интерфейса в котором есть Task ReceiveReply(object model, BasicDeliverEventArgs ea);
+			// и передавать при инициализции BindReplyQ
 			// 3. create response handler
 			// 4. если у сервиса есть подходящие команды то инициализировать их
 			// 5. привязать пользовательские команды к топикам

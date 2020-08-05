@@ -15,7 +15,7 @@ namespace RmqLib {
 		private readonly ConcurrentDictionary<string, TaskCompletionSource<string>> handlers
 			= new ConcurrentDictionary<string, TaskCompletionSource<string>>();
 
-		public ResponseManager(IModel channel) {
+		public ResponseHandelr(IModel channel) {
 			var consumer = new AsyncEventingBasicConsumer(channel);
 			channel.BasicConsume(
 				consumer: consumer,
@@ -38,8 +38,8 @@ namespace RmqLib {
 		}
 
 		private TaskCompletionSource<string> GetCallbackTask(BasicDeliverEventArgs ea, string correlationId) {
-			if (!replyDictionary.TryGetValue(correlationId, out var taskCompletionSource)) {
-				throw new RmqException($"Критическая ошибка, в {nameof(replyDictionary)} " +
+			if (!handlers.TryGetValue(correlationId, out var taskCompletionSource)) {
+				throw new RmqException($"Критическая ошибка, в {nameof(handlers)} " +
 					$"не найден ни один обработчик для ответа " +
 					$"пришедшего из rmq с {nameof(correlationId)}:{correlationId} " +
 					$"{nameof(ea.RoutingKey)}:{ea.RoutingKey}", Error.INTERNAL_ERROR);

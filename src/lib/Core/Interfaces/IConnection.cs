@@ -14,7 +14,7 @@ namespace RmqLib {
 		/// <summary>
 		/// TODO comment
 		/// </summary>
-		void ConnectToRmq();
+		void ConnectToRmq(bool reconnectIfFailed = true);
 		/// <summary>
 		/// TODO comment
 		/// </summary>

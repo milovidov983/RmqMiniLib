@@ -1,7 +1,9 @@
 ﻿using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace RmqLib {
 	/// <summary>
@@ -48,5 +50,23 @@ namespace RmqLib {
 			return correlationId;
 
 		}
+
+
+		public void BindReplyQueue(Ittt responseHandler) {
+			var consumer = new AsyncEventingBasicConsumer(channel);
+			channel.BasicConsume(
+				consumer: consumer,
+				queue: ServiceConstants.REPLY_QUEUE_NAME,
+				autoAck: true);
+			consumer.Received += responseHandler.ReceiveReply;
+		}
+
+		public async Task ReceiveReply(object model, BasicDeliverEventArgs ea) {
+			throw new NotImplementedException();
+		}
+	}
+
+	public interface Ittt {
+		Task ReceiveReply(object model, BasicDeliverEventArgs ea);
 	}
 }
