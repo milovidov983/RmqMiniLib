@@ -1,4 +1,5 @@
 ﻿using RabbitMQ.Client.Events;
+using RmqLib.Core;
 using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;

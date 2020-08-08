@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace RmqLib {
 	/// <summary>
@@ -12,7 +13,12 @@ namespace RmqLib {
 		/// </summary>
 		/// <param name="topic">topic</param>
 		/// <param name="payload">payload</param>
-		/// <returns>correlationId</returns>
-		string SendRpc(string topic, byte[] payload);
+		Task SendRpc(string topic, byte[] payload, string correlationId);
+		/// <summary>
+		/// Send notify message
+		/// </summary>
+		/// <param name="topic">topic</param>
+		/// <param name="payload">payload</param>
+		Task SendNotify(string topic, byte[] payload);
 	}
 }

@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Text;
 using System.Text.Json;
 
-namespace RmqLib {
+namespace RmqLib.Core {
 	/// <summary>
 	/// Внутренний класс для более удобной работы  с ошибками
 	/// </summary>
@@ -55,14 +54,15 @@ namespace RmqLib {
 		}
 
 		private string GetErrorMessage(IDictionary<string, object> headers) {
-			if (headers != null && headers.TryGetValue("-x-error", out var error)) {
+			if (headers != null && headers.TryGetValue(Headers.Error, out var error)) {
 				return Encoding.UTF8.GetString(InternalHelpers.ObjectToByteArray(error));
 			}
 			return null;
 		}
 
+		private static readonly Dictionary<string, object> empty = new Dictionary<string, object>();
 		private IDictionary<string,object> GetUserData(IDictionary<string, object> headers) {
-			if (headers != null && headers.TryGetValue("-x-data", out var data)) {
+			if (headers != null && headers.TryGetValue(Headers.CustomData, out var data)) {
 				string raw = string.Empty;
 				try {
 					raw = Encoding.UTF8.GetString(InternalHelpers.ObjectToByteArray(data));
@@ -77,7 +77,7 @@ namespace RmqLib {
 					};
 				}
 			}
-			return ImmutableDictionary<string, object>.Empty;
+			return empty;
 		}		
 		
 		private string GetHost(IDictionary<string, object> headers) {

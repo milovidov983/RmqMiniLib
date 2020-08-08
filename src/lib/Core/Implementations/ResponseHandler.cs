@@ -6,23 +6,19 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RmqLib {
+namespace RmqLib.Core {
 	/// <summary>
 	/// Класс отвечает за получение ответов 
 	/// от RPC запросов нашего приложения к другим сервисам.
 	/// </summary>
-	internal class ResponseHandelr {
+	internal class ResponseHandelr : IResponseHandelr, IReplyHandler {
 		private readonly ConcurrentDictionary<string, TaskCompletionSource<string>> handlers
 			= new ConcurrentDictionary<string, TaskCompletionSource<string>>();
 
-		public ResponseHandelr(IModel channel) {
-			var consumer = new AsyncEventingBasicConsumer(channel);
-			channel.BasicConsume(
-				consumer: consumer,
-				queue: ServiceConstants.REPLY_QUEUE_NAME,
-				autoAck: true);
-			consumer.Received += ReceiveReply;
+		internal ResponseHandelr() {
+
 		}
+
 		public async Task ReceiveReply(object model, BasicDeliverEventArgs ea) {
 			var headers = ea.BasicProperties.Headers;
 			var correlationId = ea.BasicProperties.CorrelationId;
@@ -37,6 +33,15 @@ namespace RmqLib {
 			await Task.Yield();
 		}
 
+		public void AddReplySubscription(string correlationId, TaskCompletionSource<string> resonseHandler) {
+			handlers.TryAdd(correlationId, resonseHandler);
+		}
+
+		public TaskCompletionSource<string> RemoveReplySubscription(string correlationId) {
+			handlers.TryRemove(correlationId, out var task);
+			return task;
+		}
+
 		private TaskCompletionSource<string> GetCallbackTask(BasicDeliverEventArgs ea, string correlationId) {
 			if (!handlers.TryGetValue(correlationId, out var taskCompletionSource)) {
 				throw new RmqException($"Критическая ошибка, в {nameof(handlers)} " +
@@ -46,15 +51,6 @@ namespace RmqLib {
 			}
 
 			return taskCompletionSource;
-		}
-
-		public void AddReplySubscription(string correlationId, TaskCompletionSource<string> resonseHandler) {
-			handlers.TryAdd(correlationId, resonseHandler);
-		}
-
-		public TaskCompletionSource<string> RemoveReplySubscription(string correlationId) {
-			handlers.TryRemove(correlationId, out var task);
-			return task;
 		}
 	}
 }

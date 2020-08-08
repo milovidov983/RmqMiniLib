@@ -1,4 +1,6 @@
 ﻿using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
+using RmqLib.Core;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -8,7 +10,7 @@ namespace RmqLib {
 	/// <summary>
 	/// TODO comment
 	/// </summary>
-	public class ChannelFactory: IChannelFactory {
+	internal class ChannelFactory: IChannelFactory {
 		/// <summary>
 		/// TODO comment
 		/// </summary>
@@ -28,7 +30,7 @@ namespace RmqLib {
 		/// <summary>
 		/// TODO comment
 		/// </summary>
-		public IChannel Create() {
+		public IChannel Create(IReplyHandler handler) {
 			var channel = connection.RmqConnection.CreateModel();
 
 			channel.ExchangeDeclare(rmqConfig.Exchange, ExchangeType.Topic, durable: true);
@@ -47,7 +49,19 @@ namespace RmqLib {
 				prefetchCount: rmqConfig.PrefetchCount,
 				global: false);
 
+			BindReplyHandler(channel, handler);
+
 			return new Channel(channel, rmqConfig.Exchange);
 		}
+
+		private void BindReplyHandler(IModel channel, IReplyHandler handler) {
+			var consumer = new AsyncEventingBasicConsumer(channel);
+			channel.BasicConsume(
+				consumer: consumer,
+				queue: ServiceConstants.REPLY_QUEUE_NAME,
+				autoAck: true);
+			consumer.Received += handler.ReceiveReply;
+		}
+
 	}
 }

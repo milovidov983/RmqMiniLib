@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RmqLib {
+namespace RmqLib.Core {
 	/// <summary>
 	/// TODO comment
 	/// </summary>
-	public interface IChannelFactory {
+	internal interface IChannelFactory {
 		/// <summary>
 		/// TODO comment
 		/// </summary>
-		IChannel Create();
+		IChannel Create(IReplyHandler handler);
 	}
 }
