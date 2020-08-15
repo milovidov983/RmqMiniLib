@@ -16,6 +16,8 @@ namespace RmqLib {
 		/// </summary>
 		public RabbitMQ.Client.IConnection RmqConnection { get; private set; }
 
+
+		public bool IsConnected { get=> RmqConnection?.IsOpen == true; }
 		/// <summary>
 		/// TODO comment
 		/// </summary>
@@ -43,7 +45,24 @@ namespace RmqLib {
 		/// <summary>
 		/// TODO comment
 		/// </summary>
-		public void ConnectToRmq(bool reconnectIfFailed = true) {
+		public void StartConnection(bool reconnectIfFailed = true) {
+			InitConnectionFactory();
+
+			try {
+				CreateConnection();
+			} catch (Exception e) {
+				var message = $"Failed connect to the RabbitMQ: {e.Message} ";
+				if (reconnectIfFailed) {
+					logger?.LogError(message + ", try reconnect...");
+					RetryConnection();
+				} else {
+					logger?.LogError(message + ", application shutdown...");
+					throw;
+				}
+			}
+		}
+
+		private void InitConnectionFactory() {
 			factory = new ConnectionFactory {
 				HostName = rmqConfig.HostName,
 				Password = rmqConfig.Password,
@@ -51,19 +70,14 @@ namespace RmqLib {
 			};
 			factory.DispatchConsumersAsync = true;
 			factory.AutomaticRecoveryEnabled = true;
-
-			try {
-				Connect();
-			} catch (Exception e) {
-				logger?.LogError($"failed to connect to the RabbitMQ: {e.Message}");
-				if (reconnectIfFailed) {
-					RetryConnection();
-				}
-			}
 		}
 
-		private void Connect() {
+		public void CreateConnection() {
 			RmqConnection = factory.CreateConnection();
+			BindEventHandlers();
+		}
+
+		private void BindEventHandlers() {
 			if (connectionEventHandlers?.ConnectionShutdown != null) {
 				RmqConnection.ConnectionShutdown += connectionEventHandlers.ConnectionShutdown;
 			}
@@ -81,7 +95,7 @@ namespace RmqLib {
 			while (!RmqConnection.IsOpen) {
 				Thread.Sleep(timeoutMs);
 				try {
-					Connect();
+					CreateConnection();
 				} catch (Exception ex) {
 					timeoutMs += 1000 / d++;
 					logger?.LogWarning(

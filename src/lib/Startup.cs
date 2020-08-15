@@ -32,7 +32,7 @@ namespace RmqLib {
 			var connection = connectionFactory.Create();
 
 			logger?.LogInformation($"Try connect to RabbitMQ host {config?.HostName}...");
-			connection.ConnectToRmq();
+			connection.StartConnection();
 			logger?.LogInformation($"RabbitMQ host {config?.HostName} connection established successfully.");
 
 			// 2. create channel

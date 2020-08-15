@@ -14,10 +14,18 @@ namespace RmqLib {
 		/// <summary>
 		/// TODO comment
 		/// </summary>
-		void ConnectToRmq(bool reconnectIfFailed = true);
+		void StartConnection(bool reconnectIfFailed = true);
 		/// <summary>
 		/// TODO comment
 		/// </summary>
 		void RetryConnection();
+		/// <summary>
+		/// 
+		/// </summary>
+		bool IsConnected { get; }
+		/// <summary>
+		/// 
+		/// </summary>
+		void CreateConnection();
 	}
 }
