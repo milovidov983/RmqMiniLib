@@ -21,7 +21,7 @@ namespace RmqLib {
 			try {
 				ExecuteInit(services, serviceProvider, connectionFactory, config, logger);
 			} catch(Exception e) {
-				throw new RmqException($"Microservice initialization error: {e.Message}", e, Error.INTERNAL_ERROR);
+				throw new RmqException($"Rmq initialization error: {e.Message}", e, Error.INTERNAL_ERROR);
 			}
 		}
 
@@ -88,6 +88,4 @@ namespace RmqLib {
 			}
 		}
 	}
-
-
 }
