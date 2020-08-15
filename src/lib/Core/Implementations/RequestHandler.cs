@@ -22,18 +22,23 @@ namespace RmqLib.Core {
 		private readonly ILogger logger;
 		private readonly string appId;
 
-		internal RequestHandler(ILogger logger, string appId, ExceptionHandler consumerExceptionHandler = null) {
+		internal RequestHandler(
+			ILogger logger, 
+			string appId, 
+			IChannel commandChannel,
+			ICommandHandlersManager commands,
+			ExceptionHandler consumerExceptionHandler = null) {
+
 			this.logger = logger;
 			this.appId = appId;
+			this.channel = commandChannel.ChannelInstance;
+			this.commands = commands;
+			
 			if (consumerExceptionHandler != null) {
 				this.exceptionEvent += consumerExceptionHandler;
 			}
 		}
 
-		internal void Init(IModel commandChannel, ICommandHandlersManager commands) {
-			this.channel = commandChannel;
-			this.commands = commands;
-		}
 
 		/// <summary>
 		/// Метод обрабатывает сообщения из шины и делегирует обработку классу отвечающему за конкретный топик

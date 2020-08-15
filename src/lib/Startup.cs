@@ -44,7 +44,7 @@ namespace RmqLib {
 			var channel = channelFactory.Create(responseHandler);
 			logger?.LogInformation($"Channel binded to {config?.Queue} successfully");
 
-			var requestHandelr = new RequestHandler(logger, config.AppId); // TODO put consumer exception handler
+
 
 			// 4. если у сервиса есть подходящие команды то инициализировать их
 			var commands = Assembly.GetEntryAssembly()
@@ -76,9 +76,11 @@ namespace RmqLib {
 				var commandsManager = new CommandHandlersManager(
 					commandImplementations, 
 					notificationImplementations);
-
-				// Инициализировать каналом и обработчиками класс отвечающий за прием сообщений из шины
-				requestHandelr.Init(channel.ChannelInstance, commandsManager);
+				
+				// Создать обработчик всех входящих запросов к микросервису из шины
+				// Инициализировать каналом и обработчиками
+				// TODO put consumer exception handler
+				var requestHandelr = new RequestHandler(logger, config.AppId, channel, commandsManager);
 
 				var topics = commandsManager.GetAllTopics();
 				// Запустить прослушивание топиков
