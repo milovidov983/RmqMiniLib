@@ -1,4 +1,5 @@
-﻿using RabbitMQ.Client;
+﻿using Microsoft.Extensions.Logging;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Generic;
@@ -6,28 +7,35 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RmqLib.Core.Implementations {
-	public class RequestHandler {
+namespace RmqLib.Core {
+	internal class RequestHandler : IRequestHandler {
 		/// <summary>
 		/// Обработчик ошибок назначенный пользователем библиотеки
 		/// </summary>
-		private event ExceptionHandler consumerExceptionHandler;
-		private readonly IRmqLoggerService logger;
-		private readonly IHandlersManager handlersManager;
-		private readonly IModel channel;
+		private event ExceptionHandler exceptionEvent;
+
+		private ICommands commands;
+		private IModel channel;
+		private readonly ILogger logger;
 		private readonly string appId;
 
-		public MainHandler(IHandlersManager handlersManager, IModel commandChannel, string appId) {
+		internal RequestHandler(ILogger logger, string appId, ExceptionHandler consumerExceptionHandler = null) {
 			this.logger = logger;
-			this.handlersManager = handlersManager;
-			this.channel = commandChannel;
 			this.appId = appId;
+			if (consumerExceptionHandler != null) {
+				this.exceptionEvent += consumerExceptionHandler;
+			}
 		}
 
-		public async Task Handle(object _, BasicDeliverEventArgs ea) {
+		internal void Init(IModel commandChannel, ICommands commands) {
+			this.channel = commandChannel;
+			this.commands = commands;
+		}
+
+		internal async Task Handle(object _, BasicDeliverEventArgs ea) {
 			var hasError = false;
 			try {
-				var handler = handlersManager.GetHandler(ea.RoutingKey);
+				var handler = commands.GetHandler(ea.RoutingKey);
 				switch (handler) {
 					case IRmqCommandHandler h:
 						await HandleCommand(h, ea);
@@ -39,12 +47,14 @@ namespace RmqLib.Core.Implementations {
 
 			} catch (Exception e) {
 				hasError = true;
-				if (consumerExceptionHandler != null) {
+				if (exceptionEvent != null) {
 					try {
-						await consumerExceptionHandler(e, new DeliveredMessage(ea));
+						await exceptionEvent(e, new DeliveredMessage(ea));
 					} catch (Exception ex) {
-						logger.Error($"Ошибка в пользовательском обработчике исключений {ex.Message}");
+						logger.LogError($"Ошибка в пользовательском обработчике исключений {ex.Message}");
 					}
+				} else {
+					logger.LogError(e, $"Ошибка при обработке запроса \"{ea.RoutingKey}\", {e.Message}");
 				}
 			} finally {
 				if (hasError) {
@@ -68,13 +78,13 @@ namespace RmqLib.Core.Implementations {
 			try {
 				var res = await h.Execute(new DeliveredMessage(ea));
 				await Reply(res.Result, null, ea.BasicProperties);
-			} catch (RmqException error) {
-				await Reply(null, error, ea.BasicProperties);
+			} catch (RmqException ex) {
+				await Reply(null, ex, ea.BasicProperties);
 				throw;
-			} catch (Exception error) {
+			} catch (Exception ex) {
 				await Reply(null, new RmqException(
-						error.Message,
-						error,
+						ex.Message,
+						ex,
 						Error.INTERNAL_ERROR),
 					ea.BasicProperties);
 				throw;
@@ -93,7 +103,7 @@ namespace RmqLib.Core.Implementations {
 					{ "-x-host", Dns.GetHostName() },
 					{ "-x-service", appId },
 					{ "-x-data", error.Data },
-					{ "-x-type", ErrorTypes.RMQ.ToString() },
+					//{ "-x-type", ErrorTypes.RMQ.ToString() },
 				};
 			} else {
 				replyProps.Headers = new Dictionary<string, object>
@@ -106,7 +116,10 @@ namespace RmqLib.Core.Implementations {
 			return Task.Run(() => {
 				channel.BasicPublish("", basicProperties.ReplyTo, replyProps, content);
 			});
+		}
 
+		Task IRequestHandler.Handle(object _, BasicDeliverEventArgs ea) {
+			throw new NotImplementedException();
 		}
 	}
 }

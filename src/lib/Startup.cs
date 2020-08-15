@@ -44,6 +44,8 @@ namespace RmqLib {
 			var channel = channelFactory.Create(responseHandler, allTopics);
 			logger?.LogInformation($"Channel binded to {config?.Queue} successfully");
 
+			var requestHandelr = new RequestHandler(logger, config.AppId); // TODO put consumer exception handler
+
 			// 4. если у сервиса есть подходящие команды то инициализировать их
 			var commands = Assembly.GetEntryAssembly()
 					.GetTypes()
