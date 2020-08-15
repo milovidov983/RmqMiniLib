@@ -16,10 +16,6 @@ namespace RmqLib {
 		/// </summary>
 		void StartConnection(bool reconnectIfFailed = true);
 		/// <summary>
-		/// TODO comment
-		/// </summary>
-		void RetryConnection();
-		/// <summary>
 		/// 
 		/// </summary>
 		bool IsConnected { get; }

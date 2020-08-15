@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 
-namespace RmqLib.Core.Implementations.ConnectionModule {
+namespace RmqLib.Core {
 
 
 	internal class RetryConnection : IRetryConnection {

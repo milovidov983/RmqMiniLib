@@ -17,6 +17,7 @@ namespace RmqLib.Factories {
 		/// TODO comment
 		/// </summary>
 		private readonly ILogger logger;
+		private readonly RetryConnectionFactory retryConnectionFactory;
 
 		/// <summary>
 		/// TODO comment
@@ -25,12 +26,13 @@ namespace RmqLib.Factories {
 			this.rmqConfig = rmqConfig;
 			this.connectionEventHandlers = connectionEventHandlers;
 			this.logger = logger;
+			this.retryConnectionFactory = new RetryConnectionFactory(logger);
 		}
 		/// <summary>
 		/// TODO comment
 		/// </summary>
 		public IConnection Create() {
-			return new Connection(rmqConfig, connectionEventHandlers, logger);
+			return new Connection(rmqConfig, retryConnectionFactory, logger);
 		}
 	}
 }

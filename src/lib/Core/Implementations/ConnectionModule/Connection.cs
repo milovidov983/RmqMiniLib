@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RmqLib.Core;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -26,21 +27,23 @@ namespace RmqLib {
 		/// TODO comment
 		/// </summary>
 		private readonly RmqConfig rmqConfig;
-		/// <summary>
-		/// TODO comment
-		/// </summary>
-		private EventHandlers connectionEventHandlers;
+
 		/// <summary>
 		/// TODO comment
 		/// </summary>
 		private ILogger logger;
 		/// <summary>
+		/// 
+		/// </summary>
+		private IRetryConnection retryConnection;
+
+		/// <summary>
 		/// TODO comment
 		/// </summary>
-		public Connection(RmqConfig rmqConfig, EventHandlers connectionEventHandlers, ILogger logger) {
+		internal Connection(RmqConfig rmqConfig, IRetryConnectionFactory retryConnectionFactory, ILogger logger) {
 			this.rmqConfig = rmqConfig;
-			this.connectionEventHandlers = connectionEventHandlers;
 			this.logger = logger;
+			this.retryConnection = retryConnectionFactory.Create(this);
 		}
 		/// <summary>
 		/// TODO comment
@@ -54,7 +57,7 @@ namespace RmqLib {
 				var message = $"Failed connect to the RabbitMQ: {e.Message} ";
 				if (reconnectIfFailed) {
 					logger?.LogError(message + ", try reconnect...");
-					RetryConnection();
+					retryConnection.Retry();
 				} else {
 					logger?.LogError(message + ", application shutdown...");
 					throw;
@@ -74,36 +77,21 @@ namespace RmqLib {
 
 		public void CreateConnection() {
 			RmqConnection = factory.CreateConnection();
-			BindEventHandlers();
+			//BindEventHandlers(); // перенести в класс
 		}
-
-		private void BindEventHandlers() {
-			if (connectionEventHandlers?.ConnectionShutdown != null) {
-				RmqConnection.ConnectionShutdown += connectionEventHandlers.ConnectionShutdown;
-			}
-			if (connectionEventHandlers?.CallbackException != null) {
-				RmqConnection.CallbackException += connectionEventHandlers.CallbackException;
-			}
-		}
-
 		/// <summary>
 		/// TODO comment
 		/// </summary>
-		public void RetryConnection() {
-			int timeoutMs = 1000;
-			var d = 1;
-			while (!RmqConnection.IsOpen) {
-				Thread.Sleep(timeoutMs);
-				try {
-					CreateConnection();
-				} catch (Exception ex) {
-					timeoutMs += 1000 / d++;
-					logger?.LogWarning(
-						$"Reconnection failed: {ex.Message}, " +
-						$"the next attempt will reconnect in {timeoutMs / 1000} seconds");
-				}
-			}
-		}
+		//private EventHandlers connectionEventHandlers;
+		//private void BindEventHandlers() {
+		//	if (connectionEventHandlers?.ConnectionShutdown != null) {
+		//		RmqConnection.ConnectionShutdown += connectionEventHandlers.ConnectionShutdown;
+		//	}
+		//	if (connectionEventHandlers?.CallbackException != null) {
+		//		RmqConnection.CallbackException += connectionEventHandlers.CallbackException;
+		//	}
+		//}
+
 
 
 	}
