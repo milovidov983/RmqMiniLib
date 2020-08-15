@@ -17,20 +17,23 @@ namespace RmqLib {
 			IServiceCollection services,
 			RmqConfig config) {
 			try {
-				IServiceProvider serviceProvider = services.BuildServiceProvider();
-				IEventHandlersFactoryService eventHandlersFactoryService = null;
-				if (services.Any(x => x.ServiceType == typeof(IEventHandlersFactoryService))) {
-					eventHandlersFactoryService = serviceProvider.GetService<IEventHandlersFactoryService>();
-				}
-				var connectionEvents = new ConnectionEvents(eventHandlersFactoryService);
+				var serviceProvider = services.BuildServiceProvider();
 				var logger = serviceProvider.GetService<ILogger>();
-
+				var connectionEvents = CreateConnectionEvents(services, serviceProvider);
 				var connectionFactory = new ConnectionFactory(config, connectionEvents, logger);
 
 				ExecuteInit(services, connectionFactory, config, logger);
-			} catch(Exception e) {
+			} catch (Exception e) {
 				throw new RmqException($"Rmq initialization error: {e.Message}", e, Error.INTERNAL_ERROR);
 			}
+		}
+
+		private static ConnectionEvents CreateConnectionEvents(IServiceCollection services, IServiceProvider serviceProvider) {
+			IEventHandlersFactoryService eventHandlersFactoryService = null;
+			if (services.Any(x => x.ServiceType == typeof(IEventHandlersFactoryService))) {
+				eventHandlersFactoryService = serviceProvider.GetService<IEventHandlersFactoryService>();
+			}
+			return new ConnectionEvents(eventHandlersFactoryService);
 		}
 
 		private static void ExecuteInit(IServiceCollection services, IConnectionFactory connectionFactory, RmqConfig config, ILogger logger) {
