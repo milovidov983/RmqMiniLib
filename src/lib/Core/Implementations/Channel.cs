@@ -60,8 +60,5 @@ namespace RmqLib.Core {
 					body: payload)
 			);
 		}
-
-
-
 	}
 }

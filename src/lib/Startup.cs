@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RmqLib.Core;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -11,18 +12,19 @@ using System.Threading.Tasks;
 namespace RmqLib {
 	public class Startup {
 		public static void Init(
-			IServiceCollection services, 
+			IServiceCollection services,
+			IServiceProvider serviceProvider,
 			IConnectionFactory connectionFactory,
 			RmqConfig config, 
 			ILogger logger) {
 			try {
-				ExecuteInit(services, connectionFactory, config, logger);
+				ExecuteInit(services, serviceProvider, connectionFactory, config, logger);
 			} catch(Exception e) {
 				throw new RmqException($"Microservice initialization error: {e.Message}", e, Error.INTERNAL_ERROR);
 			}
 		}
 
-		private static void ExecuteInit(IServiceCollection services, IConnectionFactory connectionFactory, RmqConfig config, ILogger logger) {
+		private static void ExecuteInit(IServiceCollection services, IServiceProvider serviceProvider, IConnectionFactory connectionFactory, RmqConfig config, ILogger logger) {
 			// 1. create connection
 			var connection = connectionFactory.Create();
 
@@ -58,27 +60,20 @@ namespace RmqLib {
 				commands.ForEach(c => services.AddSingleton(c));
 				notificationHandlers.ForEach(c => services.AddSingleton(c));
 
-
-
-
 				// 5. привязать пользовательские команды к топикам
-				services.AddHostedService(service => {
+				var commandImplementations = commands
+								.ConvertAll(c => (IRmqCommandHandler)serviceProvider.GetService(c));
 
-					var commandImplementations = commands
-									.ConvertAll(c => (IRmqCommandHandler)service.GetService(c));
-
-					var notificationImplementations = notificationHandlers
-						.ConvertAll(c => (IRmqNotificationHandler)service.GetService(c));
+				var notificationImplementations = notificationHandlers
+					.ConvertAll(c => (IRmqNotificationHandler)serviceProvider.GetService(c));
 
 
-					// создать класс инициализатор команд обработчиков
-					return new CommandHandlersBinder(
-						commandImplementations, 
-						notificationImplementations,
-						config);
-				});
-
-
+				// создать класс инициализатор команд обработчиков
+				var cmdHandlerBinder = new CommandHandlersBinder(
+					commandImplementations, 
+					notificationImplementations,
+					config);
+				
 			}
 
 			// 6. добавить как singleton сервис rmqSender
@@ -87,9 +82,19 @@ namespace RmqLib {
 		}
 	}
 
-	public class CommandHandlersBinder : BackgroundService {
-		protected override Task ExecuteAsync(CancellationToken stoppingToken) {
-			throw new NotImplementedException();
+	public class CommandHandlersBinder {
+		private List<IRmqCommandHandler> commandImplementations;
+		private List<IRmqNotificationHandler> notificationImplementations;
+		private RmqConfig config;
+
+		public CommandHandlersBinder(
+			List<IRmqCommandHandler> commandImplementations, 
+			List<IRmqNotificationHandler> notificationImplementations, 
+			RmqConfig config) {
+
+			this.commandImplementations = commandImplementations;
+			this.notificationImplementations = notificationImplementations;
+			this.config = config;
 		}
 	}
 }

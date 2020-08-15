@@ -20,6 +20,11 @@ namespace RmqLib {
 		/// TODO comment
 		/// </summary>
 		private readonly RmqConfig rmqConfig;
+		/// <summary>
+		/// Обработчик входящих команд из шины
+		/// </summary>
+		private readonly IRequestHandler requestHandler;
+		private IModel channel;
 
 		/// <summary>
 		/// TODO comment
@@ -32,11 +37,24 @@ namespace RmqLib {
 		/// TODO comment
 		/// </summary>
 		public IChannel Create(IReplyHandler handler, string[] topics = null) {
-			var channel = connection.RmqConnection.CreateModel();
+			this.channel = connection.RmqConnection.CreateModel();
 
+			DeclareExchanges(channel);
+			BindQueue(channel);
+			ConfiguresQoS(channel);
+			BindReplyHandler(channel, handler);
+			
+			
+
+			return new Channel(channel, rmqConfig.Exchange);
+		}
+
+		private void DeclareExchanges(IModel channel) {
 			channel.ExchangeDeclare(rmqConfig.Exchange, ExchangeType.Topic, durable: true);
 			channel.ExchangeDeclare(ServiceConstants.FANOUT_EXCHANGE, ExchangeType.Fanout, durable: true);
+		}
 
+		private void BindQueue(IModel channel) {
 			if (rmqConfig.Queue != null) {
 				channel.QueueDeclare(
 					queue: rmqConfig.Queue,
@@ -45,28 +63,32 @@ namespace RmqLib {
 					autoDelete: false,
 					arguments: null);
 			}
+		}
+
+		private void ConfiguresQoS(IModel channel) {
 			channel.BasicQos(
 				prefetchSize: 0,
 				prefetchCount: rmqConfig.PrefetchCount,
 				global: false);
-
-			BindReplyHandler(channel, handler);
-			if (topics != null) {
-				
-
-
-				BindCommandHandlers(channel, rmqConfig, topics.ToList());
-			}
-
-			return new Channel(channel, rmqConfig.Exchange);
 		}
 
-		private void BindCommandHandlers(IModel channel, RmqConfig rmqConfig, List<string> topics) {
+
+		/// <summary>
+		/// Привязать обработчик входящих запросов
+		/// </summary>
+		/// <param name="topics">список топиков</param>
+		/// <param name="requestHandler">Обработчик входящих команд из шины</param>
+		public void BindRequestHandler(List<string> topics, IRequestHandler requestHandler) {
+			if(topics?.Any() != true) {
+				return;
+			}
+
 			var consumer = new AsyncEventingBasicConsumer(channel);
+
+			consumer.Received += requestHandler.Handle; // надо как то создать обработчик на этой стадии
 
 			// TODO не забыть что есть такие события 
 			// вероятно стоит с ними работать ради большей стабильности либы
-			consumer.Received += mainHandler.Handle; // надо как то создать обработчик на этой стадии
 			//consumer.Shutdown += OnConsumerShutdown;
 			//consumer.Registered += OnConsumerRegistered;
 			//consumer.Unregistered += OnConsumerUnregistered;
@@ -87,7 +109,7 @@ namespace RmqLib {
 						arguments: null);
 
 				} else {
-					throw new RmqException($"{topic}: incorrect name for the topic, "
+					throw new RmqException($"\"{topic}\": incorrect name for the topic, "
 						+ $"the name must end with \"{ServiceConstants.PPC_TOKEN_TOPIC}\" " +
 						$"or \"{ServiceConstants.NOTIFICATION_TOKEN_TOPIC}\"!", Error.INTERNAL_ERROR);
 				}

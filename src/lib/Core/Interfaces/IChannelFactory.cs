@@ -11,5 +11,12 @@ namespace RmqLib.Core {
 		/// TODO comment
 		/// </summary>
 		IChannel Create(IReplyHandler handler, string[] topics = null);
+
+		/// <summary>
+		/// Привязать обработчик входящих запросов
+		/// </summary>
+		/// <param name="topics">список топиков</param>
+		/// <param name="requestHandler">Обработчик входящих команд из шины</param>
+		void BindRequestHandler(List<string> topics, IRequestHandler requestHandler);
 	}
 }
