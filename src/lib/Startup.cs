@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RmqLib.Core;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -40,8 +41,7 @@ namespace RmqLib {
 			var responseHandler = new ResponseHandelr();
 
 			// 3.1 получить все топики
-			string[] allTopics = new string[] { };
-			var channel = channelFactory.Create(responseHandler, allTopics);
+			var channel = channelFactory.Create(responseHandler);
 			logger?.LogInformation($"Channel binded to {config?.Queue} successfully");
 
 			var requestHandelr = new RequestHandler(logger, config.AppId); // TODO put consumer exception handler
@@ -57,7 +57,11 @@ namespace RmqLib {
 				.Where(p => typeof(IRmqNotificationHandler).IsAssignableFrom(p) && !p.IsInterface)
 				.ToList();
 
+
+
+
 			if (commands.Any() || notificationHandlers.Any()) {
+				
 
 				commands.ForEach(c => services.AddSingleton(c));
 				notificationHandlers.ForEach(c => services.AddSingleton(c));
@@ -71,32 +75,56 @@ namespace RmqLib {
 
 
 				// создать класс инициализатор команд обработчиков
-				var cmdHandlerBinder = new CommandHandlersBinder(
+				var commandsManager = new CommandHandlersManager(
 					commandImplementations, 
 					notificationImplementations,
 					config);
-				
-			}
 
-			// 6. добавить как singleton сервис rmqSender
-			var sender = new RmqSender(config, responseHandler, channel);
-			services.AddSingleton<IRmqSender, RmqSender>(factory => sender);
+				var topics = commandsManager.GetAllTopics();
+				// Инициализировать каналом и обработчиками класс отвечающий за прием сообщений из шины
+				requestHandelr.Init(channel.ChannelInstance, commandsManager);
+				// Запустить прослушивание топиков
+				channelFactory.BindRequestHandler(topics, requestHandelr);
+			}
 		}
 	}
 
-	public class CommandHandlersBinder {
-		private List<IRmqCommandHandler> commandImplementations;
-		private List<IRmqNotificationHandler> notificationImplementations;
+	public class CommandHandlersManager: ICommands {
+		private readonly ConcurrentDictionary<string, IRmqNotificationHandler> notifyHandlers;
+		private readonly ConcurrentDictionary<string, IRmqCommandHandler> commandsHandlers;
+
+		private readonly string[] allTopics;
 		private RmqConfig config;
 
-		public CommandHandlersBinder(
+		public CommandHandlersManager(
 			List<IRmqCommandHandler> commandImplementations, 
 			List<IRmqNotificationHandler> notificationImplementations, 
 			RmqConfig config) {
-
-			this.commandImplementations = commandImplementations;
-			this.notificationImplementations = notificationImplementations;
 			this.config = config;
+
+			var cmdHandlers = commandImplementations.ToDictionary(
+				x => x.Topic,
+				x => x
+				);
+
+			var notifHandlers = notificationImplementations.ToDictionary(
+				x => x.Topic,
+				x => x
+				);
+
+			allTopics = cmdHandlers.Keys.Union(notifHandlers.Keys).ToArray();
+
+
+			commandsHandlers = new ConcurrentDictionary<string, IRmqCommandHandler>(cmdHandlers);
+			notifyHandlers = new ConcurrentDictionary<string, IRmqNotificationHandler>(notifHandlers);
+		}
+
+		public IRmqHandler GetHandler(string topic) {
+			throw new NotImplementedException();
+		}
+
+		public string[] GetAllTopics() {
+			throw new NotImplementedException();
 		}
 	}
 }

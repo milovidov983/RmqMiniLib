@@ -8,6 +8,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace RmqLib.Core {
+	/// <summary>
+	/// Отвечает за прием сообщений из шины
+	/// </summary>
 	internal class RequestHandler : IRequestHandler {
 		/// <summary>
 		/// Обработчик ошибок назначенный пользователем библиотеки
@@ -32,45 +35,61 @@ namespace RmqLib.Core {
 			this.commands = commands;
 		}
 
+		/// <summary>
+		/// Метод обрабатывает сообщения из шины и делегирует обработку классу отвечающему за конкретный топик
+		/// </summary>
 		internal async Task Handle(object _, BasicDeliverEventArgs ea) {
 			var hasError = false;
 			try {
-				var handler = commands.GetHandler(ea.RoutingKey);
-				switch (handler) {
-					case IRmqCommandHandler h:
-						await HandleCommand(h, ea);
-						break;
-					case IRmqNotificationHandler h:
-						await h.Execute(new DeliveredMessage(ea));
-						break;
-				}
-
+				await ExecuteSpecificHandler(ea);
 			} catch (Exception e) {
-				hasError = true;
-				if (exceptionEvent != null) {
-					try {
-						await exceptionEvent(e, new DeliveredMessage(ea));
-					} catch (Exception ex) {
-						logger.LogError($"Ошибка в пользовательском обработчике исключений {ex.Message}");
-					}
-				} else {
-					logger.LogError(e, $"Ошибка при обработке запроса \"{ea.RoutingKey}\", {e.Message}");
-				}
+				hasError = await HandleException(ea, e);
 			} finally {
-				if (hasError) {
-					await Task.Run(() =>
-						channel.BasicReject(
-							deliveryTag: ea.DeliveryTag,
-							requeue: true)
-					);
+				await NotifyRmq(ea, hasError);
+			}
+		}
 
-				} else {
-					await Task.Run(() =>
-						channel.BasicAck(
-							deliveryTag: ea.DeliveryTag,
-							multiple: false)
-					);
+		private async Task NotifyRmq(BasicDeliverEventArgs ea, bool hasError) {
+			if (hasError) {
+				await Task.Run(() =>
+					channel.BasicReject(
+						deliveryTag: ea.DeliveryTag,
+						requeue: true)
+				);
+
+			} else {
+				await Task.Run(() =>
+					channel.BasicAck(
+						deliveryTag: ea.DeliveryTag,
+						multiple: false)
+				);
+			}
+		}
+
+		private async Task<bool> HandleException(BasicDeliverEventArgs ea, Exception e) {
+			bool hasError = true;
+			if (exceptionEvent != null) {
+				try {
+					await exceptionEvent(e, new DeliveredMessage(ea));
+				} catch (Exception ex) {
+					logger.LogError($"Ошибка в пользовательском обработчике исключений {ex.Message}");
 				}
+			} else {
+				logger.LogError(e, $"Ошибка при обработке запроса \"{ea.RoutingKey}\", {e.Message}");
+			}
+
+			return hasError;
+		}
+
+		private async Task ExecuteSpecificHandler(BasicDeliverEventArgs ea) {
+			var handler = commands.GetHandler(ea.RoutingKey);
+			switch (handler) {
+				case IRmqCommandHandler h:
+					await HandleCommand(h, ea);
+					break;
+				case IRmqNotificationHandler h:
+					await h.Execute(new DeliveredMessage(ea));
+					break;
 			}
 		}
 

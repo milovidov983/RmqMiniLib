@@ -36,7 +36,7 @@ namespace RmqLib {
 		/// <summary>
 		/// TODO comment
 		/// </summary>
-		public IChannel Create(IReplyHandler handler, string[] topics = null) {
+		public IChannel Create(IReplyHandler handler) {
 			this.channel = connection.RmqConnection.CreateModel();
 
 			DeclareExchanges(channel);

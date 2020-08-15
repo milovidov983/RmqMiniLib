@@ -10,7 +10,7 @@ namespace RmqLib.Core {
 		/// <summary>
 		/// TODO comment
 		/// </summary>
-		IChannel Create(IReplyHandler handler, string[] topics = null);
+		IChannel Create(IReplyHandler handler);
 
 		/// <summary>
 		/// Привязать обработчик входящих запросов
