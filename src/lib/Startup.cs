@@ -18,9 +18,15 @@ namespace RmqLib {
 			RmqConfig config) {
 			try {
 				IServiceProvider serviceProvider = services.BuildServiceProvider();
+				IEventHandlersFactoryService eventHandlersFactoryService = null;
+				if (services.Any(x => x.ServiceType == typeof(IEventHandlersFactoryService))) {
+					eventHandlersFactoryService = serviceProvider.GetService<IEventHandlersFactoryService>();
+				}
+				var connectionEvents = new ConnectionEvents(eventHandlersFactoryService);
 				var logger = serviceProvider.GetService<ILogger>();
-				var connectionEvents = new ConnectionEvents(null);// пока не привязываем события
+
 				var connectionFactory = new ConnectionFactory(config, connectionEvents, logger);
+
 				ExecuteInit(services, connectionFactory, config, logger);
 			} catch(Exception e) {
 				throw new RmqException($"Rmq initialization error: {e.Message}", e, Error.INTERNAL_ERROR);

@@ -12,8 +12,8 @@ namespace RmqLib.Core {
 		/// </summary>
 		private readonly ConnectionEventHandlers connectionEventHandlers;
 
-		public ConnectionEvents(ConnectionEventHandlers connectionEventHandlers) {
-			this.connectionEventHandlers = connectionEventHandlers;
+		public ConnectionEvents(IEventHandlersFactoryService eventFactory) {
+			this.connectionEventHandlers = eventFactory?.CreateConnectionEventHandlers();
 		}
 
 
