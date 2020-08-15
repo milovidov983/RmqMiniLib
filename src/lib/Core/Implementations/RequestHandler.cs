@@ -17,7 +17,7 @@ namespace RmqLib.Core {
 		/// </summary>
 		private event ExceptionHandler exceptionEvent;
 
-		private ICommands commands;
+		private ICommandHandlersManager commands;
 		private IModel channel;
 		private readonly ILogger logger;
 		private readonly string appId;
@@ -30,7 +30,7 @@ namespace RmqLib.Core {
 			}
 		}
 
-		internal void Init(IModel commandChannel, ICommands commands) {
+		internal void Init(IModel commandChannel, ICommandHandlersManager commands) {
 			this.channel = commandChannel;
 			this.commands = commands;
 		}

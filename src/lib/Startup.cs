@@ -61,8 +61,6 @@ namespace RmqLib {
 
 
 			if (commands.Any() || notificationHandlers.Any()) {
-				
-
 				commands.ForEach(c => services.AddSingleton(c));
 				notificationHandlers.ForEach(c => services.AddSingleton(c));
 
@@ -77,54 +75,17 @@ namespace RmqLib {
 				// создать класс инициализатор команд обработчиков
 				var commandsManager = new CommandHandlersManager(
 					commandImplementations, 
-					notificationImplementations,
-					config);
+					notificationImplementations);
 
-				var topics = commandsManager.GetAllTopics();
 				// Инициализировать каналом и обработчиками класс отвечающий за прием сообщений из шины
 				requestHandelr.Init(channel.ChannelInstance, commandsManager);
+
+				var topics = commandsManager.GetAllTopics();
 				// Запустить прослушивание топиков
-				channelFactory.BindRequestHandler(topics, requestHandelr);
+				channelFactory.BindRequestHandler(topics.ToList(), requestHandelr);
 			}
 		}
 	}
 
-	public class CommandHandlersManager: ICommands {
-		private readonly ConcurrentDictionary<string, IRmqNotificationHandler> notifyHandlers;
-		private readonly ConcurrentDictionary<string, IRmqCommandHandler> commandsHandlers;
 
-		private readonly string[] allTopics;
-		private RmqConfig config;
-
-		public CommandHandlersManager(
-			List<IRmqCommandHandler> commandImplementations, 
-			List<IRmqNotificationHandler> notificationImplementations, 
-			RmqConfig config) {
-			this.config = config;
-
-			var cmdHandlers = commandImplementations.ToDictionary(
-				x => x.Topic,
-				x => x
-				);
-
-			var notifHandlers = notificationImplementations.ToDictionary(
-				x => x.Topic,
-				x => x
-				);
-
-			allTopics = cmdHandlers.Keys.Union(notifHandlers.Keys).ToArray();
-
-
-			commandsHandlers = new ConcurrentDictionary<string, IRmqCommandHandler>(cmdHandlers);
-			notifyHandlers = new ConcurrentDictionary<string, IRmqNotificationHandler>(notifHandlers);
-		}
-
-		public IRmqHandler GetHandler(string topic) {
-			throw new NotImplementedException();
-		}
-
-		public string[] GetAllTopics() {
-			throw new NotImplementedException();
-		}
-	}
 }

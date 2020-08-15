@@ -43,8 +43,6 @@ namespace RmqLib {
 			BindQueue(channel);
 			ConfiguresQoS(channel);
 			BindReplyHandler(channel, handler);
-			
-			
 
 			return new Channel(channel, rmqConfig.Exchange);
 		}
