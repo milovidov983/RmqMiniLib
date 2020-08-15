@@ -13,6 +13,7 @@ namespace RmqLib {
 			this.basicDeliverEventArgs = basicDeliverEventArgs;
 		}
 
+
 		public TResult GetContent<TResult>(bool validation = true) where TResult : class {
 			var content = basicDeliverEventArgs.GetContent<TResult>();
 

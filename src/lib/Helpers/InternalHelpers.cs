@@ -2,6 +2,8 @@
 using RmqLib.Core;
 using System;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Text.Json;
@@ -38,6 +40,20 @@ namespace RmqLib {
             var formattedElapsed = $"{elapsed.TotalMilliseconds} ms";
 
             return $"{title} message processed. Elapsed time: {formattedElapsed}";
+        }
+
+        public static void GetAllTopics() {
+            var commands = Assembly.GetEntryAssembly()
+                    .GetTypes()
+                    .Where(p => typeof(IRmqCommandHandler).IsAssignableFrom(p) && !p.IsInterface)
+                    .ToList();
+
+            var notificationHandlers = Assembly.GetEntryAssembly()
+                .GetTypes()
+                .Where(p => typeof(IRmqNotificationHandler).IsAssignableFrom(p) && !p.IsInterface)
+                .ToList();
+
+
         }
     }
 }

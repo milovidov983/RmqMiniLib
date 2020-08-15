@@ -27,7 +27,7 @@ namespace RmqLib {
 		/// <summary>
 		/// TODO comment
 		/// </summary>
-		private ConnectionEventHandlers connectionEventHandlers;
+		private EventHandlers connectionEventHandlers;
 		/// <summary>
 		/// TODO comment
 		/// </summary>
@@ -35,7 +35,7 @@ namespace RmqLib {
 		/// <summary>
 		/// TODO comment
 		/// </summary>
-		public Connection(RmqConfig rmqConfig, ConnectionEventHandlers connectionEventHandlers, ILogger logger) {
+		public Connection(RmqConfig rmqConfig, EventHandlers connectionEventHandlers, ILogger logger) {
 			this.rmqConfig = rmqConfig;
 			this.connectionEventHandlers = connectionEventHandlers;
 			this.logger = logger;

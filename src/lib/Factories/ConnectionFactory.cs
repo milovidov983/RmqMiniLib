@@ -12,7 +12,7 @@ namespace RmqLib.Factories {
 		/// <summary>
 		/// TODO comment
 		/// </summary>
-		private readonly ConnectionEventHandlers connectionEventHandlers;
+		private readonly EventHandlers connectionEventHandlers;
 		/// <summary>
 		/// TODO comment
 		/// </summary>
@@ -21,7 +21,7 @@ namespace RmqLib.Factories {
 		/// <summary>
 		/// TODO comment
 		/// </summary>
-		public ConnectionFactory(RmqConfig rmqConfig, ConnectionEventHandlers connectionEventHandlers = null, ILogger logger = null) {
+		public ConnectionFactory(RmqConfig rmqConfig, EventHandlers connectionEventHandlers = null, ILogger logger = null) {
 			this.rmqConfig = rmqConfig;
 			this.connectionEventHandlers = connectionEventHandlers;
 			this.logger = logger;

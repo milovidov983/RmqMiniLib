@@ -10,6 +10,6 @@ namespace RmqLib.Core {
 		/// <summary>
 		/// TODO comment
 		/// </summary>
-		IChannel Create(IReplyHandler handler);
+		IChannel Create(IReplyHandler handler, string[] topics = null);
 	}
 }

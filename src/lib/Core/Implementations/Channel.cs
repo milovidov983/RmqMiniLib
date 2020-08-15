@@ -13,7 +13,7 @@ namespace RmqLib.Core {
 		/// <summary>
 		/// TODO comment
 		/// </summary>
-		private readonly IModel channel;
+		public IModel ChannelInstance { get; private set; }
 		/// <summary>
 		/// TODO comment
 		/// </summary>
@@ -24,7 +24,7 @@ namespace RmqLib.Core {
 		/// TODO comment
 		/// </summary>
 		public Channel(IModel channel, string exchange) {
-			this.channel = channel;
+			this.ChannelInstance = channel;
 			this.exchange = exchange;
 		}
 
@@ -32,13 +32,13 @@ namespace RmqLib.Core {
 		/// Send RPC request
 		/// </summary>
 		public Task SendRpc(string topic, byte[] payload, string correlationId) {
-			var props = channel.CreateBasicProperties();
+			var props = ChannelInstance.CreateBasicProperties();
 
 			props.CorrelationId = correlationId;
 			props.ReplyTo = ServiceConstants.REPLY_QUEUE_NAME;
 
 			return Task.Run(()=>
-				channel.BasicPublish(
+				ChannelInstance.BasicPublish(
 					exchange: exchange,
 					routingKey: topic,
 					basicProperties: props,
@@ -51,9 +51,9 @@ namespace RmqLib.Core {
 		/// Send notify message
 		/// </summary>
 		public Task SendNotify(string topic, byte[] payload) {
-			var props = channel.CreateBasicProperties();
+			var props = ChannelInstance.CreateBasicProperties();
 			return Task.Run(() =>
-				channel.BasicPublish(
+				ChannelInstance.BasicPublish(
 					exchange: ServiceConstants.FANOUT_EXCHANGE,
 					routingKey: topic,
 					basicProperties: props,

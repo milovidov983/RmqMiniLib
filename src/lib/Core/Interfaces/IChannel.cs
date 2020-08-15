@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RabbitMQ.Client;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,5 +21,7 @@ namespace RmqLib {
 		/// <param name="topic">topic</param>
 		/// <param name="payload">payload</param>
 		Task SendNotify(string topic, byte[] payload);
+
+		IModel ChannelInstance { get; }
 	}
 }

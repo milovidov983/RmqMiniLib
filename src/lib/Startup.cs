@@ -1,9 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RmqLib.Core;
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace RmqLib {
 	public class Startup {
@@ -33,7 +36,10 @@ namespace RmqLib {
 			logger?.LogInformation($"Try to bind channel and declare the work exchanges and the queue {config?.Queue}.");
 			// 3. create response handler
 			var responseHandler = new ResponseHandelr();
-			var channel = channelFactory.Create(responseHandler);
+
+			// 3.1 получить все топики
+			string[] allTopics = new string[] { };
+			var channel = channelFactory.Create(responseHandler, allTopics);
 			logger?.LogInformation($"Channel binded to {config?.Queue} successfully");
 
 			// 4. если у сервиса есть подходящие команды то инициализировать их
@@ -53,13 +59,37 @@ namespace RmqLib {
 				notificationHandlers.ForEach(c => services.AddSingleton(c));
 
 
+
+
 				// 5. привязать пользовательские команды к топикам
+				services.AddHostedService(service => {
+
+					var commandImplementations = commands
+									.ConvertAll(c => (IRmqCommandHandler)service.GetService(c));
+
+					var notificationImplementations = notificationHandlers
+						.ConvertAll(c => (IRmqNotificationHandler)service.GetService(c));
+
+
+					// создать класс инициализатор команд обработчиков
+					return new CommandHandlersBinder(
+						commandImplementations, 
+						notificationImplementations,
+						config);
+				});
+
 
 			}
 
 			// 6. добавить как singleton сервис rmqSender
 			var sender = new RmqSender(config, responseHandler, channel);
 			services.AddSingleton<IRmqSender, RmqSender>(factory => sender);
+		}
+	}
+
+	public class CommandHandlersBinder : BackgroundService {
+		protected override Task ExecuteAsync(CancellationToken stoppingToken) {
+			throw new NotImplementedException();
 		}
 	}
 }
