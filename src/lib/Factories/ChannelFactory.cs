@@ -21,9 +21,8 @@ namespace RmqLib {
 		/// </summary>
 		private readonly RmqConfig rmqConfig;
 		/// <summary>
-		/// Обработчик входящих команд из шины
+		/// TODO comment
 		/// </summary>
-		private readonly IRequestHandler requestHandler;
 		private IModel channel;
 
 		/// <summary>
@@ -46,12 +45,12 @@ namespace RmqLib {
 
 			return new Channel(channel, rmqConfig.Exchange);
 		}
-
+		//TODO comment
 		private void DeclareExchanges(IModel channel) {
 			channel.ExchangeDeclare(rmqConfig.Exchange, ExchangeType.Topic, durable: true);
 			channel.ExchangeDeclare(ServiceConstants.FANOUT_EXCHANGE, ExchangeType.Fanout, durable: true);
 		}
-
+		//TODO comment
 		private void BindQueue(IModel channel) {
 			if (rmqConfig.Queue != null) {
 				channel.QueueDeclare(
@@ -62,7 +61,7 @@ namespace RmqLib {
 					arguments: null);
 			}
 		}
-
+		//TODO comment
 		private void ConfiguresQoS(IModel channel) {
 			channel.BasicQos(
 				prefetchSize: 0,
@@ -119,7 +118,11 @@ namespace RmqLib {
 				consumer: consumer);
 		}
 
-
+		/// <summary>
+		/// TODO comment
+		/// </summary>
+		/// <param name="channel"></param>
+		/// <param name="handler"></param>
 		private void BindReplyHandler(IModel channel, IReplyHandler handler) {
 			var consumer = new AsyncEventingBasicConsumer(channel);
 			channel.BasicConsume(
@@ -128,10 +131,19 @@ namespace RmqLib {
 				autoAck: true);
 			consumer.Received += handler.ReceiveReply;
 		}
-
+		/// <summary>
+		/// TODO comment
+		/// </summary>
+		/// <param name="topic"></param>
+		/// <returns></returns>
 		private static bool IsCommandHandlerTopic(string topic) {
 			return topic.EndsWith(ServiceConstants.PPC_TOKEN_TOPIC);
 		}
+		/// <summary>
+		/// TODO comment
+		/// </summary>
+		/// <param name="topic"></param>
+		/// <returns></returns>
 		private static bool IsNotificationHandlerTopic(string topic) {
 			return topic.EndsWith(ServiceConstants.NOTIFICATION_TOKEN_TOPIC);
 		}

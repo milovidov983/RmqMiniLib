@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RmqLib.Core;
+using RmqLib.Factories;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -14,18 +15,19 @@ namespace RmqLib {
 	public class Startup {
 		public static void Init(
 			IServiceCollection services,
-			IServiceProvider serviceProvider,
-			IConnectionFactory connectionFactory,
-			RmqConfig config, 
-			ILogger logger) {
+			RmqConfig config) {
 			try {
-				ExecuteInit(services, serviceProvider, connectionFactory, config, logger);
+				IServiceProvider serviceProvider = services.BuildServiceProvider();
+				var logger = serviceProvider.GetService<ILogger>();
+
+				var connectionFactory = new ConnectionFactory(config, null, logger);
+				ExecuteInit(services, connectionFactory, config, logger);
 			} catch(Exception e) {
 				throw new RmqException($"Rmq initialization error: {e.Message}", e, Error.INTERNAL_ERROR);
 			}
 		}
 
-		private static void ExecuteInit(IServiceCollection services, IServiceProvider serviceProvider, IConnectionFactory connectionFactory, RmqConfig config, ILogger logger) {
+		private static void ExecuteInit(IServiceCollection services, IConnectionFactory connectionFactory, RmqConfig config, ILogger logger) {
 			// 1. create connection
 			var connection = connectionFactory.Create();
 
@@ -57,13 +59,11 @@ namespace RmqLib {
 				.Where(p => typeof(IRmqNotificationHandler).IsAssignableFrom(p) && !p.IsInterface)
 				.ToList();
 
-
-
-
 			if (commands.Any() || notificationHandlers.Any()) {
 				commands.ForEach(c => services.AddSingleton(c));
 				notificationHandlers.ForEach(c => services.AddSingleton(c));
 
+				IServiceProvider serviceProvider = services.BuildServiceProvider();
 				// 5. привязать пользовательские команды к топикам
 				var commandImplementations = commands
 								.ConvertAll(c => (IRmqCommandHandler)serviceProvider.GetService(c));
