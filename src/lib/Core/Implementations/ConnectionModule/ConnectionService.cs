@@ -15,9 +15,10 @@ namespace RmqLib {
 		/// <summary>
 		/// TODO comment
 		/// </summary>
-		public RabbitMQ.Client.IConnection RmqConnection { get; private set; }
-
-
+		public IConnection RmqConnection { get; private set; }
+		/// <summary>
+		/// 
+		/// </summary>
 		public bool IsConnected { get=> RmqConnection?.IsOpen == true; }
 		/// <summary>
 		/// TODO comment
@@ -27,21 +28,29 @@ namespace RmqLib {
 		/// TODO comment
 		/// </summary>
 		private readonly RmqConfig rmqConfig;
-
-		/// <summary>
-		/// TODO comment
-		/// </summary>
-		private ILogger logger;
 		/// <summary>
 		/// 
 		/// </summary>
-		private IRetryConnection retryConnection;
+		private readonly IConnectionEvents connectionEvents;
+		/// <summary>
+		/// TODO comment
+		/// </summary>
+		private readonly ILogger logger;
+		/// <summary>
+		/// 
+		/// </summary>
+		private readonly IRetryConnection retryConnection;
 
 		/// <summary>
 		/// TODO comment
 		/// </summary>
-		internal ConnectionService(RmqConfig rmqConfig, IRetryConnectionFactory retryConnectionFactory, ILogger logger) {
+		internal ConnectionService(
+			RmqConfig rmqConfig, 
+			IRetryConnectionFactory retryConnectionFactory,
+			IConnectionEvents connectionEvents,
+			ILogger logger) {
 			this.rmqConfig = rmqConfig;
+			this.connectionEvents = connectionEvents;
 			this.logger = logger;
 			this.retryConnection = retryConnectionFactory.Create(this);
 		}
@@ -77,11 +86,7 @@ namespace RmqLib {
 
 		public void CreateRmqConnection() {
 			RmqConnection = factory.CreateConnection();
-			//BindEventHandlers(); // перенести в класс
+			connectionEvents.BindEventHandlers(this);
 		}
-
-
-
-
 	}
 }

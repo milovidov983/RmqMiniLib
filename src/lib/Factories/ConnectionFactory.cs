@@ -5,11 +5,13 @@ namespace RmqLib.Factories {
 	/// <summary>
 	/// TODO comment
 	/// </summary>
-	internal class ConnectionFactory: IConnectionFactory {
+	internal class ConnectionFactory : IConnectionFactory {
 		/// <summary>
 		/// TODO comment
 		/// </summary>
 		private readonly RmqConfig rmqConfig;
+		private readonly IConnectionEvents connectionEvents;
+
 		/// <summary>
 		/// TODO comment
 		/// </summary>
@@ -22,8 +24,9 @@ namespace RmqLib.Factories {
 		/// <summary>
 		/// TODO comment
 		/// </summary>
-		public ConnectionFactory(RmqConfig rmqConfig, ILogger logger = null) {
+		public ConnectionFactory(RmqConfig rmqConfig, IConnectionEvents connectionEvents, ILogger logger = null) {
 			this.rmqConfig = rmqConfig;
+			this.connectionEvents = connectionEvents;
 			this.logger = logger;
 			this.retryConnectionFactory = new RetryConnectionFactory(logger);
 		}
@@ -31,7 +34,7 @@ namespace RmqLib.Factories {
 		/// TODO comment
 		/// </summary>
 		public IConnectionService Create() {
-			return new ConnectionService(rmqConfig, retryConnectionFactory, logger);
+			return new ConnectionService(rmqConfig, retryConnectionFactory, connectionEvents, logger);
 		}
 	}
 }
