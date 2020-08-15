@@ -11,7 +11,7 @@ namespace RmqLib {
 	/// <summary>
 	/// TODO comment
 	/// </summary>
-	public class Connection: IConnection {
+	public class ConnectionService: IConnectionService {
 		/// <summary>
 		/// TODO comment
 		/// </summary>
@@ -40,7 +40,7 @@ namespace RmqLib {
 		/// <summary>
 		/// TODO comment
 		/// </summary>
-		internal Connection(RmqConfig rmqConfig, IRetryConnectionFactory retryConnectionFactory, ILogger logger) {
+		internal ConnectionService(RmqConfig rmqConfig, IRetryConnectionFactory retryConnectionFactory, ILogger logger) {
 			this.rmqConfig = rmqConfig;
 			this.logger = logger;
 			this.retryConnection = retryConnectionFactory.Create(this);
@@ -52,7 +52,7 @@ namespace RmqLib {
 			InitConnectionFactory();
 
 			try {
-				CreateConnection();
+				CreateRmqConnection();
 			} catch (Exception e) {
 				var message = $"Failed connect to the RabbitMQ: {e.Message} ";
 				if (reconnectIfFailed) {
@@ -75,22 +75,11 @@ namespace RmqLib {
 			factory.AutomaticRecoveryEnabled = true;
 		}
 
-		public void CreateConnection() {
+		public void CreateRmqConnection() {
 			RmqConnection = factory.CreateConnection();
 			//BindEventHandlers(); // перенести в класс
 		}
-		/// <summary>
-		/// TODO comment
-		/// </summary>
-		//private EventHandlers connectionEventHandlers;
-		//private void BindEventHandlers() {
-		//	if (connectionEventHandlers?.ConnectionShutdown != null) {
-		//		RmqConnection.ConnectionShutdown += connectionEventHandlers.ConnectionShutdown;
-		//	}
-		//	if (connectionEventHandlers?.CallbackException != null) {
-		//		RmqConnection.CallbackException += connectionEventHandlers.CallbackException;
-		//	}
-		//}
+
 
 
 

@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RmqLib {
+namespace RmqLib.Core {
 	/// <summary>
 	/// TODO comment
 	/// </summary>
-	public interface IConnectionFactory {
+	internal interface IConnectionFactory {
 		/// <summary>
 		/// TODO comment
 		/// </summary>
-		IConnection Create();
+		IConnectionService Create();
 	}
 }

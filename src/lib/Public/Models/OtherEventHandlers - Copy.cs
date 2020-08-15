@@ -8,15 +8,7 @@ namespace RmqLib {
 	/// <summary>
 	/// Обработчики событий RMQ
 	/// </summary>
-	public class EventHandlers {
-		/// <summary>
-		/// Raised when the connection is destroyed.
-		/// </summary>
-		public EventHandler<ShutdownEventArgs> ConnectionShutdown;
-		/// <summary>
-		/// Signalled when an exception occurs in a callback invoked by the connection.
-		/// </summary>
-		public EventHandler<CallbackExceptionEventArgs> CallbackException;
+	public class OtherEventHandlers {
 
 		// Не реализовано
 

@@ -4,6 +4,6 @@ using System.Text;
 
 namespace RmqLib.Core {
 	internal interface IRetryConnectionFactory {
-		IRetryConnection Create(IConnection connection);
+		IRetryConnection Create(IConnectionService connection);
 	}
 }

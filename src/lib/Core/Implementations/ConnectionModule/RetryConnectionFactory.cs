@@ -20,7 +20,7 @@ namespace RmqLib.Factories {
 		/// <summary>
 		/// TODO comment
 		/// </summary>
-		public IRetryConnection Create(IConnection connection) {
+		public IRetryConnection Create(IConnectionService connection) {
 			return new RetryConnection(connection, logger);
 		}
 	}

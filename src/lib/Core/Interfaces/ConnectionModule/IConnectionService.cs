@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RmqLib {
+namespace RmqLib.Core {
 	/// <summary>
 	/// TODO comment
 	/// </summary>
-	public interface IConnection {
+	public interface IConnectionService {
 		/// <summary>
 		/// TODO comment
 		/// </summary>
@@ -22,6 +22,6 @@ namespace RmqLib {
 		/// <summary>
 		/// 
 		/// </summary>
-		void CreateConnection();
+		void CreateRmqConnection();
 	}
 }

@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using IConnection = RmqLib.IConnection;
 
 namespace RmqLib {
 	/// <summary>
@@ -15,7 +14,7 @@ namespace RmqLib {
 		/// <summary>
 		/// TODO comment
 		/// </summary>
-		private readonly IConnection connection;
+		private readonly IConnectionService connection;
 		/// <summary>
 		/// TODO comment
 		/// </summary>
@@ -28,7 +27,7 @@ namespace RmqLib {
 		/// <summary>
 		/// TODO comment
 		/// </summary>
-		public ChannelFactory(IConnection connection, RmqConfig rmqConfig) {
+		public ChannelFactory(IConnectionService connection, RmqConfig rmqConfig) {
 			this.connection = connection;
 			this.rmqConfig = rmqConfig;
 		}

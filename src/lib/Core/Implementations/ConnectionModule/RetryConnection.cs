@@ -11,10 +11,10 @@ namespace RmqLib.Core {
 		private const int START_TIMEOUT_MS = 1000;
 
 
-		private IConnection connection;
+		private IConnectionService connection;
 		private ILogger logger;
 
-		public RetryConnection(IConnection connection, ILogger logger) {
+		public RetryConnection(IConnectionService connection, ILogger logger) {
 			this.connection = connection;
 			this.logger = logger;
 		}
@@ -28,7 +28,7 @@ namespace RmqLib.Core {
 			while (!connection.IsConnected) {
 				Thread.Sleep(timeoutMs);
 				try {
-					connection.CreateConnection();
+					connection.CreateRmqConnection();
 				} catch (Exception ex) {
 					timeoutMs += 1000 / d++;
 					logger?.LogWarning(

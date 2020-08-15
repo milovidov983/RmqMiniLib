@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RmqLib {
+namespace RmqLib.Core {
 	/// <summary>
 	/// TODO comment
 	/// </summary>

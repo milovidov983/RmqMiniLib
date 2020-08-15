@@ -20,7 +20,7 @@ namespace RmqLib {
 				IServiceProvider serviceProvider = services.BuildServiceProvider();
 				var logger = serviceProvider.GetService<ILogger>();
 
-				var connectionFactory = new ConnectionFactory(config, null, logger);
+				var connectionFactory = new ConnectionFactory(config, logger);
 				ExecuteInit(services, connectionFactory, config, logger);
 			} catch(Exception e) {
 				throw new RmqException($"Rmq initialization error: {e.Message}", e, Error.INTERNAL_ERROR);
