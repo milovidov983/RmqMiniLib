@@ -5,8 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\ExampleContracts1\ExampleContracts1.csproj" />
     <ProjectReference Include="..\..\lib\RmqLib.csproj" />
+    <ProjectReference Include="..\ExampleContracts1\ExampleContracts1.csproj" />
   </ItemGroup>
 
 

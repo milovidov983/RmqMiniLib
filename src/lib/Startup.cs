@@ -39,16 +39,21 @@ namespace RmqLib {
 			var channelFactory = new ChannelFactory(connection, config);
 
 			logger?.LogInformation($"Try to bind channel and declare the work exchanges and the queue {config?.Queue}.");
-			// 3. create response handler
+			// - create response handler
 			var responseHandler = new ResponseHandelr();
 
-			// 3.1 получить все топики
+			// - получить все топики
 			var channel = channelFactory.Create(responseHandler);
 			logger?.LogInformation($"Channel binded to {config?.Queue} successfully");
 
 
+			// - добавить как singleton сервис rmqSender
+			var sender = new RmqSender(config, responseHandler, channel);
+			services.AddSingleton<IRmqSender, RmqSender>(factory => sender);
 
-			// 4. если у сервиса есть подходящие команды то инициализировать их
+
+
+			// - если у сервиса есть подходящие команды то инициализировать их
 			var commands = Assembly.GetEntryAssembly()
 					.GetTypes()
 					.Where(p => typeof(IRmqCommandHandler).IsAssignableFrom(p) && !p.IsInterface)
@@ -63,8 +68,7 @@ namespace RmqLib {
 				commands.ForEach(c => services.AddSingleton(c));
 				notificationHandlers.ForEach(c => services.AddSingleton(c));
 
-				IServiceProvider serviceProvider = services.BuildServiceProvider();
-				// 5. привязать пользовательские команды к топикам
+				var serviceProvider = services.BuildServiceProvider();
 				var commandImplementations = commands
 								.ConvertAll(c => (IRmqCommandHandler)serviceProvider.GetService(c));
 
@@ -72,20 +76,23 @@ namespace RmqLib {
 					.ConvertAll(c => (IRmqNotificationHandler)serviceProvider.GetService(c));
 
 
-				// создать класс инициализатор команд обработчиков
+				// - Создать класс инициализатор команд обработчиков
 				var commandsManager = new CommandHandlersManager(
 					commandImplementations, 
 					notificationImplementations);
 				
-				// Создать обработчик всех входящих запросов к микросервису из шины
-				// Инициализировать каналом и обработчиками
+				// - Создать обработчик всех входящих запросов к микросервису из шины. Инициализировать каналом и обработчиками
 				// TODO put consumer exception handler
 				var requestHandelr = new RequestHandler(logger, config.AppId, channel, commandsManager);
 
+
 				var topics = commandsManager.GetAllTopics();
-				// Запустить прослушивание топиков
+
+				// - Запустить прослушивание топиков
 				channelFactory.BindRequestHandler(topics.ToList(), requestHandelr);
 			}
+
+
 		}
 	}
 }

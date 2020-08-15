@@ -43,7 +43,7 @@ namespace RmqLib.Core {
 		/// <summary>
 		/// Метод обрабатывает сообщения из шины и делегирует обработку классу отвечающему за конкретный топик
 		/// </summary>
-		internal async Task Handle(object _, BasicDeliverEventArgs ea) {
+		public async Task Handle(object _, BasicDeliverEventArgs ea) {
 			var hasError = false;
 			try {
 				await ExecuteSpecificHandler(ea);
@@ -140,10 +140,6 @@ namespace RmqLib.Core {
 			return Task.Run(() => {
 				channel.BasicPublish("", basicProperties.ReplyTo, replyProps, content);
 			});
-		}
-
-		Task IRequestHandler.Handle(object _, BasicDeliverEventArgs ea) {
-			throw new NotImplementedException();
 		}
 	}
 }
