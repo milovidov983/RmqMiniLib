@@ -34,26 +34,10 @@ namespace RmqLib {
 			}
         }
 
-
-
         public static string GetFormattedElapsedTime(string title, TimeSpan elapsed) {
             var formattedElapsed = $"{elapsed.TotalMilliseconds} ms";
 
             return $"{title} message processed. Elapsed time: {formattedElapsed}";
-        }
-
-        public static void GetAllTopics() {
-            var commands = Assembly.GetEntryAssembly()
-                    .GetTypes()
-                    .Where(p => typeof(IRmqCommandHandler).IsAssignableFrom(p) && !p.IsInterface)
-                    .ToList();
-
-            var notificationHandlers = Assembly.GetEntryAssembly()
-                .GetTypes()
-                .Where(p => typeof(IRmqNotificationHandler).IsAssignableFrom(p) && !p.IsInterface)
-                .ToList();
-
-
         }
     }
 }
