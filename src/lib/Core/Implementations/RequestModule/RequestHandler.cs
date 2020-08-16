@@ -12,13 +12,11 @@ namespace RmqLib.Core {
 	/// Отвечает за прием сообщений из шины
 	/// </summary>
 	internal class RequestHandler : IRequestHandler {
-		/// <summary>
-		/// Обработчик ошибок назначенный пользователем библиотеки
-		/// </summary>
-		private event ExceptionHandler exceptionEvent;
 
-		private ICommandHandlersManager commands;
-		private IModel channel;
+
+		private readonly ICommandHandlersManager commands;
+		private readonly IConsumerExceptionHandler consumerExceptionHandler;
+		private readonly IModel channel;
 		private readonly ILogger logger;
 		private readonly string appId;
 
@@ -27,16 +25,13 @@ namespace RmqLib.Core {
 			string appId, 
 			IChannel commandChannel,
 			ICommandHandlersManager commands,
-			ExceptionHandler consumerExceptionHandler = null) {
+			IConsumerExceptionHandler consumerExceptionHandler) {
 
 			this.logger = logger;
 			this.appId = appId;
 			this.channel = commandChannel.ChannelInstance;
 			this.commands = commands;
-			
-			if (consumerExceptionHandler != null) {
-				this.exceptionEvent += consumerExceptionHandler;
-			}
+			this.consumerExceptionHandler = consumerExceptionHandler;
 		}
 
 
@@ -48,13 +43,14 @@ namespace RmqLib.Core {
 			try {
 				await ExecuteSpecificHandler(ea);
 			} catch (Exception e) {
-				hasError = await HandleException(ea, e);
+				hasError = true;
+				await consumerExceptionHandler?.HandleException(new DeliveredMessage(ea), e);
 			} finally {
-				await NotifyRmq(ea, hasError);
+				await AskRmq(ea, hasError);
 			}
 		}
 
-		private async Task NotifyRmq(BasicDeliverEventArgs ea, bool hasError) {
+		private async Task AskRmq(BasicDeliverEventArgs ea, bool hasError) {
 			if (hasError) {
 				await Task.Run(() =>
 					channel.BasicReject(
@@ -71,20 +67,7 @@ namespace RmqLib.Core {
 			}
 		}
 
-		private async Task<bool> HandleException(BasicDeliverEventArgs ea, Exception e) {
-			bool hasError = true;
-			if (exceptionEvent != null) {
-				try {
-					await exceptionEvent(e, new DeliveredMessage(ea));
-				} catch (Exception ex) {
-					logger.LogError($"Ошибка в пользовательском обработчике исключений {ex.Message}");
-				}
-			} else {
-				logger.LogError(e, $"Ошибка при обработке запроса \"{ea.RoutingKey}\", {e.Message}");
-			}
 
-			return hasError;
-		}
 
 		private async Task ExecuteSpecificHandler(BasicDeliverEventArgs ea) {
 			var handler = commands.GetHandler(ea.RoutingKey);

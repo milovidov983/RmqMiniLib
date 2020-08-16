@@ -4,7 +4,7 @@ using System.Text;
 
 namespace RmqLib.Core {
 	/// <summary>
-	/// Привязывает события к сущности "соединение с rmq"
+	/// Отвечает за привязку событий к сущности "соединение с rmq"
 	/// </summary>
 	internal class ConnectionEvents : IConnectionEvents {
 		/// <summary>

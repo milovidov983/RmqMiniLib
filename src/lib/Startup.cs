@@ -89,10 +89,20 @@ namespace RmqLib {
 				var commandsManager = new CommandHandlersManager(
 					commandImplementations, 
 					notificationImplementations);
-				
+
+				IConsumerExceptionHandler consumerExceptionHandler = null;
+				if (services.Any(x => x.ServiceType == typeof(IExceptionHandlerService))) {
+					var exceptionHandlerService = serviceProvider.GetService<IExceptionHandlerService>();
+					consumerExceptionHandler = new ConsumerExceptionHandler(logger, exceptionHandlerService.HandleException);
+				}
 				// - Создать обработчик всех входящих запросов к микросервису из шины. Инициализировать каналом и обработчиками
 				// TODO put consumer exception handler
-				var requestHandelr = new RequestHandler(logger, config.AppId, channel, commandsManager);
+				var requestHandelr = new RequestHandler(
+					logger, 
+					config.AppId, 
+					channel,
+					commandsManager,
+					consumerExceptionHandler);
 
 
 				var topics = commandsManager.GetAllTopics();

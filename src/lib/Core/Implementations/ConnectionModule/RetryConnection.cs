@@ -5,14 +5,15 @@ using System.Text;
 using System.Threading;
 
 namespace RmqLib.Core {
-
-
+	/// <summary>
+	/// Отвечает за retry при обрыве соединения
+	/// </summary>
 	internal class RetryConnection : IRetryConnection {
 		private const int START_TIMEOUT_MS = 1000;
 
 
-		private IConnectionService connection;
-		private ILogger logger;
+		private readonly IConnectionService connection;
+		private readonly ILogger logger;
 
 		public RetryConnection(IConnectionService connection, ILogger logger) {
 			this.connection = connection;

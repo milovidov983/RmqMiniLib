@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace RmqLib {
+
+	// TODO обернуть в свои модели что бы уши либы не торчали наружу
+
 	/// <summary>
 	/// Обработчики событий RMQ
 	/// </summary>
