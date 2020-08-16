@@ -12,22 +12,16 @@ namespace RmqLib.Core {
 	/// Отвечает за прием сообщений из шины
 	/// </summary>
 	internal class RequestHandler : IRequestHandler {
-
-
 		private readonly ICommandHandlersManager commands;
 		private readonly IConsumerExceptionHandler consumerExceptionHandler;
 		private readonly IModel channel;
-		private readonly ILogger logger;
 		private readonly string appId;
 
 		internal RequestHandler(
-			ILogger logger, 
 			string appId, 
 			IChannel commandChannel,
 			ICommandHandlersManager commands,
 			IConsumerExceptionHandler consumerExceptionHandler) {
-
-			this.logger = logger;
 			this.appId = appId;
 			this.channel = commandChannel.ChannelInstance;
 			this.commands = commands;
@@ -98,6 +92,9 @@ namespace RmqLib.Core {
 			}
 		}
 
+		/// <summary>
+		/// TODO refact строковые значения в константы
+		/// </summary>
 		private Task Reply(byte[] content, RmqException error, IBasicProperties basicProperties) {
 			var replyProps = channel.CreateBasicProperties();
 			replyProps.CorrelationId = basicProperties.CorrelationId;

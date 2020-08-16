@@ -90,6 +90,7 @@ namespace RmqLib {
 					commandImplementations, 
 					notificationImplementations);
 
+				// Пользовательский обработчик исключений
 				IConsumerExceptionHandler consumerExceptionHandler = null;
 				if (services.Any(x => x.ServiceType == typeof(IExceptionHandlerService))) {
 					var exceptionHandlerService = serviceProvider.GetService<IExceptionHandlerService>();
@@ -98,7 +99,6 @@ namespace RmqLib {
 				// - Создать обработчик всех входящих запросов к микросервису из шины. Инициализировать каналом и обработчиками
 				// TODO put consumer exception handler
 				var requestHandelr = new RequestHandler(
-					logger, 
 					config.AppId, 
 					channel,
 					commandsManager,

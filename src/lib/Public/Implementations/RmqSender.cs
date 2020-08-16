@@ -101,7 +101,5 @@ namespace RmqLib {
 					Error.INTERNAL_ERROR);
 			}
 		}
-
-
 	}
 }

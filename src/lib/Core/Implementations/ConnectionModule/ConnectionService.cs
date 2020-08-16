@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 
-namespace RmqLib {
+namespace RmqLib.Core {
 	/// <summary>
 	/// TODO comment
 	/// </summary>
@@ -23,7 +23,7 @@ namespace RmqLib {
 		/// <summary>
 		/// TODO comment
 		/// </summary>
-		private ConnectionFactory factory;
+		private RabbitMQ.Client.ConnectionFactory factory;
 		/// <summary>
 		/// TODO comment
 		/// </summary>
@@ -75,7 +75,7 @@ namespace RmqLib {
 		}
 
 		private void InitConnectionFactory() {
-			factory = new ConnectionFactory {
+			factory = new RabbitMQ.Client.ConnectionFactory {
 				HostName = rmqConfig.HostName,
 				Password = rmqConfig.Password,
 				UserName = rmqConfig.UserName

@@ -1,7 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using RmqLib.Core;
+using RmqLib.Factories;
 
-namespace RmqLib.Factories {
+namespace RmqLib.Core {
 	/// <summary>
 	/// TODO comment
 	/// </summary>
