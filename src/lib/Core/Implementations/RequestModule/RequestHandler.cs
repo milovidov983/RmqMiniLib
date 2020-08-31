@@ -38,7 +38,9 @@ namespace RmqLib.Core {
 				await ExecuteSpecificHandler(ea);
 			} catch (Exception e) {
 				hasError = true;
-				await consumerExceptionHandler?.HandleException(new DeliveredMessage(ea), e);
+				if (consumerExceptionHandler != null) {
+					await consumerExceptionHandler.HandleException(new DeliveredMessage(ea), e);
+				}
 			} finally {
 				await AskRmq(ea, hasError);
 			}
