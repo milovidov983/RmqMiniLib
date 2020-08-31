@@ -2,15 +2,14 @@
 
 namespace ExampleContracts1 {
 	public class SumExampleCommand {
-		public const string Topic = "sum.exampleService1.rpc";
+		public const string Topic = "getMessage.aerverExample.rpc";
 
 		public class Request {
-			public int A { get; set; }
-			public int B { get; set; }
+			public int Id { get; set; }
 		}
 
 		public class Response {
-			public int Sum { get; set; }
+			public string Data { get; set; }
 		}
 	}
 }

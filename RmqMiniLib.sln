@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.30320.27
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RmqLib", "src\lib\RmqLib.csproj", "{E92446DC-23CA-42D7-A2CB-78B883F4D6F1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExampleService1", "src\examples\ExampleService1\ExampleService1.csproj", "{BEBE0F50-E48F-4EE8-A4D4-D6B89129361F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server", "src\examples\ExampleService1\Server.csproj", "{BEBE0F50-E48F-4EE8-A4D4-D6B89129361F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Example1", "Example1", "{F73F4E5A-B0F3-4C27-990B-8205F6477C9C}"
 EndProject

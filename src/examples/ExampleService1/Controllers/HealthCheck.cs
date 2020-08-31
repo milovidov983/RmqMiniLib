@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-namespace ExampleService1.Controllers {
+namespace ExampleServer.Controllers {
 	[ApiController]
 	[Route("[controller]")]
 	public class HealthCheck : ControllerBase {
@@ -17,7 +17,7 @@ namespace ExampleService1.Controllers {
 
 		[HttpGet]
 		public object Get() {
-			throw new NotImplementedException();
+			return "Ok";
 		}
 	}
 }

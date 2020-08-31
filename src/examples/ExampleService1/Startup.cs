@@ -11,15 +11,24 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RmqLib;
+using Server.Services;
 
-namespace ExampleService1 {
+namespace ExampleServer {
 
 
 
 	public class Startup {
 
-		public Startup(IConfiguration configuration) {
+		public Startup(IConfiguration configuration, IWebHostEnvironment env) {
 			Configuration = configuration;
+			Console.WriteLine(env.EnvironmentName);
+			var builder = new ConfigurationBuilder()
+				.SetBasePath(env.ContentRootPath)
+				.AddJsonFile("appsettings.json", true, true)
+				.AddJsonFile($"appsettings.{env.EnvironmentName}.json", true)
+				.AddEnvironmentVariables("ExampleServer:");
+
+			Configuration = builder.Build();
 		}
 
 		public IConfiguration Configuration { get; }
@@ -30,14 +39,14 @@ namespace ExampleService1 {
 			services.AddOptions();
 			services.AddLogging();
 
+			services.AddSingleton<DatabaseService>();
 
-
+			Console.WriteLine("Start Rmq init");
 			var rmqConfig = new RmqConfig();
 			var settingsSection = Configuration.GetSection(nameof(RmqConfig));
 			settingsSection.Bind(rmqConfig);
-			
-
 			RmqLib.Startup.Init(services, rmqConfig);
+			Console.WriteLine("Rmq connected");
 		}
 
 

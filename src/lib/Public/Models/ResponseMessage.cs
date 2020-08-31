@@ -10,13 +10,15 @@ namespace RmqLib {
 	public class ResponseMessage {
 		public byte[] Result { get; private set; } //= new byte[] { 1, 0, 0, 0 };//Array.Empty<byte>();
 
-		public ResponseMessage Create<TResult>(TResult result) where TResult: class {
+		public static ResponseMessage Create<TResult>(TResult result) where TResult: class {
 			if(result is null) {
 				throw new ArgumentNullException($"Parameter {nameof(result)} is null!");
 			}
 			var res = JsonSerializer.Serialize(result);
-			this.Result = Encoding.UTF8.GetBytes(res.ToString());
-			return this;
+			var resp = new ResponseMessage {
+				Result = Encoding.UTF8.GetBytes(res.ToString())
+			};
+			return resp;
 		}
 
 		public static ResponseMessage Empty = new ResponseMessage();
