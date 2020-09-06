@@ -47,7 +47,6 @@ namespace RmqLib {
 		//TODO comment
 		private void DeclareExchanges(IModel channel) {
 			channel.ExchangeDeclare(rmqConfig.Exchange, ExchangeType.Topic, durable: true);
-			channel.ExchangeDeclare(ServiceConstants.FANOUT_EXCHANGE, ExchangeType.Fanout, durable: true);
 		}
 		//TODO comment
 		private void BindQueue(IModel channel) {
@@ -91,24 +90,12 @@ namespace RmqLib {
 			//consumer.ConsumerCancelled += OnConsumerCancelled;
 
 			topics.ForEach(topic => {
-				if (IsCommandHandlerTopic(topic)) {
-					channel.QueueBind(
-						queue: rmqConfig.Queue,
-						exchange: rmqConfig.Exchange,
-						routingKey: topic,
-						arguments: null);
-				} else if (IsNotificationHandlerTopic(topic)) {
-					channel.QueueBind(
-						queue: rmqConfig.Queue,
-						exchange: ServiceConstants.FANOUT_EXCHANGE,
-						routingKey: topic,
-						arguments: null);
-
-				} else {
-					throw new RmqException($"\"{topic}\": incorrect name for the topic, "
-						+ $"the name must end with \"{ServiceConstants.PPC_TOKEN_TOPIC}\" " +
-						$"or \"{ServiceConstants.NOTIFICATION_TOKEN_TOPIC}\"!", Error.INTERNAL_ERROR);
-				}
+				channel.QueueBind(
+					queue: rmqConfig.Queue,
+					exchange: rmqConfig.Exchange,
+					routingKey: topic,
+					arguments: null);
+				
 			});
 
 			channel.BasicConsume(
@@ -129,22 +116,6 @@ namespace RmqLib {
 				queue: ServiceConstants.REPLY_QUEUE_NAME,
 				autoAck: true);
 			consumer.Received += handler.ReceiveReply;
-		}
-		/// <summary>
-		/// TODO comment
-		/// </summary>
-		/// <param name="topic"></param>
-		/// <returns></returns>
-		private static bool IsCommandHandlerTopic(string topic) {
-			return topic.EndsWith(ServiceConstants.PPC_TOKEN_TOPIC);
-		}
-		/// <summary>
-		/// TODO comment
-		/// </summary>
-		/// <param name="topic"></param>
-		/// <returns></returns>
-		private static bool IsNotificationHandlerTopic(string topic) {
-			return topic.EndsWith(ServiceConstants.NOTIFICATION_TOKEN_TOPIC);
 		}
 	}
 }

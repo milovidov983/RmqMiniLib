@@ -4,5 +4,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace RmqLib {
-	public delegate Task ExceptionHandler(Exception ex, RequestContext deliveredMessage);
+	public enum MessageProcessResult {
+        Ack = 1,
+        Requeue,
+        Reject
+    }
 }

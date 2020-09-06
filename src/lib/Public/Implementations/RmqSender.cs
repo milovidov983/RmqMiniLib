@@ -1,6 +1,9 @@
-﻿using RmqLib.Core;
+﻿using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
+using RmqLib.Core;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -64,6 +67,78 @@ namespace RmqLib {
 			await channel.SendNotify(topic, messageBytes);
 		}
 
+
+
+		/// <summary>
+		/// Ответить на полученную команду из rmq
+		/// </summary>
+		public Task SetRpcResultAsync(RequestContext request, ResponseMessage responseMessage) {
+			var ea = request.GetBasicDeliverEventArgs();
+			var replyProps = CreateReplyProps(ea);
+
+			replyProps.Headers = new Dictionary<string, object>
+			{
+				{ "-x-service", rmqConfig.AppId },
+				{ "-x-host", Dns.GetHostName() },
+			};
+
+			return Task.Run(() => {
+				channel.Instance.BasicPublish("", ea.BasicProperties.ReplyTo, replyProps, responseMessage.Result);
+			});
+		}
+
+		/// <summary>
+		/// Отправить потребителю команды rmq, сообщение с ошибкой
+		/// </summary>
+		public Task SetRpcErrorAsync(RequestContext request, RmqException exception) {
+			Validate(request, exception);
+
+			var ea = request.GetBasicDeliverEventArgs();
+			var replyProps = CreateReplyProps(ea);
+			var additionalData = CreateAdditionalDataOrDefault(exception);
+
+			replyProps.Headers = new Dictionary<string, object>
+			{
+				{ "-x-error", exception.Message },
+				{ "-x-status-code", exception.StatusCode },
+				{ "-x-host", Dns.GetHostName() },
+				{ "-x-service", rmqConfig.AppId },
+				{ "-x-data", additionalData }
+			};
+
+			return Task.Run(() => {
+				channel.Instance.BasicPublish("", ea.BasicProperties.ReplyTo, replyProps, default);
+			});
+		}
+
+		private static string CreateAdditionalDataOrDefault(RmqException exception) {
+			if (exception.Data?.Count > 0) {
+				return JsonSerializer.Serialize(exception.Data);
+			}
+			return string.Empty;
+		}
+
+		private void Validate(RequestContext request, RmqException exception) {
+			if (request is null) {
+				throw new ArgumentNullException($"Method {nameof(SetRpcErrorAsync)} parameter {nameof(request)}");
+			}
+			var (isValid, error) = request.IsValid();
+			if (!isValid) {
+				throw new ArgumentException($"Method {nameof(SetRpcErrorAsync)} parameter {nameof(request)}, {error}");
+			}
+			if (exception is null) {
+				throw new ArgumentNullException($"Method {nameof(SetRpcErrorAsync)} parameter {nameof(exception)}");
+			}
+		}
+
+		private IBasicProperties CreateReplyProps(BasicDeliverEventArgs ea) {
+			var replyProps = channel.Instance.CreateBasicProperties();
+			replyProps.CorrelationId = ea.BasicProperties.CorrelationId;
+			replyProps.ContentType = "text/json";
+			return replyProps;
+		}
+
+
 		private Timer CreateTimer(TimeSpan? timeout, string correlationId) {
 			timeout = timeout ?? rmqConfig.RequestTimeout;
 			var timer = new Timer(timeout.Value.TotalMilliseconds) {
@@ -78,7 +153,7 @@ namespace RmqLib {
 			return timer;
 		}
 
-		private static async Task<TResponse> GetRusult<TResponse>(TaskCompletionSource<string> completionTask, Timer timer) 
+		private static async Task<TResponse> GetRusult<TResponse>(TaskCompletionSource<string> completionTask, Timer timer)
 			where TResponse : class {
 
 			var res = await completionTask.Task;
@@ -101,5 +176,6 @@ namespace RmqLib {
 					Error.INTERNAL_ERROR);
 			}
 		}
+
 	}
 }

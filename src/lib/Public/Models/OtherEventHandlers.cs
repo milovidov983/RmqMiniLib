@@ -15,16 +15,16 @@ namespace RmqLib {
 		/// <summary>
 		/// TODO на будущее пользовательский обработчик перед выполнением команды
 		/// </summary>
-		public EventHandler<DeliveredMessage> BeforeExecuteHandler;		
+		public EventHandler<RequestContext> BeforeExecuteHandler;		
 		
 		/// <summary>
 		/// TODO на будущее пользовательский обработчик после выполнения команды
 		/// </summary>
-		public EventHandler<DeliveredMessage> AfterExecuteHandler;
+		public EventHandler<RequestContext> AfterExecuteHandler;
 
 		/// <summary>
 		/// TODO на будущее пользовательский обработчик после выполнения команды
 		/// </summary>
-		public Func<Exception, DeliveredMessage> ExceptionHandler;
+		public Func<Exception, RequestContext> ExceptionHandler;
 	}
 }

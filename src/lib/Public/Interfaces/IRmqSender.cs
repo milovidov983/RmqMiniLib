@@ -9,5 +9,8 @@ namespace RmqLib {
 		Task<TResponse> Send<TRequest, TResponse>(string topic, TRequest message, TimeSpan? timeout = null)
 			where TRequest : class
 			where TResponse : class;
+
+		Task SetRpcResultAsync(RequestContext request, ResponseMessage responseMessage);
+		Task SetRpcErrorAsync(RequestContext request, RmqException rmqException);
 	}
 }

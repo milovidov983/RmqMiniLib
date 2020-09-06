@@ -5,12 +5,27 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
 namespace RmqLib {
-	public class DeliveredMessage {
+	public class RequestContext {
+		/// <summary>
+		/// Объект с служебной информацией и телом сообщения. Относится к текущему вызову
+		/// </summary>
 		private readonly BasicDeliverEventArgs basicDeliverEventArgs;
+		/// <summary>
+		/// Топик rmq для которого создано сообщение
+		/// </summary>
 		public string Topic { get => basicDeliverEventArgs.RoutingKey; }
+		/// <summary>
+		/// AppId потребителя
+		/// </summary>
+		public string AppId { get => basicDeliverEventArgs?.BasicProperties?.AppId; }
+		/// <summary>
+		/// Экземпляр объекта позволяющего работать с шиной
+		/// </summary>
+		public IRmqSender Hub { get; }
 
-		public DeliveredMessage(BasicDeliverEventArgs basicDeliverEventArgs) {
+		public RequestContext(BasicDeliverEventArgs basicDeliverEventArgs, IRmqSender hub) {
 			this.basicDeliverEventArgs = basicDeliverEventArgs;
+			Hub = hub;
 		}
 
 
@@ -33,6 +48,16 @@ namespace RmqLib {
 
 				throw new RmqException(exceptionMessage,Error.INVALID_REQUEST_CODE);
 			}
+		}
+
+		
+		public BasicDeliverEventArgs GetBasicDeliverEventArgs() {
+			return basicDeliverEventArgs;
+		}
+
+
+		public bool IsRpcMessage() {
+			return !string.IsNullOrEmpty(basicDeliverEventArgs.BasicProperties?.ReplyTo);
 		}
 	}
 }

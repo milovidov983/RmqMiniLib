@@ -9,23 +9,23 @@ using System.Threading.Tasks;
 
 namespace RmqLib.Core {
 	/// <summary>
-	/// Отвечает за прием сообщений из шины
+	/// Передает сообщения из rmq в обработчик
 	/// </summary>
 	internal class RequestHandler : IRequestHandler {
 		private readonly ICommandHandlersManager commands;
-		private readonly IConsumerExceptionHandler consumerExceptionHandler;
 		private readonly IModel channel;
 		private readonly string appId;
+		private readonly IRmqSender hub;
 
 		internal RequestHandler(
-			string appId, 
+			string appId,
 			IChannel commandChannel,
-			ICommandHandlersManager commands,
-			IConsumerExceptionHandler consumerExceptionHandler) {
+			ICommandHandlersManager commands, 
+			IRmqSender hub) {
 			this.appId = appId;
-			this.channel = commandChannel.ChannelInstance;
+			this.channel = commandChannel.Instance;
 			this.commands = commands;
-			this.consumerExceptionHandler = consumerExceptionHandler;
+			this.hub = hub;
 		}
 
 
@@ -33,95 +33,86 @@ namespace RmqLib.Core {
 		/// Метод обрабатывает сообщения из шины и делегирует обработку классу отвечающему за конкретный топик
 		/// </summary>
 		public async Task Handle(object _, BasicDeliverEventArgs ea) {
-			var hasError = false;
+			MessageProcessResult messageProcessResult = MessageProcessResult.Reject;
 			try {
-				await ExecuteSpecificHandler(ea);
-			} catch (Exception e) {
-				hasError = true;
-				if (consumerExceptionHandler != null) {
-					await consumerExceptionHandler.HandleException(new DeliveredMessage(ea), e);
-				}
+				var handler = commands.GetHandler(ea.RoutingKey);
+				var deliveredMessage = new RequestContext(ea, hub);
+
+				messageProcessResult = await handler.Execute(deliveredMessage);
 			} finally {
-				await AskRmq(ea, hasError);
+				await AskRmq(messageProcessResult, ea);
 			}
 		}
 
-		private async Task AskRmq(BasicDeliverEventArgs ea, bool hasError) {
-			if (hasError) {
-				await Task.Run(() =>
-					channel.BasicReject(
-						deliveryTag: ea.DeliveryTag,
-						requeue: true)
-				);
-
-			} else {
-				await Task.Run(() =>
+		private Task AskRmq(MessageProcessResult processResult, BasicDeliverEventArgs ea) {
+			switch (processResult) {
+				case MessageProcessResult.Ack:
+					return Task.Run(() =>
 					channel.BasicAck(
 						deliveryTag: ea.DeliveryTag,
 						multiple: false)
-				);
+					);
+				case MessageProcessResult.Requeue:
+					return Task.Run(() =>
+					channel.BasicReject(
+						deliveryTag: ea.DeliveryTag,
+						requeue: true)
+					);
+				case MessageProcessResult.Reject:
+					return Task.Run(() =>
+					channel.BasicReject(
+						deliveryTag: ea.DeliveryTag,
+						requeue: false)
+					);
 			}
+			throw new ApplicationException($"MessageProcessResult is invalid: {processResult}");
 		}
 
 
 
-		private async Task ExecuteSpecificHandler(BasicDeliverEventArgs ea) {
-			var handler = commands.GetHandler(ea.RoutingKey);
-			switch (handler) {
-				case IRmqCommandHandler h:
-					await HandleCommand(h, ea);
-					break;
-				case IRmqNotificationHandler h:
-					await h.Execute(new DeliveredMessage(ea));
-					break;
-			}
-		}
+		/// <summary>
+		/// Ответить на полученную команду из rmq
+		/// </summary>
+		public Task SetRpcResultAsync(RequestContext request, ResponseMessage responseMessage) {
+			var ea = request.GetBasicDeliverEventArgs();
+			var replyProps = CreateReplyProps(ea);
 
-		private async Task HandleCommand(IRmqCommandHandler h, BasicDeliverEventArgs ea) {
-			try {
-				var res = await h.Execute(new DeliveredMessage(ea));
-				await Reply(res.Result, null, ea.BasicProperties);
-			} catch (RmqException ex) {
-				await Reply(null, ex, ea.BasicProperties);
-				throw;
-			} catch (Exception ex) {
-				await Reply(null, new RmqException(
-						ex.Message,
-						ex,
-						Error.INTERNAL_ERROR),
-					ea.BasicProperties);
-				throw;
-			}
+			replyProps.Headers = new Dictionary<string, object>
+			{
+				{ "-x-service", appId },
+				{ "-x-host", Dns.GetHostName() },
+			};
+			
+			return Task.Run(() => {
+				channel.BasicPublish("", ea.BasicProperties.ReplyTo, replyProps, responseMessage.Result);
+			});
 		}
 
 		/// <summary>
-		/// TODO refact строковые значения в константы
+		/// Отправить потребителю команды rmq, сообщение с ошибкой
 		/// </summary>
-		private Task Reply(byte[] content, RmqException error, IBasicProperties basicProperties) {
-			var replyProps = channel.CreateBasicProperties();
-			replyProps.CorrelationId = basicProperties.CorrelationId;
-			replyProps.ContentType = "text/json";
-			if (error != null) {
-				replyProps.Headers = new Dictionary<string, object>
-				{
-					{ "-x-error", error.Message },
-					{ "-x-status-code", error.StatusCode },
-					{ "-x-host", Dns.GetHostName() },
-					{ "-x-service", appId },
-					{ "-x-data", error.Data },
-					//{ "-x-type", ErrorTypes.RMQ.ToString() },
-				};
-			} else {
-				replyProps.Headers = new Dictionary<string, object>
-				{
-					{ "-x-service", appId },
-					{ "-x-host", Dns.GetHostName() },
-				};
-			}
+		public Task SetRpcErrorAsync(RequestContext request, string error, int? statusCode) {
+			var ea = request.GetBasicDeliverEventArgs();
+			var replyProps = CreateReplyProps(ea);
+
+			replyProps.Headers = new Dictionary<string, object>
+			{
+				{ "-x-error", error },
+				{ "-x-status-code", statusCode },
+				{ "-x-host", Dns.GetHostName() },
+				{ "-x-service", appId }
+			};
 
 			return Task.Run(() => {
-				channel.BasicPublish("", basicProperties.ReplyTo, replyProps, content);
+				channel.BasicPublish("", ea.BasicProperties.ReplyTo, replyProps, default);
 			});
+		}
+
+		private IBasicProperties CreateReplyProps(BasicDeliverEventArgs ea) {
+			var replyProps = channel.CreateBasicProperties();
+			replyProps.CorrelationId = ea.BasicProperties.CorrelationId;
+			replyProps.ContentType = "text/json";
+			return replyProps;
 		}
 	}
 }

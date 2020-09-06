@@ -22,6 +22,6 @@ namespace RmqLib {
 		/// <param name="payload">payload</param>
 		Task SendNotify(string topic, byte[] payload);
 
-		IModel ChannelInstance { get; }
+		IModel Instance { get; }
 	}
 }

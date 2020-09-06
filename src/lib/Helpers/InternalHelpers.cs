@@ -39,5 +39,18 @@ namespace RmqLib {
 
             return $"{title} message processed. Elapsed time: {formattedElapsed}";
         }
+
+        public static (bool isValid, string message) IsValid(this RequestContext request) {
+            if(request.GetBasicDeliverEventArgs() == null) {
+                return (false, $"Invalid {nameof(RequestContext)}, {nameof(BasicDeliverEventArgs)} is null");
+			}
+            if (string.IsNullOrEmpty(request.Topic)) {
+
+                return (false, $"Invalid {nameof(RequestContext)}, {nameof(request.Topic)} is empty");
+			}
+
+            return (true, null);
+                
+        }
     }
 }

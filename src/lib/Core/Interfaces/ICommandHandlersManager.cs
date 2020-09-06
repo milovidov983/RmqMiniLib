@@ -4,7 +4,7 @@ using System.Text;
 
 namespace RmqLib.Core {
 	internal interface ICommandHandlersManager {
-		IRmqHandler GetHandler(string topic);
+		IRmqCommandHandler GetHandler(string topic);
 		string[] GetAllTopics();
 	}
 }

@@ -22,11 +22,6 @@ namespace RmqLib {
 		public const string NOTIFICATION_TOKEN_TOPIC = "none";
 
 		/// <summary>
-		/// Брудкаст обмен rmq
-		/// </summary>
-		public const string FANOUT_EXCHANGE = "amq.fanout";
-
-		/// <summary>
 		/// REPLY_QUEUE_NAME
 		/// </summary>
 		public const string REPLY_QUEUE_NAME = "amq.rabbitmq.reply-to";

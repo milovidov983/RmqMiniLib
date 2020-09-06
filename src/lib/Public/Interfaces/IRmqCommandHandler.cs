@@ -15,6 +15,6 @@ namespace RmqLib {
         /// <summary>
         /// Метод выполняемый при входящем сообщении полученном из очереди по топику Topic 
         /// </summary>
-        Task<ResponseMessage> Execute(DeliveredMessage message);
+        Task<MessageProcessResult> Execute(RequestContext message);
     }
 }
