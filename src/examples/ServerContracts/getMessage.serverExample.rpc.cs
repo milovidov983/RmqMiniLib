@@ -1,7 +1,7 @@
 ﻿using System;
 
 namespace Server.Contracts {
-	public class SumExampleCommand {
+	public class GetMessageExample {
 		public const string Topic = "getMessage.serverExample.rpc";
 
 		public class Request {

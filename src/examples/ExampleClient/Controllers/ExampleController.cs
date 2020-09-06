@@ -18,16 +18,21 @@ namespace ExampleClient.Controllers {
 			this.hub = hub;
 		}
 
-		[HttpGet]
-		public async Task<string> Execute() {
-			var result = await hub.Send<SC.SumExampleCommand.Request, SC.SumExampleCommand.Response>(SC.SumExampleCommand.Topic,
-				new SC.SumExampleCommand.Request {
+		[HttpGet, Route("ExecuteRpc")]
+		public async Task<string> ExecuteRpc() {
+			var result = await hub.Send<SC.GetMessageExample.Request, SC.GetMessageExample.Response>(SC.GetMessageExample.Topic,
+				new SC.GetMessageExample.Request {
 					Id = 1
 				});
-
-			System.Diagnostics.Debug.WriteLine(result.Data);
-
 			return result.Data;
+		}
+
+		[HttpGet, Route("SendNotify")]
+		public async Task Notify() {
+			await hub.Notify(SC.NotifyExample.Topic,
+				new SC.NotifyExample.Message {
+					Data = "NOTIFICATION EXAMPLE DATA"
+				});
 		}
 	}
 }

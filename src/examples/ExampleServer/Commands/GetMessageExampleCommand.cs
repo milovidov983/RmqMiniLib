@@ -8,40 +8,12 @@ using SC = Server.Contracts;
 
 namespace ExampleServer.Commands {
 
-	public abstract class CommandContext {
-		protected IRmqSender hub;
-		public async Task<MessageProcessResult> Execute(RequestContext request) {
-			hub = request.Hub;
-			try {
-				await ExecuteImpl(request);
-				return MessageProcessResult.Ack;
-			} catch(RmqException e) {
-				//logError
-				await LogError(request, e);
-			}
-			return MessageProcessResult.Reject;
-
-		}
-
-		private async Task LogError(RequestContext request, RmqException e) {
-			Console.WriteLine(nameof(CommandContext) + " ERROR! : ");
-			Console.WriteLine(e.Message);
-
-			if (request.IsRpcMessage()) {
-				await hub.SetRpcErrorAsync(request, e);
-			}
-		}
-
-		public abstract Task ExecuteImpl(RequestContext message);
-
-		
-	}
 
 
 	public class GetMessageExampleCommand : CommandContext, IRmqCommandHandler {
 		private readonly DatabaseService databaseService;
 
-		public string Topic => SC.SumExampleCommand.Topic;
+		public string Topic => SC.GetMessageExample.Topic;
 
 		public GetMessageExampleCommand(DatabaseService databaseService) {
 			this.databaseService = databaseService;
@@ -49,14 +21,14 @@ namespace ExampleServer.Commands {
 
 		public override async Task ExecuteImpl(RequestContext request) {
 			// Получаем данные из сообщения и десериализуем их к релевантному объекту
-			var req = request.GetContent<SC.SumExampleCommand.Request>();
+			var req = request.GetContent<SC.GetMessageExample.Request>();
 
 			// Выполняем бизнес логику команды
 			var data = await databaseService.GetData(req.Id);
 
 			// Подготавливаем ответ
 			var response = ResponseMessage.Create(
-				new SC.SumExampleCommand.Response {
+				new SC.GetMessageExample.Response {
 					Data = data
 				}
 			);
