@@ -9,16 +9,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using RmqLib;
-using Server.Services;
 
-namespace ExampleServer {
-
-
-
+namespace ExampleClient {
 	public class Startup {
-
 		public Startup(IConfiguration configuration, IWebHostEnvironment env) {
 			Configuration = configuration;
 			Console.WriteLine(env.EnvironmentName);
@@ -29,6 +23,7 @@ namespace ExampleServer {
 				.AddEnvironmentVariables("ExampleServer:");
 
 			Configuration = builder.Build();
+
 			RmqConfig = new RmqConfig();
 			var settingsSection = Configuration.GetSection(nameof(RmqConfig));
 			settingsSection.Bind(RmqConfig);
@@ -39,19 +34,15 @@ namespace ExampleServer {
 		public IConfiguration Configuration { get; }
 		public RmqConfig RmqConfig { get; }
 
-
 		public void ConfigureServices(IServiceCollection services) {
 			services.AddControllers();
 			services.AddOptions();
 			services.AddLogging();
 
-			services.AddSingleton<DatabaseService>();
-
-			Console.WriteLine("Before RabbitMQ init");
+			Console.WriteLine("Start Rmq init");
 			RmqLib.Startup.Init(services, RmqConfig);
-			Console.WriteLine("RMQ connected");
+			Console.WriteLine("Rmq connected");
 		}
-
 
 		public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
 			if (env.IsDevelopment()) {
@@ -59,6 +50,8 @@ namespace ExampleServer {
 			}
 
 			app.UseRouting();
+
+			app.UseAuthorization();
 
 			app.UseEndpoints(endpoints => {
 				endpoints.MapControllers();

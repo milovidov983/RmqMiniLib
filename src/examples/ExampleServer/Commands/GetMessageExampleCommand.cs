@@ -1,10 +1,10 @@
-﻿using ExampleContracts1;
-using RmqLib;
+﻿using RmqLib;
 using Server.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using SC = Server.Contracts;
 
 namespace ExampleServer.Commands {
 
@@ -41,7 +41,7 @@ namespace ExampleServer.Commands {
 	public class GetMessageExampleCommand : CommandContext, IRmqCommandHandler {
 		private readonly DatabaseService databaseService;
 
-		public string Topic => SumExampleCommand.Topic;
+		public string Topic => SC.SumExampleCommand.Topic;
 
 		public GetMessageExampleCommand(DatabaseService databaseService) {
 			this.databaseService = databaseService;
@@ -49,14 +49,14 @@ namespace ExampleServer.Commands {
 
 		public override async Task ExecuteImpl(RequestContext request) {
 			// Получаем данные из сообщения и десериализуем их к релевантному объекту
-			var req = request.GetContent<SumExampleCommand.Request>();
+			var req = request.GetContent<SC.SumExampleCommand.Request>();
 
 			// Выполняем бизнес логику команды
 			var data = await databaseService.GetData(req.Id);
 
 			// Подготавливаем ответ
 			var response = ResponseMessage.Create(
-				new SumExampleCommand.Response {
+				new SC.SumExampleCommand.Response {
 					Data = data
 				}
 			);

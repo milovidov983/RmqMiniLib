@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ExampleContracts1 {
+namespace Server.Contracts {
 	public class SumExampleCommand {
 		public const string Topic = "getMessage.serverExample.rpc";
 

@@ -1,0 +1,28 @@
+﻿{
+    "profiles": {
+        "ExampleClient.Test": {
+            "commandName": "Project",
+            "environmentVariables": {
+                "ASPNETCORE_ENVIRONMENT": "test",
+                "CONSUL_HTTP_ADDR": "http://192.168.0.252:8500",
+                "CONSUL_HTTP_TOKEN": "admin"
+            }
+        },
+        "ExampleClient.Team1": {
+            "commandName": "Project",
+            "environmentVariables": {
+                "ASPNETCORE_ENVIRONMENT": "team1",
+                "CONSUL_HTTP_ADDR": "http://192.168.0.244:8500",
+                "CONSUL_HTTP_TOKEN": "admin"
+            }
+        },
+        "ExampleClient.Team2": {
+            "commandName": "Project",
+            "environmentVariables": {
+                "ASPNETCORE_ENVIRONMENT": "team2",
+                "CONSUL_HTTP_ADDR": "http://192.168.0.245:8500",
+                "CONSUL_HTTP_TOKEN": "admin"
+            }
+        }
+    }
+}
