@@ -77,10 +77,8 @@ namespace RmqLib {
 				// - Создать класс инициализатор команд обработчиков
 				var commandsManager = new CommandHandlersManager(commandImplementations);
 
-
 				// - Создать обработчик всех входящих запросов к микросервису из шины. Инициализировать каналом и обработчиками
 				var requestHandelr = new RequestHandler(config.AppId, channel,commandsManager, sender);
-
 
 				var topics = commandsManager.GetAllTopics();
 

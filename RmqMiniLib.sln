@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Example1", "Example1", "{F7
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExampleContracts1", "src\examples\ExampleContracts1\ExampleContracts1.csproj", "{FF2C2CD7-9599-40B9-B113-8BC0BC41E586}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientExample", "src\examples\ClientExample\ClientExample.csproj", "{2C451EA0-38F8-4488-B1C5-A0C7454F8F41}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,6 +31,10 @@ Global
 		{FF2C2CD7-9599-40B9-B113-8BC0BC41E586}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FF2C2CD7-9599-40B9-B113-8BC0BC41E586}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FF2C2CD7-9599-40B9-B113-8BC0BC41E586}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C451EA0-38F8-4488-B1C5-A0C7454F8F41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C451EA0-38F8-4488-B1C5-A0C7454F8F41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C451EA0-38F8-4488-B1C5-A0C7454F8F41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C451EA0-38F8-4488-B1C5-A0C7454F8F41}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -36,6 +42,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{BEBE0F50-E48F-4EE8-A4D4-D6B89129361F} = {F73F4E5A-B0F3-4C27-990B-8205F6477C9C}
 		{FF2C2CD7-9599-40B9-B113-8BC0BC41E586} = {F73F4E5A-B0F3-4C27-990B-8205F6477C9C}
+		{2C451EA0-38F8-4488-B1C5-A0C7454F8F41} = {F73F4E5A-B0F3-4C27-990B-8205F6477C9C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AB1EC0EF-2868-46F7-8594-74CFD27E229A}

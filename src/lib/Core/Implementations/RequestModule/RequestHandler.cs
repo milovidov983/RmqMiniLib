@@ -67,52 +67,5 @@ namespace RmqLib.Core {
 			}
 			throw new ApplicationException($"MessageProcessResult is invalid: {processResult}");
 		}
-
-
-
-		/// <summary>
-		/// Ответить на полученную команду из rmq
-		/// </summary>
-		public Task SetRpcResultAsync(RequestContext request, ResponseMessage responseMessage) {
-			var ea = request.GetBasicDeliverEventArgs();
-			var replyProps = CreateReplyProps(ea);
-
-			replyProps.Headers = new Dictionary<string, object>
-			{
-				{ "-x-service", appId },
-				{ "-x-host", Dns.GetHostName() },
-			};
-			
-			return Task.Run(() => {
-				channel.BasicPublish("", ea.BasicProperties.ReplyTo, replyProps, responseMessage.Result);
-			});
-		}
-
-		/// <summary>
-		/// Отправить потребителю команды rmq, сообщение с ошибкой
-		/// </summary>
-		public Task SetRpcErrorAsync(RequestContext request, string error, int? statusCode) {
-			var ea = request.GetBasicDeliverEventArgs();
-			var replyProps = CreateReplyProps(ea);
-
-			replyProps.Headers = new Dictionary<string, object>
-			{
-				{ "-x-error", error },
-				{ "-x-status-code", statusCode },
-				{ "-x-host", Dns.GetHostName() },
-				{ "-x-service", appId }
-			};
-
-			return Task.Run(() => {
-				channel.BasicPublish("", ea.BasicProperties.ReplyTo, replyProps, default);
-			});
-		}
-
-		private IBasicProperties CreateReplyProps(BasicDeliverEventArgs ea) {
-			var replyProps = channel.CreateBasicProperties();
-			replyProps.CorrelationId = ea.BasicProperties.CorrelationId;
-			replyProps.ContentType = "text/json";
-			return replyProps;
-		}
 	}
 }
