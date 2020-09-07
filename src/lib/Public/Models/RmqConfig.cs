@@ -30,10 +30,6 @@ namespace RmqLib {
         /// </summary>
         public string Exchange { get; set; }
         /// <summary>
-        /// Данные для подключения к плагину менеджмента rabbitmq для получения статистики
-        /// </summary>
-        public ManagamentInfo Managament { get; set; }
-        /// <summary>
         /// Имя очереди
         /// </summary>
         public string Queue { get; set; }
@@ -46,13 +42,13 @@ namespace RmqLib {
         /// </summary>
         public ushort PrefetchCount { get; set; } = 32;
         /// <summary>
-        /// Очищать топики в очереди Queue к которым нет привязанной команды
+        /// Данные для подключения к плагину менеджмента rabbitmq
+        /// </summary>
+        public ManagamentInfo Managament { get; set; }
+        /// <summary>
+        /// Очищать топики в очереди к которым нет привязанной команды
         /// </summary>
         public bool IsClearUnusedRoutingKeys { get; set; }
-        /// <summary>
-        /// Включить вывод времени исполнения IRmqCommand и IRmqNotofication
-        /// </summary>
-        public bool IsPerformanceMonitoringOn { get; set; }
 
 
         internal void Validate() {

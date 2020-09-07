@@ -38,7 +38,7 @@ namespace RmqLib {
 			this.channel = connection.RmqConnection.CreateModel();
 
 			DeclareExchanges(channel);
-			BindQueue(channel);
+			DeclareQueue(channel);
 			ConfiguresQoS(channel);
 			BindReplyHandler(channel, handler);
 
@@ -49,7 +49,7 @@ namespace RmqLib {
 			channel.ExchangeDeclare(rmqConfig.Exchange, ExchangeType.Topic, durable: true);
 		}
 		//TODO comment
-		private void BindQueue(IModel channel) {
+		private void DeclareQueue(IModel channel) {
 			if (rmqConfig.Queue != null) {
 				channel.QueueDeclare(
 					queue: rmqConfig.Queue,
