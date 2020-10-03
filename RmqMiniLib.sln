@@ -9,13 +9,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Example1", "Example1", "{F7
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server", "src\examples\ExampleServer\Server.csproj", "{5866D3B0-D142-459F-9347-7243028C344B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExampleClient", "src\examples\ExampleClient\ExampleClient.csproj", "{9E03CA2B-9BBD-4CDF-A43C-ACBC6B577A3B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExampleClient", "src\examples\ExampleClient\ExampleClient.csproj", "{9E03CA2B-9BBD-4CDF-A43C-ACBC6B577A3B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Server", "Server", "{F8078C70-673D-481D-AF9B-A23A99AD4AA9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Client", "Client", "{5BB1D9BE-BC95-474B-9CCB-ECAF02BB3137}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerContracts", "src\examples\ServerContracts\ServerContracts.csproj", "{2FBACCED-A53C-4258-B0BA-626E149A5907}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RmqLib2", "RmqLib2\RmqLib2.csproj", "{806A6452-C072-42CE-B9E4-AC7DED238A30}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{2FBACCED-A53C-4258-B0BA-626E149A5907}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2FBACCED-A53C-4258-B0BA-626E149A5907}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2FBACCED-A53C-4258-B0BA-626E149A5907}.Release|Any CPU.Build.0 = Release|Any CPU
+		{806A6452-C072-42CE-B9E4-AC7DED238A30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{806A6452-C072-42CE-B9E4-AC7DED238A30}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{806A6452-C072-42CE-B9E4-AC7DED238A30}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{806A6452-C072-42CE-B9E4-AC7DED238A30}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

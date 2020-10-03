@@ -16,7 +16,7 @@ namespace ExampleServer.Commands {
 				await ExecuteImpl(request);
 				return MessageProcessResult.Ack;
 			} catch (RmqException e) {
-				//logError
+					//logError
 				await LogError(request, e);
 			}
 			return MessageProcessResult.Reject;
@@ -24,12 +24,14 @@ namespace ExampleServer.Commands {
 		}
 
 		private async Task LogError(RequestContext request, RmqException e) {
-			Console.WriteLine(nameof(CommandContext) + " ERROR! : ");
-			Console.WriteLine(e.Message);
+			try {
+				Console.WriteLine(nameof(CommandContext) + " ERROR! : ");
+				Console.WriteLine(e.Message);
 
-			if (request.IsRpcMessage()) {
-				await hub.SetRpcErrorAsync(request, e);
-			}
+				if (request.IsRpcMessage()) {
+					await hub.SetRpcErrorAsync(request, e);
+				}
+			} catch { }
 		}
 
 		public abstract Task ExecuteImpl(RequestContext message);
