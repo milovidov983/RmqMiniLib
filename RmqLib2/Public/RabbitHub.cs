@@ -14,7 +14,7 @@ namespace RmqLib2 {
 		public RabbitHub(string connectionString) {
 			// create connectionManager будет создавать соединение и следить
 			// за его состоянием при необходимости переподключатся и создавать каналы
-			var cm = new Connection(connectionString);
+			var cm = new ConnectionWrapperFactory(connectionString);
 			channelFactory = cm.CreateChannelFactory();
 
 

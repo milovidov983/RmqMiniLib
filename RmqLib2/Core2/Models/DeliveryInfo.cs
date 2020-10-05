@@ -18,6 +18,7 @@ namespace RmqLib2 {
         public string CorrelationId { get; private set; }
 		public byte[] Body { get; private set; }
 
+		public DeliveredMessage DeliveredMessage => deliveredMessage;
 
 		public DeliveryInfo(
 			string exhangeName, 
@@ -40,7 +41,7 @@ namespace RmqLib2 {
 			timer.Enabled = true;
 
 			timer.Elapsed += (object source, ElapsedEventArgs e) => {
-				deliveredMessage.SetElapsedTimeout(timer.Interval);
+				DeliveredMessage.SetElapsedTimeout(timer.Interval);
 
 				timer.Dispose();
 			}; ;

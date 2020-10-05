@@ -8,27 +8,4 @@ namespace RmqLib2 {
 		IPublisher GetBasicPublisher();
 	}
 
-	internal interface IBasicPublisher {
-		void Publish(DeliveryInfo deliveryInfo, Payload payload);
-
-	}
-
-	internal interface IPublisher {
-		//Func<DeliveredMessage, Task<MessageProcessResult>> OnMessage { get; set; }
-
-		Task InitChanel(IModel chanel);
-		DeliveredMessage Publish(DeliveryInfo deliveryMessage);
-	}
-
-
-
-	internal class PublishRequest {
-		public PublishRequest(DeliveryInfo deliveryInfo, Payload payload) {
-			DeliveryInfo = deliveryInfo;
-			Payload = payload;
-		}
-
-		public DeliveryInfo DeliveryInfo { get;}
-		public Payload Payload { get; }
-	}
 }

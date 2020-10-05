@@ -1,4 +1,5 @@
 ﻿using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -13,15 +14,29 @@ namespace RmqLib2 {
 	}
 
 
-	internal class Channel {
+	internal class ChannelWrapper : IChannelWrapper {
 		private IModel channel;
+		IReplyHandler replyHandler;
 		private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
 
+		public ChannelWrapper(IModel channel, IReplyHandler replyHandler) {
+			this.channel = channel;
+			this.replyHandler = replyHandler;
+		}
 
 		public async Task SetChannel(IModel channel) {
 			await semaphore.WaitAsync();
 			this.channel = channel ?? throw new ArgumentNullException(nameof(channel));
+			BindReplyHandler(channel);
 			semaphore.Release();
+		}
+		private void BindReplyHandler(IModel channel) {
+			var consumer = new AsyncEventingBasicConsumer(channel);
+			channel.BasicConsume(
+				consumer: consumer,
+				queue: ServiceConstants.REPLY_QUEUE_NAME,
+				autoAck: true);
+			consumer.Received += replyHandler.ReceiveReply;
 		}
 
 		public async Task<PublishStatus> BasicPublish(DeliveryInfo deliveryInfo) {
