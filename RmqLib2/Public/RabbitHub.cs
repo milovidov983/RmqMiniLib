@@ -8,13 +8,13 @@ namespace RmqLib2 {
 
 
 	public class RabbitHub : IRabbitHub {
-		private IChanelFactory channelFactory;
+		private IPublisherFactory channelFactory;
 		private IQueueHandlersConfig queueConfig;
 
 		public RabbitHub(string connectionString) {
 			// create connectionManager будет создавать соединение и следить
 			// за его состоянием при необходимости переподключатся и создавать каналы
-			var cm = new ConnectionManager(connectionString);
+			var cm = new Connection(connectionString);
 			channelFactory = cm.CreateChannelFactory();
 
 
@@ -26,7 +26,7 @@ namespace RmqLib2 {
 		}
 
 		public Task<DeliveredMessage> ExecuteRpcAsync(DeliveryInfo deliveryInfo, Payload payload, CancellationToken token) {
-			IRmqChanel outputChannel = channelFactory.CreateChanel();
+			IPublisher outputChannel = channelFactory.CreateChanel();
 			var task = new TaskCompletionSource<DeliveredMessage>(token);
 
 			outputChannel.Send(deliveryInfo, payload, task);
@@ -39,7 +39,7 @@ namespace RmqLib2 {
 		}
 
 		public void SubscribeAsync(string queueName, Func<DeliveredMessage, Task<MessageProcessResult>> onMessage, int prefetchCount = 32) {
-			IRmqChanel inputChannel = channelFactory.GetInputChannel(queueName, prefetchCount);
+			IPublisher inputChannel = channelFactory.GetInputChannel(queueName, prefetchCount);
 			inputChannel.OnMessage = onMessage;
 
 		}
