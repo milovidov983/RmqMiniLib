@@ -10,6 +10,8 @@ namespace RmqLib2 {
 		private readonly Semaphore semaphore = new Semaphore(1,1);
 		private readonly RmqConfig config;
 
+		public bool IsOpen { get { return connection?.IsOpen ?? false; } }
+
 		public ConnectionWrapper(RmqConfig config) {
 			this.config = config;
 			this.connectionFactory = InitConnectionFactory();

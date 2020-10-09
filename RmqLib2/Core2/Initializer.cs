@@ -13,9 +13,9 @@ namespace RmqLib2.Core2 {
 
 			IModel channel = connection.CreateChannel();
 			IReplyHandler replyHandler = new ReplyHandelr();
-			IChannelFactory channelFactory = new ChannelFactory(channel, replyHandler);
-			IReconnectionManager reconnectionManager = new RecconectionManager(connection, channelFactory);
-			IPublisherFactory publisherFactory = new PublisherFactory(reconnectionManager, channelFactory);
+			IChannelPool channelPool = new ChannelPool(channel, replyHandler);
+			IReconnectionManager reconnectionManager = new RecconectionManager(connection, channelPool);
+			IPublisherFactory publisherFactory = new PublisherFactory(reconnectionManager, channelPool);
 
 			//var publisher 
 		}

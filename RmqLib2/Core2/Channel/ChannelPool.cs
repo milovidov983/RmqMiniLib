@@ -5,10 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace RmqLib2 {
-	internal class ChannelFactory: IChannelFactory {
+	internal class ChannelPool: IChannelPool {
 		private readonly IChannelWrapper channel;
 
-		public ChannelFactory(IModel channel, IReplyHandler replyHandler) {
+		public ChannelPool(IModel channel, IReplyHandler replyHandler) {
 			this.channel = new ChannelWrapper(channel, replyHandler);
 		}
 

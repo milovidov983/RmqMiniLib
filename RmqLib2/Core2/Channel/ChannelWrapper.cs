@@ -25,10 +25,13 @@ namespace RmqLib2 {
 		}
 
 		public async Task SetChannel(IModel channel) {
-			await semaphore.WaitAsync();
-			this.channel = channel ?? throw new ArgumentNullException(nameof(channel));
-			BindReplyHandler(channel);
-			semaphore.Release();
+			try {
+				await semaphore.WaitAsync();
+				this.channel = channel ?? throw new ArgumentNullException(nameof(channel));
+				BindReplyHandler(channel);
+			} finally {
+				semaphore.Release();
+			}
 		}
 		private void BindReplyHandler(IModel channel) {
 			var consumer = new AsyncEventingBasicConsumer(channel);

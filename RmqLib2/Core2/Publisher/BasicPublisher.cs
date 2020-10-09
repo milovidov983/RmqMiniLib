@@ -8,14 +8,14 @@ using System.Threading.Tasks;
 
 namespace RmqLib2 {
 	internal class BasicPublisher : IPublisher, IDisposable {
-		private readonly IChannelFactory channelFactory;
+		private readonly IChannelPool channelPool;
 		private readonly BlockingCollection<DeliveryInfo> requests = new BlockingCollection<DeliveryInfo>();
 		private readonly IReconnectionManager reconnectionManager;
 		
 
-		public BasicPublisher(IReconnectionManager reconnectionManager, IChannelFactory channelFactory) {
+		public BasicPublisher(IReconnectionManager reconnectionManager, IChannelPool channelPool) {
 			this.reconnectionManager = reconnectionManager;
-			this.channelFactory = channelFactory;
+			this.channelPool = channelPool;
 				
 			RequestHandlerStartMainLoop().GetAwaiter().GetResult();
 		}
@@ -28,7 +28,7 @@ namespace RmqLib2 {
 		private async Task RequestHandlerStartMainLoop() {
 			while (!requests.IsCompleted) {
 				var deliveryInfo = requests.Take();
-				var channel = channelFactory.GetChannel();
+				var channel = channelPool.GetChannel();
 				var publishStatus = await channel.BasicPublish(deliveryInfo);
 
 				if (!publishStatus.IsSuccess) {
@@ -53,13 +53,15 @@ namespace RmqLib2 {
 
 		public void Dispose() {
 			requests.CompleteAdding();
-			var channel = channelFactory.GetChannel();
+			var channel = channelPool.GetChannel();
 			channel.Close();
 		}
 	}
 
 
 	internal interface IReplyHandler {
+		void AddReplySubscription(string correlationId, DeliveredMessage resonseHandler);
 		Task ReceiveReply(object model, BasicDeliverEventArgs ea);
+		DeliveredMessage RemoveReplySubscription(string correlationId);
 	}
 }

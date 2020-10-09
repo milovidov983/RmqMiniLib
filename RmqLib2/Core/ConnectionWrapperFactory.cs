@@ -51,14 +51,14 @@ namespace RmqLib2 {
 		}
 
 		public async Task InitChannels() {
-			var channelFactory = await connectionWrapper.CreateChannelFactory();
-			if (channelFactory.Status == ChannelCreatedStatus.Success) {
-				var channel = channelFactory.Create();
+			var channelPool = await connectionWrapper.CreatechannelPool();
+			if (channelPool.Status == ChannelCreatedStatus.Success) {
+				var channel = channelPool.Create();
 				var basicPublisher = PublisherFactory.GetBasicPublisher();
 				BindReplyHandler(channel);
 				await basicPublisher.InitChannel(channel);
 			}
-			throw new CreateChannelException(channelFactory.Details);
+			throw new CreateChannelException(channelPool.Details);
 		}
 
 		

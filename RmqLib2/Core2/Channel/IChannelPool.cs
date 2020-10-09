@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 
 namespace RmqLib2 {
-	internal interface IChannelFactory {
+	internal interface IChannelPool {
 		IChannelWrapper GetChannel();
 		Task InitChannel(IModel channel);
 	}

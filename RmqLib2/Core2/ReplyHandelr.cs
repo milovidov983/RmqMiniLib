@@ -9,46 +9,44 @@ namespace RmqLib2 {
 	/// от RPC запросов нашего приложения к другим сервисам.
 	/// </summary>
 	internal class ReplyHandelr : IReplyHandler {
-		private readonly ConcurrentDictionary<string, TaskCompletionSource<DeliveredMessage>> handlers
-			= new ConcurrentDictionary<string, TaskCompletionSource<DeliveredMessage>>();
+		private readonly ConcurrentDictionary<string, DeliveredMessage> handlers
+			= new ConcurrentDictionary<string, DeliveredMessage>();
 
 		public async Task ReceiveReply(object model, BasicDeliverEventArgs ea) {
 			var correlationId = ea.BasicProperties.CorrelationId;
 			
-			var taskCompletionSource = GetCallbackTask(ea, correlationId);
+			var dm = GetCallbackTask(ea, correlationId);
 
-			var response = new DeliveredMessage {
-				Body = ea.Body.GetString(),
-				AppId = ea.BasicProperties.AppId,
-				CorrelationId = correlationId,
-				Headers = ea.BasicProperties.Headers,
-				ReplyTo = ea.BasicProperties.ReplyTo,
-				RoutingKey = ea.RoutingKey
-			};
-			taskCompletionSource.SetResult(response);
+			dm.AppId = ea.BasicProperties.AppId;
+			dm.CorrelationId = correlationId;
+			dm.Headers = ea.BasicProperties.Headers;
+			dm.ReplyTo = ea.BasicProperties.ReplyTo;
+			dm.RoutingKey = ea.RoutingKey;
+			dm.ResponseTask.SetResult(ea.Body.ToArray());
+
 			RemoveReplySubscription(correlationId);
 
 			await Task.Yield();
 		}
 
-		public void AddReplySubscription(string correlationId, TaskCompletionSource<DeliveredMessage> resonseHandler) {
+		public void AddReplySubscription(string correlationId, DeliveredMessage resonseHandler) {
 			handlers.TryAdd(correlationId, resonseHandler);
 		}
 
-		public TaskCompletionSource<DeliveredMessage> RemoveReplySubscription(string correlationId) {
-			handlers.TryRemove(correlationId, out var task);
-			return task;
+		public DeliveredMessage RemoveReplySubscription(string correlationId) {
+			handlers.TryRemove(correlationId, out var dm);
+			return dm;
 		}
 
-		private TaskCompletionSource<DeliveredMessage> GetCallbackTask(BasicDeliverEventArgs ea, string correlationId) {
-			if (!handlers.TryGetValue(correlationId, out var taskCompletionSource)) {
+		private DeliveredMessage GetCallbackTask(BasicDeliverEventArgs ea, string correlationId) {
+			if (!handlers.TryGetValue(correlationId, out var dm)) {
 				throw new Exception($"Критическая ошибка, в {nameof(handlers)} " +
 					$"не найден ни один обработчик для ответа " +
 					$"пришедшего из rmq с {nameof(correlationId)}:{correlationId} " +
 					$"{nameof(ea.RoutingKey)}:{ea.RoutingKey}");
 			}
 
-			return taskCompletionSource;
+			return dm;
 		}
 	}
 }
