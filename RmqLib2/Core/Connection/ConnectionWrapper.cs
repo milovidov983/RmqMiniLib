@@ -1,5 +1,5 @@
 ﻿using RabbitMQ.Client;
-using RmqLib2.Core2;
+using RmqLib2.Core;
 using System;
 using System.Threading;
 using System.Threading.Tasks;

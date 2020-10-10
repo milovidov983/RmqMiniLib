@@ -7,7 +7,7 @@ namespace RmqLib2 {
 		private readonly IPublisher basicPublisher;
 
 		public PublisherFactory(IChannelPool channelPool, IReplyHandler replyHandler) {
-			basicPublisher = new BasicPublisher(channelPool, replyHandler);
+			basicPublisher = new BasicPublisher(channelPool.GetChannel(), replyHandler);
 		}
 
 		public IPublisher GetBasicPublisher() {

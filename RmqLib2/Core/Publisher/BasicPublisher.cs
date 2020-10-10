@@ -8,13 +8,13 @@ using System.Timers;
 
 namespace RmqLib2 {
 	internal class BasicPublisher : IPublisher, IDisposable {
-		private readonly IChannelPool channelPool;
+		private readonly IChannelWrapper channel;
 		private readonly IReplyHandler replyHandler;
 		private readonly BlockingCollection<DeliveryInfo> requests = new BlockingCollection<DeliveryInfo>();
 
 
-		public BasicPublisher(IChannelPool channelPool, IReplyHandler replyHandler) {
-			this.channelPool = channelPool;
+		public BasicPublisher(IChannelWrapper channel, IReplyHandler replyHandler) {
+			this.channel = channel;
 			this.replyHandler = replyHandler;
 
 			Task.Run(async () => await RequestHandlerStartMainLoop());
@@ -27,7 +27,6 @@ namespace RmqLib2 {
 		private async Task RequestHandlerStartMainLoop() {
 			while (!requests.IsCompleted) {
 				var deliveryInfo = requests.Take();
-				var channel = channelPool.GetChannel();
 				var publishStatus = await channel.BasicPublish(deliveryInfo);
 
 				if (!publishStatus.IsSuccess) {
@@ -73,7 +72,6 @@ namespace RmqLib2 {
 		}
 		public void Dispose() {
 			requests.CompleteAdding();
-			var channel = channelPool.GetChannel();
 			channel.Close();
 		}
 	}

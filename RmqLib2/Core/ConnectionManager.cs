@@ -3,7 +3,7 @@ using RabbitMQ.Client.Events;
 using System;
 using System.Threading.Tasks;
 
-namespace RmqLib2.Core2 {
+namespace RmqLib2 {
 	internal class ConnectionManager : IConnectionManager {
 		private readonly IChannelWrapper channel;
 
@@ -18,7 +18,7 @@ namespace RmqLib2.Core2 {
 
 
 		public void ConnectionLostHandler(object sender, ShutdownEventArgs e) {
-			Console.WriteLine("Rmq disconnected");
+			Console.WriteLine($"Rmq disconnected {e.Cause}");
 			channel.UnlockChannel();
 		}
 	}

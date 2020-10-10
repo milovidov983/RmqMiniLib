@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RmqLib2.Core2 {
+namespace RmqLib2 {
 
 	internal class ConsumerInitializer {
 		private IModel channel;

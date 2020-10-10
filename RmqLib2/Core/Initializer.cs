@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace RmqLib2.Core2 {
+namespace RmqLib2 {
 	internal class Initializer {
 		private RmqConfig config;
 
