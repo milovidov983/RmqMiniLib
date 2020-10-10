@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RmqLib2.Core2;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
@@ -12,13 +13,13 @@ namespace RmqLib2 {
 		private IPublisherFactory channelPool;
 		private IQueueHandlersConfig queueConfig;
 		private IReplyHandler replyHandler;
-		public RabbitHub(string connectionString) {
-			// create connectionManager будет создавать соединение и следить
-			// за его состоянием при необходимости переподключатся и создавать каналы
-			var cm = new ConnectionWrapperFactory(connectionString);
-			channelPool = cm.CreatechannelPool();
+		private IPublisherFactory publisherFactory;
+		private readonly RmqConfig config;
 
-
+		public RabbitHub(RmqConfig config) {
+			var init = new Initializer(config);
+			publisherFactory = init.InitPublisherFactory();
+			this.config = config;
 		}
 
 
@@ -26,7 +27,26 @@ namespace RmqLib2 {
 			this.queueConfig = queueConfig;
 		}
 
+		public Task<TResponse> ExecuteRpcAsync<TResponse, TRequest>(string topic, TRequest request, TimeSpan? timeout = null) {
+			byte[] body = ToByteArray(request);
+			var correlationId = Guid.NewGuid().ToString("N");
+			var timer = CreateTimer(timeout, correlationId);
+			var task = new ResponseTask(timer);
+			var dm = new DeliveredMessage(task, correlationId);
+			var di = new DeliveryInfo(config.Exchange, topic, body, dm, timer);
+
+			// Осталось чучуть дожать...
+
+		}
+
+		private byte[] ToByteArray<TRequest>(TRequest request) {
+			throw new NotImplementedException();
+		}
+
 		public Task<DeliveredMessage> ExecuteRpcAsync(DeliveryInfo deliveryInfo, Payload payload, TimeSpan? timeout = null) {
+			var pub = publisherFactory.GetBasicPublisher();
+
+			pub.Publish()
 			IPublisher outputChannel = channelPool.CreateChanel();
 			
 			var timer = CreateTimer(timeout, deliveryInfo.CorrelationId);

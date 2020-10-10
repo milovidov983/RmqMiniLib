@@ -17,8 +17,8 @@ namespace RmqLib2 {
 
 		public ResponseTask ResponseTask { get; set; }
 
-		public DeliveredMessage(ResponseTask responseTask) {
-			CorrelationId = Guid.NewGuid().ToString("N");
+		public DeliveredMessage(ResponseTask responseTask, string correlationId) {
+			CorrelationId = correlationId;
 			ResponseTask = responseTask;
 		}
 

@@ -1,4 +1,5 @@
 ﻿using RabbitMQ.Client;
+using RmqLib2.Core2;
 using System.Threading.Tasks;
 
 namespace RmqLib2 {
@@ -6,5 +7,6 @@ namespace RmqLib2 {
 		IModel CreateChannel();
 		void StartConnection();
 		bool IsOpen { get; }
+		void AddConnectionShutdownHandler(IConnectionManager connectionManager);
 	}
 }
