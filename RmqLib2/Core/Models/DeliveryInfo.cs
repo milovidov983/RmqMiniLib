@@ -7,28 +7,26 @@ using System.Timers;
 
 namespace RmqLib2 {
 	public class DeliveryInfo {
-		public string ExhangeName { get; private set; }
+		public static string AppId { get; set; }
+		public static string ExhangeName { get; set; }
+
         public string Topic { get; private set; }
         public string CorrelationId { get; private set; }
 		public byte[] Body { get; private set; }
-		public string AppId { get; set; }
-
-		public int DeliveryAttemptCounter { get; set; } = 0;
+		public string ReplyTo { get; set; }
 		
 
 		public DeliveryInfo(
-			string exhangeName, 
 			string topic, 
 			byte[] body,
 			string correlationId,
-			string appId) {
+			string replyTo ){ 
 
-			ExhangeName = exhangeName;
+
 			Topic = topic;
 			CorrelationId = correlationId;
-			AppId = appId;
+			ReplyTo = replyTo;
 			Body = body;
-
 		}
 		
 

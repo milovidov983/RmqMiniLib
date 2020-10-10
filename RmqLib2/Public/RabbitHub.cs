@@ -24,40 +24,32 @@ namespace RmqLib2 {
 		public async Task<TResponse> ExecuteRpcAsync<TResponse, TRequest>(string topic, TRequest request, TimeSpan? timeout = null) where TResponse : class {
 			byte[] body = ToByteArray(request);
 			var correlationId = Guid.NewGuid().ToString("N");
-			var di = new DeliveryInfo(config.Exchange, topic, body, correlationId, config.AppId);
-			var dm = ExecuteRpcAsync(di, timeout);
-			
+			var di = new DeliveryInfo(topic, body, correlationId, ServiceConstants.REPLY_QUEUE_NAME);
+
+			var pub = publisherFactory.GetBasicPublisher();
+			var dm = pub.CreateRpcPublication(di, timeout);
+
 			await dm.WaitResult();
 			if (dm.HasError) {
 				throw new Exception(dm.GetError());
 			}
-			var resp = dm.GetResponse<TResponse>();
-
-			return resp;
+			return dm.GetResponse<TResponse>();
 		}
 
+		// todo refact
 		private byte[] ToByteArray<TRequest>(TRequest request) {
 			var json = JsonSerializer.Serialize(request);
 			return Encoding.UTF8.GetBytes(json);
 		}
 
-		private DeliveredMessage ExecuteRpcAsync(DeliveryInfo deliveryInfo, TimeSpan? timeout = null) {
+
+		public async Task PublishAsync<TRequest>(string topic, TRequest request, TimeSpan? timeout = null) {
+			byte[] body = ToByteArray(request);
+			var di = new DeliveryInfo(topic, body, null, null);
 			var pub = publisherFactory.GetBasicPublisher();
-
-			var dm = pub.Publish(deliveryInfo, timeout);
-
-			return dm;
+			await pub.CreateNotify(di, timeout);
 		}
 
-
-
-
-		
-
-
-		//public Task PublishAsync(DeliveryInfo deliveryInfo, Payload payload, CancellationToken token) {
-		//	throw new NotImplementedException();
-		//}
 
 		//public void SubscribeAsync(string queueName, Func<DeliveredMessage, Task<MessageProcessResult>> onMessage, int prefetchCount = 32) {
 		//	IPublisher inputChannel = channelPool.GetInputChannel(queueName, prefetchCount);

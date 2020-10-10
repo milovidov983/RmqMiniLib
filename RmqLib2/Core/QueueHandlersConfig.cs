@@ -7,9 +7,9 @@ namespace RmqLib2 {
 	/// Concept TODO доделать
 	/// </summary>
 	internal class QueueHandlersConfig : IQueueHandlersConfig {
-		public Func<DeliveredMessage, MessageProcessResult, MessageProcessResult> afterExecuteHandler;
-		public Func<DeliveredMessage, bool> beforeExecuteHandler;
-		public Func<Exception, DeliveredMessage, bool> onExceptionHandler;
+		public Func<ResponseMessage, MessageProcessResult, MessageProcessResult> afterExecuteHandler;
+		public Func<ResponseMessage, bool> beforeExecuteHandler;
+		public Func<Exception, ResponseMessage, bool> onExceptionHandler;
 
 		public readonly Dictionary<string, IRabbitCommand> commandHandlers = new Dictionary<string, IRabbitCommand>();
 
@@ -19,17 +19,17 @@ namespace RmqLib2 {
 			this.rabbitHub = rabbitHub;
 		}
 
-		public IQueueHandlersConfig AfterExecute(Func<DeliveredMessage, MessageProcessResult, MessageProcessResult> handler) {
+		public IQueueHandlersConfig AfterExecute(Func<ResponseMessage, MessageProcessResult, MessageProcessResult> handler) {
 			afterExecuteHandler = handler;
 			return this;
 		}
 
-		public IQueueHandlersConfig BeforeExecute(Func<DeliveredMessage, bool> handler) {
+		public IQueueHandlersConfig BeforeExecute(Func<ResponseMessage, bool> handler) {
 			beforeExecuteHandler = handler;
 			return this;
 		}
 
-		public IQueueHandlersConfig OnException(Func<Exception, DeliveredMessage, bool> handler) {
+		public IQueueHandlersConfig OnException(Func<Exception, ResponseMessage, bool> handler) {
 			onExceptionHandler = handler;
 			return this;
 		}

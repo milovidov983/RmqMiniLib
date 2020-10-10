@@ -31,5 +31,10 @@ namespace RmqLib2 {
 			timer.Enabled = false;
 			taskCompletionSource.SetException(exception);
 		}
+
+		public void SetCanceled() {
+			timer.Enabled = false;
+			taskCompletionSource.SetCanceled();
+		}
 	}
 }

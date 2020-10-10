@@ -9,6 +9,9 @@ namespace RmqLib2 {
 
 		public Initializer(RmqConfig config) {
 			this.config = config;
+
+			DeliveryInfo.AppId = config.AppId;
+			DeliveryInfo.ExhangeName = config.Exchange;
 		}
 
 		public IPublisherFactory InitPublisherFactory() {

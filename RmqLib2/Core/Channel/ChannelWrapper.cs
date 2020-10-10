@@ -10,7 +10,7 @@ namespace RmqLib2 {
 
 	internal class PublishStatus {
 		public bool IsSuccess { get; set; }
-		public string Error { get; set; }
+		public Exception Error { get; set; }
 	}
 
 
@@ -37,9 +37,6 @@ namespace RmqLib2 {
 			semaphore.Release();
 		}
 
-
-
-
 		public Task<PublishStatus> BasicPublish(DeliveryInfo deliveryInfo) {
 			var tsc = new TaskCompletionSource<PublishStatus>();
 			Task.Factory.StartNew(async () => {
@@ -48,11 +45,11 @@ namespace RmqLib2 {
 
 					var props = channel.CreateBasicProperties();
 					props.CorrelationId = deliveryInfo.CorrelationId;
-					props.ReplyTo = ServiceConstants.REPLY_QUEUE_NAME;
-					props.AppId = deliveryInfo.AppId;
+					props.ReplyTo = deliveryInfo.ReplyTo;
+					props.AppId = DeliveryInfo.AppId;
 
 					channel.BasicPublish(
-						exchange: deliveryInfo.ExhangeName,
+						exchange: DeliveryInfo.ExhangeName,
 						routingKey: deliveryInfo.Topic,
 						basicProperties: props,
 						body: deliveryInfo.Body
@@ -64,7 +61,7 @@ namespace RmqLib2 {
 				} catch (Exception ex) {
 					tsc.SetResult(new PublishStatus {
 						IsSuccess = false,
-						Error = ex.Message
+						Error = ex
 					});
 				} finally {
 					semaphore.Release();

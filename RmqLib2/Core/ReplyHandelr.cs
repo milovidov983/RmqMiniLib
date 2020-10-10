@@ -9,8 +9,8 @@ namespace RmqLib2 {
 	/// от RPC запросов нашего приложения к другим сервисам.
 	/// </summary>
 	internal class ReplyHandelr : IReplyHandler {
-		private readonly ConcurrentDictionary<string, DeliveredMessage> handlers
-			= new ConcurrentDictionary<string, DeliveredMessage>();
+		private readonly ConcurrentDictionary<string, ResponseMessage> handlers
+			= new ConcurrentDictionary<string, ResponseMessage>();
 
 		public Task ReceiveReply(object model, BasicDeliverEventArgs ea) {
 			Console.WriteLine("Get response !");
@@ -29,16 +29,16 @@ namespace RmqLib2 {
 			return Task.CompletedTask;
 		}
 
-		public void AddReplySubscription(string correlationId, DeliveredMessage resonseHandler) {
+		public void AddReplySubscription(string correlationId, ResponseMessage resonseHandler) {
 			handlers.TryAdd(correlationId, resonseHandler);
 		}
 
-		public DeliveredMessage RemoveReplySubscription(string correlationId) {
+		public ResponseMessage RemoveReplySubscription(string correlationId) {
 			handlers.TryRemove(correlationId, out var dm);
 			return dm;
 		}
 
-		private DeliveredMessage GetCallbackTask(BasicDeliverEventArgs ea, string correlationId) {
+		private ResponseMessage GetCallbackTask(BasicDeliverEventArgs ea, string correlationId) {
 			if (!handlers.TryGetValue(correlationId, out var dm)) {
 				//throw new Exception($"Критическая ошибка, в {nameof(handlers)} " +
 				//	$"не найден ни один обработчик для ответа " +

@@ -3,8 +3,8 @@ using System.Threading.Tasks;
 
 namespace RmqLib2 {
 	internal interface IReplyHandler {
-		void AddReplySubscription(string correlationId, DeliveredMessage resonseHandler);
+		void AddReplySubscription(string correlationId, ResponseMessage resonseHandler);
 		Task ReceiveReply(object model, BasicDeliverEventArgs ea);
-		DeliveredMessage RemoveReplySubscription(string correlationId);
+		ResponseMessage RemoveReplySubscription(string correlationId);
 	}
 }

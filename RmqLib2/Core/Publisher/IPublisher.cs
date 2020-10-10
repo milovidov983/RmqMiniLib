@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace RmqLib2 {
 	/// <summary>
@@ -6,7 +7,7 @@ namespace RmqLib2 {
 	/// </summary>
 	internal interface IPublisher {
 		//Func<DeliveredMessage, Task<MessageProcessResult>> OnMessage { get; set; }
-
-		DeliveredMessage Publish(DeliveryInfo deliveryMessage, TimeSpan? timeout = null);
+		Task CreateNotify(DeliveryInfo deliveryInfo, TimeSpan? timeout = null);
+		ResponseMessage CreateRpcPublication(DeliveryInfo deliveryMessage, TimeSpan? timeout = null);
 	}
 }

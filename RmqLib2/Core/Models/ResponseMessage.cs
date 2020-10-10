@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace RmqLib2 {
-	public class DeliveredMessage {
+	public class ResponseMessage {
 		private byte[] responseBody;
 
 		public string RoutingKey { get; set; }
@@ -20,7 +20,7 @@ namespace RmqLib2 {
 
 		public ResponseTask ResponseTask { get; set; }
 
-		public DeliveredMessage(ResponseTask responseTask, string correlationId) {
+		public ResponseMessage(ResponseTask responseTask, string correlationId) {
 			CorrelationId = correlationId;
 			ResponseTask = responseTask;
 		}
@@ -54,9 +54,8 @@ namespace RmqLib2 {
 			}
 		}
 
-		public void SetElapsedTimeout(double totalMilliseconds) {
-			ResponseTask.SetException(
-				new OperationCanceledException($"RMQ request timeout after {totalMilliseconds} milliseconds"));
+		public void SetElapsedTimeout() {
+			ResponseTask.SetCanceled();
 		}
 
 		public bool HasError { get => Headers?.ContainsKey("-x-error") == true; }

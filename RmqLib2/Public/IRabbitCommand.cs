@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace RmqLib2 {
 		public interface IRabbitCommand {
-			Task<MessageProcessResult> Execute(DeliveredMessage dm);
+			Task<MessageProcessResult> Execute(ResponseMessage dm);
 			void WithHub(IRabbitHub hub);
 		}
 	
