@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace RmqLib2 {
+	/// <summary>
+	/// Concept TODO доделать
+	/// </summary>
 	internal class QueueHandlersConfig : IQueueHandlersConfig {
 		public Func<DeliveredMessage, MessageProcessResult, MessageProcessResult> afterExecuteHandler;
 		public Func<DeliveredMessage, bool> beforeExecuteHandler;
