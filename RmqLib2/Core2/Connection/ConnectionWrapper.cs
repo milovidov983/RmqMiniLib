@@ -1,4 +1,5 @@
 ﻿using RabbitMQ.Client;
+using RmqLib2.Core2;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,12 +11,14 @@ namespace RmqLib2 {
 		private readonly Semaphore semaphore = new Semaphore(1,1);
 		private readonly RmqConfig config;
 
+
 		public bool IsOpen { get { return connection?.IsOpen ?? false; } }
 
 		public ConnectionWrapper(RmqConfig config) {
 			this.config = config;
 			this.connectionFactory = InitConnectionFactory();
 			StartConnection();
+
 		}
 
 
@@ -39,6 +42,10 @@ namespace RmqLib2 {
 			} finally {
 				semaphore.Release();
 			}
+		}
+
+		public void AddConnectionShutdownHandler(IConnectionManager connectionManager) {
+			connection.ConnectionShutdown += connectionManager.ConnectionLostHandler;
 		}
 
 

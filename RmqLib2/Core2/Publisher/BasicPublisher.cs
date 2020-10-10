@@ -10,11 +10,9 @@ namespace RmqLib2 {
 	internal class BasicPublisher : IPublisher, IDisposable {
 		private readonly IChannelPool channelPool;
 		private readonly BlockingCollection<DeliveryInfo> requests = new BlockingCollection<DeliveryInfo>();
-		private readonly IReconnectionManager reconnectionManager;
 		
 
-		public BasicPublisher(IReconnectionManager reconnectionManager, IChannelPool channelPool) {
-			this.reconnectionManager = reconnectionManager;
+		public BasicPublisher( IChannelPool channelPool) {
 			this.channelPool = channelPool;
 				
 			RequestHandlerStartMainLoop().GetAwaiter().GetResult();
@@ -33,8 +31,6 @@ namespace RmqLib2 {
 
 				if (!publishStatus.IsSuccess) {
 					Console.WriteLine($"{nameof(BasicPublisher)}{nameof(RequestHandlerStartMainLoop)} {publishStatus.Error}");
-					
-					reconnectionManager.Reconnect();
 
 					requests.TryAdd(deliveryInfo);
 				}

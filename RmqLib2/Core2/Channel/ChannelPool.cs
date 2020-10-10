@@ -8,16 +8,12 @@ namespace RmqLib2 {
 	internal class ChannelPool: IChannelPool {
 		private readonly IChannelWrapper channel;
 
-		public ChannelPool(IModel channel, IReplyHandler replyHandler) {
-			this.channel = new ChannelWrapper(channel, replyHandler);
+		public ChannelPool(IModel channel) {
+			this.channel = new ChannelWrapper(channel);
 		}
 
 		public IChannelWrapper GetChannel() {
 			return channel;
-		}
-
-		public Task InitChannel(IModel channel) {
-			return this.channel.SetChannel(channel);
 		}
 	}
 }

@@ -6,8 +6,8 @@ namespace RmqLib2 {
 	internal class PublisherFactory : IPublisherFactory {
 		private IPublisher basicPublisher;
 
-		public PublisherFactory(IReconnectionManager reconnectionManager, IChannelPool channelPool) {
-			basicPublisher = new BasicPublisher(reconnectionManager, channelPool);
+		public PublisherFactory(IChannelPool channelPool) {
+			basicPublisher = new BasicPublisher(channelPool);
 		}
 
 		public IPublisher GetBasicPublisher() {

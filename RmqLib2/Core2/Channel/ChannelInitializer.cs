@@ -8,37 +8,35 @@ using System.Threading.Tasks;
 
 namespace RmqLib2 {
 
-	internal class PublishStatus {
-		public bool IsSuccess { get; set; }
-		public string Error { get; set; }
-	}
 
 
-	internal class ChannelWrapper : IChannelWrapper {
+	internal class ChannelInitializer  {
 		private IModel channel;
+		IReplyHandler replyHandler;
 		private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
 
-
-		public ChannelWrapper(IModel channel) {
+		public ChannelInitializer(IModel channel, IReplyHandler replyHandler) {
 			this.channel = channel;
+			this.replyHandler = replyHandler;
 		}
 
-		/// <summary>
-		/// Вызвать при потере соединения
-		/// </summary>
-		public async Task LockChannel() {
-			await semaphore.WaitAsync();
-		}		
-		
-		/// <summary>
-		/// Восстановить доступ к каналу после регисттрации consumer
-		/// </summary>
-		public void UnlockChannel() {
-			semaphore.Release();
+		public async Task SetChannel(IModel channel) {
+			try {
+				await semaphore.WaitAsync();
+				this.channel = channel ?? throw new ArgumentNullException(nameof(channel));
+				BindReplyHandler(channel);
+			} finally {
+				semaphore.Release();
+			}
 		}
-
-
-
+		private void BindReplyHandler(IModel channel) {
+			var consumer = new AsyncEventingBasicConsumer(channel);
+			channel.BasicConsume(
+				consumer: consumer,
+				queue: ServiceConstants.REPLY_QUEUE_NAME,
+				autoAck: true);
+			consumer.Received += replyHandler.ReceiveReply;
+		}
 
 		public async Task<PublishStatus> BasicPublish(DeliveryInfo deliveryInfo) {
 			try {
@@ -59,6 +57,10 @@ namespace RmqLib2 {
 					IsSuccess = true
 				};
 			} catch (Exception ex) {
+				// TODO Протестировать и определить типы ошибок , выделить те что касаются сети 
+				// реагировать на сетевые переподключением, на некоторые ретраем?
+
+
 				return new PublishStatus {
 					IsSuccess = false,
 					Error = ex.Message
@@ -70,9 +72,7 @@ namespace RmqLib2 {
 
 		public void Close() {
 			semaphore.WaitAsync().GetAwaiter().GetResult();
-			if (!channel.IsClosed) {
-				this.channel.Close();
-			}
+			this.channel.Close();
 			semaphore.Release();
 		}
 

@@ -5,6 +5,7 @@ namespace RmqLib2 {
 	internal interface IChannelWrapper {
 		Task<PublishStatus> BasicPublish(DeliveryInfo deliveryInfo);
 		void Close();
-		Task SetChannel(IModel channel);
+		void UnlockChannel();
+		Task LockChannel();
 	}
 }

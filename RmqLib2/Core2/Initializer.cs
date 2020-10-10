@@ -12,10 +12,14 @@ namespace RmqLib2.Core2 {
 			connection.StartConnection();
 
 			IModel channel = connection.CreateChannel();
+			IChannelPool channelPool = new ChannelPool(channel);
+			IConnectionManager connectionManager = new ConnectionManager(channelPool.GetChannel());
+
 			IReplyHandler replyHandler = new ReplyHandelr();
-			IChannelPool channelPool = new ChannelPool(channel, replyHandler);
-			IReconnectionManager reconnectionManager = new RecconectionManager(connection, channelPool);
-			IPublisherFactory publisherFactory = new PublisherFactory(reconnectionManager, channelPool);
+			ConsumerInitializer consumerInitializer = new ConsumerInitializer(channel, replyHandler, connectionManager);
+			consumerInitializer.InitConsumer();
+
+			IPublisherFactory publisherFactory = new PublisherFactory(channelPool);
 
 			//var publisher 
 		}
