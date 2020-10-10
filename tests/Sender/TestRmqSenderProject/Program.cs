@@ -11,15 +11,42 @@ namespace TestRmqSenderProject {
 	}
 
 	class Program {
-		public const string Topic = "example.topic.rpc";
+		public const string RpcTopic = "example.topic.rpc";
+		public const string NotifyTopic = "exampleNotify.topic.none";
 		static async Task Main(string[] args) {
-
-			var rand = new Random((int)DateTime.UtcNow.Ticks);
-
 			var startup = new Startup();
-
 			var hub = startup.Init();
 
+
+
+			//await TestRpc(hub);
+			await TestNotify(hub);
+
+			Console.ReadKey();
+		}
+
+		private static async Task TestNotify(IRabbitHub hub) {
+			var tasks = Enumerable.Range(1, 1000).Select((x) => Task.Run(async () => {
+				try {
+					Console.WriteLine("[x] Send notify ...");
+					await hub.PublishAsync(
+						NotifyTopic,
+						new RequestResponse {
+							Message = $"hello notify {x}"
+						});
+					Console.WriteLine($"[{x}] Notify sent");
+				} catch (Exception e) {
+
+					Console.WriteLine($"[{x}] notify error {e.Message}");
+				}
+
+			})).ToArray();
+
+			await Task.WhenAll(tasks);
+		}
+
+		private static async Task TestRpc(IRabbitHub hub) {
+			var rand = new Random((int)DateTime.UtcNow.Ticks);
 			var tasks = Enumerable.Range(1, 10).Select((x) => Task.Run(async () => {
 				try {
 					var delayMs = rand.Next(1000, 4000);
@@ -29,7 +56,7 @@ namespace TestRmqSenderProject {
 
 					Console.WriteLine($"[{x}] Start process");
 					var response = await hub.ExecuteRpcAsync<RequestResponse, RequestResponse>(
-						Topic,
+						RpcTopic,
 						new RequestResponse {
 							Message = $"hello! {x}"
 						}
@@ -43,9 +70,6 @@ namespace TestRmqSenderProject {
 			})).ToArray();
 
 			await Task.WhenAll(tasks);
-
-
-			Console.ReadKey();
 		}
 	}
 
@@ -65,10 +89,8 @@ namespace TestRmqSenderProject {
 
 			Console.Title = $"{rmqConfigInstance.AppId}";
 			Console.WriteLine($"{rmqConfigInstance.AppId} loading...........................");
-			Console.WriteLine($"...........................");
 
-			var hub = new RabbitHub(rmqConfigInstance);
-			return hub;
+			return new RabbitHub(rmqConfigInstance);
 		}
 
 

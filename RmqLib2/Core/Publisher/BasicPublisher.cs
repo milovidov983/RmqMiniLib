@@ -77,11 +77,17 @@ namespace RmqLib2 {
 			if (!deliveryItems.IsCompleted) {
 				var tsc = new TaskCompletionSource<bool>();
 
-				CreateTimer(timeout, () => {
+				var timer = CreateTimer(timeout, () => {
 					tsc.SetCanceled();
 				});
 
-				var deliveryItem = new DeliveryItem(deliveryInfo, tsc.SetException, ()=> tsc.SetResult(true));
+				var deliveryItem = new DeliveryItem(
+					deliveryInfo, 
+					errorAction: tsc.SetException, 
+					successAction: () => {
+						timer.Enabled = false;
+						tsc.SetResult(true);
+					});
 				deliveryItems.Add(deliveryItem);
 
 				return tsc.Task;
