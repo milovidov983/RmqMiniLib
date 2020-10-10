@@ -7,8 +7,8 @@
 Разработка библиотеки
 - написать rpc метод `IRabbitHub.ExecuteRpcAsync<TResponse, TRequest>()` - ok
 - протестировать работу `IRabbitHub.ExecuteRpcAsync<TResponse, TRequest>()` - ok
-- написать метод `IRabbitHub.PublishAsync<TRequest>()` позволяющий отправлять сообщения без ответа 
-- протестировать работу `IRabbitHub.PublishAsync<TRequest>()`
+- написать метод `IRabbitHub.PublishAsync<TRequest>()` позволяющий отправлять сообщения без ответа - ok
+- протестировать работу `IRabbitHub.PublishAsync<TRequest>()` - ok
 - написать функционал подписок
 - протестировать различные сценарии подписок (написать тесты?)
 - внедрить зависимость логгера вместо консольлогов
