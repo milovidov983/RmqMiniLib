@@ -1,6 +1,4 @@
 ﻿using RabbitMQ.Client;
-using RmqLib2.Core;
-using System.Threading.Tasks;
 
 namespace RmqLib2 {
 	internal interface IConnectionWrapper {

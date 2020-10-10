@@ -38,7 +38,7 @@ namespace RmqLib2 {
 
 		private byte[] ToByteArray<TRequest>(TRequest request) {
 			var json = JsonSerializer.Serialize(request);
-			return Encoding.ASCII.GetBytes(json);
+			return Encoding.UTF8.GetBytes(json);
 		}
 
 		private DeliveredMessage ExecuteRpcAsync(DeliveryInfo deliveryInfo, TimeSpan? timeout = null) {

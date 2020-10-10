@@ -1,8 +1,5 @@
 ﻿using RabbitMQ.Client;
-using RmqLib2.Core;
-using System;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace RmqLib2 {
 	internal class ConnectionWrapper : IConnectionWrapper {

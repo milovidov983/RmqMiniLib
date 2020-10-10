@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 namespace RmqLib2 {
 	public static class FluentSubscription {
 		public static IHubHandlersConfig DefineHandlers(this IRabbitHub hub, int prefetchCount = 32) {
-			var config = new HubHandlersConfig(hub);
-			return config;
+			//var config = new HubHandlersConfig(hub);
+			//return config;
+
+			throw new NotImplementedException();
 		}
 
 

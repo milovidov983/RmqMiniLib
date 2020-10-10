@@ -19,7 +19,7 @@ namespace RmqLib2 {
 		}
 
 		public void SetResult(byte[] body) {
-			timer?.Stop();
+			timer.Enabled = false;
 			taskCompletionSource.SetResult(body);
 		}
 
@@ -28,8 +28,8 @@ namespace RmqLib2 {
 		}
 
 		public void SetException(Exception exception) {
+			timer.Enabled = false;
 			taskCompletionSource.SetException(exception);
-			timer?.Stop();
 		}
 	}
 }

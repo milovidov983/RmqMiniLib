@@ -42,9 +42,11 @@ namespace RmqLib2 {
 
 		public DeliveredMessage Publish(DeliveryInfo deliveryInfo, TimeSpan? timeout = null) {
 			if (!requests.IsCompleted) {
+				var deliveryMessage = CreateDeliveryMessage(deliveryInfo, timeout);
+
 				requests.Add(deliveryInfo);
 
-				return CreateDeliveryMessage(deliveryInfo, timeout);
+				return deliveryMessage;
 			}
 			throw new InvalidOperationException("Очередь запросов завершила свою работу requests.IsCompleted == true");
 		}
@@ -53,12 +55,12 @@ namespace RmqLib2 {
 			var timer = CreateTimer(timeout, deliveryInfo.CorrelationId);
 			var task = new ResponseTask(timer);
 			var dm = new DeliveredMessage(task, deliveryInfo.CorrelationId);
-
+			replyHandler.AddReplySubscription(deliveryInfo.CorrelationId, dm);
 			return dm;
 		}
 
 		private System.Timers.Timer CreateTimer(TimeSpan? timeout, string correlationId) {
-			timeout = timeout ?? new TimeSpan(0, 0, 20);
+			timeout = timeout ?? new TimeSpan(0, 0, 5);
 			var timer = new System.Timers.Timer(timeout.Value.TotalMilliseconds) {
 				Enabled = true
 			};
@@ -66,6 +68,7 @@ namespace RmqLib2 {
 			timer.Elapsed += (object source, ElapsedEventArgs e) => {
 				var dm = replyHandler.RemoveReplySubscription(correlationId);
 				dm.SetElapsedTimeout(timeout.Value.TotalMilliseconds);
+				timer.Enabled = false;
 			};
 
 			return timer;
