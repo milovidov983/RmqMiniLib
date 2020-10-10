@@ -24,7 +24,7 @@ namespace RmqLib2.Core2 {
 			ConsumerInitializer consumerInitializer = new ConsumerInitializer(channel, replyHandler, connectionManager);
 			consumerInitializer.InitConsumer();
 
-			return new PublisherFactory(channelPool);
+			return new PublisherFactory(channelPool, replyHandler);
 		}
 	}
 }

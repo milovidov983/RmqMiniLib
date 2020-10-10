@@ -1,20 +1,22 @@
 ﻿using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace RmqLib2 {
 	internal class BasicPublisher : IPublisher, IDisposable {
 		private readonly IChannelPool channelPool;
+		private readonly IReplyHandler replyHandler;
 		private readonly BlockingCollection<DeliveryInfo> requests = new BlockingCollection<DeliveryInfo>();
-		
 
-		public BasicPublisher( IChannelPool channelPool) {
+
+		public BasicPublisher(IChannelPool channelPool, IReplyHandler replyHandler) {
 			this.channelPool = channelPool;
-				
+			this.replyHandler = replyHandler;
+
 			RequestHandlerStartMainLoop().GetAwaiter().GetResult();
 		}
 
@@ -40,24 +42,33 @@ namespace RmqLib2 {
 
 
 
-		public DeliveredMessage Publish(DeliveryInfo deliveryInfo) {
+		public DeliveredMessage Publish(DeliveryInfo deliveryInfo, TimeSpan? timeout = null) {
 			if (!requests.IsCompleted) {
 				requests.Add(deliveryInfo);
 			}
-			return deliveryInfo.DeliveredMessage;
+			var timer = CreateTimer(timeout, deliveryInfo.CorrelationId);
+			var task = new ResponseTask(timer);
+			var dm = new DeliveredMessage(task, deliveryInfo.CorrelationId);
+			timer.Enabled = true;
+			return dm;
 		}
+		private System.Timers.Timer CreateTimer(TimeSpan? timeout, string correlationId) {
+			timeout = timeout ?? new TimeSpan(0, 0, 20);
+			var timer = new System.Timers.Timer(timeout.Value.TotalMilliseconds) {
+				Enabled = true
+			};
 
+			timer.Elapsed += (object source, ElapsedEventArgs e) => {
+				var dm = replyHandler.RemoveReplySubscription(correlationId);
+				dm.SetElapsedTimeout(timeout.Value.TotalMilliseconds);
+			};
+
+			return timer;
+		}
 		public void Dispose() {
 			requests.CompleteAdding();
 			var channel = channelPool.GetChannel();
 			channel.Close();
 		}
-	}
-
-
-	internal interface IReplyHandler {
-		void AddReplySubscription(string correlationId, DeliveredMessage resonseHandler);
-		Task ReceiveReply(object model, BasicDeliverEventArgs ea);
-		DeliveredMessage RemoveReplySubscription(string correlationId);
 	}
 }

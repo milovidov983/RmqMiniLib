@@ -4,10 +4,10 @@ using System.Threading.Tasks;
 namespace RmqLib2 {
 
 	internal class PublisherFactory : IPublisherFactory {
-		private IPublisher basicPublisher;
+		private readonly IPublisher basicPublisher;
 
-		public PublisherFactory(IChannelPool channelPool) {
-			basicPublisher = new BasicPublisher(channelPool);
+		public PublisherFactory(IChannelPool channelPool, IReplyHandler replyHandler) {
+			basicPublisher = new BasicPublisher(channelPool, replyHandler);
 		}
 
 		public IPublisher GetBasicPublisher() {

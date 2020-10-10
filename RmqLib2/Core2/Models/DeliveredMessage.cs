@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace RmqLib2 {
 	public class DeliveredMessage {
+		private byte[] responseBody;
+
 		public string RoutingKey { get; set; }
 
         public IDictionary<string, object> Headers { get; set; }
@@ -22,21 +25,47 @@ namespace RmqLib2 {
 			ResponseTask = responseTask;
 		}
 
-		public async Task<TResponse> GetResponse<TResponse>() where TResponse : class {
-			var responseBody = await ResponseTask.GetResult();
+		public TResponse GetResponse<TResponse>() where TResponse : class {
 			TResponse response = Deserialize<TResponse>(responseBody);
 			return response;
 
 		}
 
-		private TResponse Deserialize<TResponse>(byte[] responseBody) where TResponse : class {
-			throw new NotImplementedException();
+		public async Task WaitResult() {
+			responseBody = await ResponseTask.GetResult();
 		}
 
+		private TResponse Deserialize<TResponse>(byte[] responseBody) where TResponse : class {
+			var json = System.Text.Encoding.UTF8.GetString(responseBody);
+			if (!string.IsNullOrWhiteSpace(json)) {
+				return Deserialize<TResponse>(json);
+			}
+			return default;
+		}
+		private static TResponse Deserialize<TResponse>(string res) where TResponse : class {
+			try {
+				return JsonSerializer.Deserialize<TResponse>(res);
+			} catch (Exception exteption) {
+				var exceptionMessage
+					= $"Deserialize to type \"{typeof(TResponse).FullName}\" error: {exteption.Message}";
+				throw new Exception(
+					exceptionMessage,
+					exteption);
+			}
+		}
 
 		public void SetElapsedTimeout(double totalMilliseconds) {
 			ResponseTask.SetException(
 				new OperationCanceledException($"RMQ request timeout after {totalMilliseconds} milliseconds"));
+		}
+
+		public bool HasError { get => Headers?.ContainsKey("-x-error") == true; }
+
+		public string GetError() {
+			if (HasError) {
+				return (string)Headers["-x-error"];
+			}
+			return null;
 		}
 	}
 }

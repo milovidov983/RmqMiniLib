@@ -6,49 +6,27 @@ using System.Threading.Tasks;
 using System.Timers;
 
 namespace RmqLib2 {
-	public class DeliveryInfo : IDisposable {
-		private readonly System.Timers.Timer timer;
-		/// <summary>
-		/// Ответ для текущего сообщения
-		/// </summary>
-		private readonly DeliveredMessage deliveredMessage;
-
+	public class DeliveryInfo {
 		public string ExhangeName { get; private set; }
         public string Topic { get; private set; }
         public string CorrelationId { get; private set; }
 		public byte[] Body { get; private set; }
 
-		public DeliveredMessage DeliveredMessage => deliveredMessage;
+		
 
 		public DeliveryInfo(
 			string exhangeName, 
 			string topic, 
 			byte[] body,
-			DeliveredMessage deliveredMessage, 
-			System.Timers.Timer timer) {
+			string correlationId) {
 
 			ExhangeName = exhangeName;
 			Topic = topic;
-			CorrelationId = deliveredMessage.CorrelationId;
+			CorrelationId = correlationId;
 			Body = body;
-			this.deliveredMessage = deliveredMessage;
-			this.timer = timer;
+
 		}
 		
 
-
-		public void StartTimer() {
-			timer.Enabled = true;
-
-			timer.Elapsed += (object source, ElapsedEventArgs e) => {
-				DeliveredMessage.SetElapsedTimeout(timer.Interval);
-
-				timer.Dispose();
-			}; ;
-		}
-
-		public void Dispose() {
-			timer?.Dispose();
-		}
 	}
 }

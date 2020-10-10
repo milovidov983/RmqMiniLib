@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace RmqLib2 {
 
@@ -27,79 +28,39 @@ namespace RmqLib2 {
 			this.queueConfig = queueConfig;
 		}
 
-		public Task<TResponse> ExecuteRpcAsync<TResponse, TRequest>(string topic, TRequest request, TimeSpan? timeout = null) {
+		public async Task<TResponse> ExecuteRpcAsync<TResponse, TRequest>(string topic, TRequest request, TimeSpan? timeout = null) where TResponse : class {
 			byte[] body = ToByteArray(request);
 			var correlationId = Guid.NewGuid().ToString("N");
-			var timer = CreateTimer(timeout, correlationId);
-			var task = new ResponseTask(timer);
-			var dm = new DeliveredMessage(task, correlationId);
-			var di = new DeliveryInfo(config.Exchange, topic, body, dm, timer);
+			var di = new DeliveryInfo(config.Exchange, topic, body, correlationId);
+			var dm = ExecuteRpcAsync(di, timeout);
+			
+			await dm.WaitResult();
+			if (dm.HasError) {
+				throw new Exception(dm.GetError());
+			}
+			var resp = dm.GetResponse<TResponse>();
 
-			// Осталось чучуть дожать...
-
+			return resp;
 		}
 
 		private byte[] ToByteArray<TRequest>(TRequest request) {
-			throw new NotImplementedException();
+			var json = JsonSerializer.Serialize(request);
+			return Encoding.ASCII.GetBytes(json);
 		}
 
-		public Task<DeliveredMessage> ExecuteRpcAsync(DeliveryInfo deliveryInfo, Payload payload, TimeSpan? timeout = null) {
+		private DeliveredMessage ExecuteRpcAsync(DeliveryInfo deliveryInfo, TimeSpan? timeout = null) {
 			var pub = publisherFactory.GetBasicPublisher();
 
-			pub.Publish()
-			IPublisher outputChannel = channelPool.CreateChanel();
-			
-			var timer = CreateTimer(timeout, deliveryInfo.CorrelationId);
-			var task = new ResponseTask(timer);
-			var dm = new DeliveredMessage(task);
-			replyHandler.AddReplySubscription(deliveryInfo.CorrelationId, dm);
+			var dm = pub.Publish(deliveryInfo, timeout);
 
-
-
-			outputChannel.Send(deliveryInfo, payload, task);
-
-			return task.Task;
-		}
-
-		private System.Timers.Timer CreateTimer(TimeSpan? timeout, string correlationId) {
-			timeout = timeout ?? new TimeSpan(0,0,20);
-			var timer = new System.Timers.Timer(timeout.Value.TotalMilliseconds) {
-				Enabled = true
-			};
-
-			timer.Elapsed += (object source, ElapsedEventArgs e) => {
-				var complTask = replyHandler.RemoveReplySubscription(correlationId);
-				complTask.ResponseTask.SetException(new OperationCanceledException($"RMQ request timeout after {timeout.Value.TotalSeconds} sec"));
-				timer.Dispose();
-			};
-			return timer;
+			return dm;
 		}
 
 
-		private static async Task<TResponse> GetRusult<TResponse>(TaskCompletionSource<byte[]> completionTask, System.Timers.Timer timer)
-			where TResponse : class {
 
-			var res = await completionTask.Task;
-			timer.Stop();
-			var json = System.Text.Encoding.UTF8.GetString(res);
-			if (!string.IsNullOrWhiteSpace(json)) {
-				return Deserialize<TResponse>(json);
-			}
-			return default;
-		}
 
-		private static TResponse Deserialize<TResponse>(string res) where TResponse : class {
-			try {
-				return JsonSerializer.Deserialize<TResponse>(res);
-			} catch (Exception exteption) {
-				var exceptionMessage
-					= $"Deserialize to type \"{typeof(TResponse).FullName}\" error: {exteption.Message}";
-				throw new RmqException(
-					exceptionMessage,
-					exteption,
-					Error.INTERNAL_ERROR);
-			}
-		}
+		
+
 
 		//public Task PublishAsync(DeliveryInfo deliveryInfo, Payload payload, CancellationToken token) {
 		//	throw new NotImplementedException();
