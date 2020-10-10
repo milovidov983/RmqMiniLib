@@ -19,16 +19,20 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerContracts", "src\exam
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RmqLib2", "RmqLib2\RmqLib2.csproj", "{806A6452-C072-42CE-B9E4-AC7DED238A30}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{1CDC355A-2DC8-48BD-BF0E-1C07FD741866}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ManualTests", "ManualTests", "{1CDC355A-2DC8-48BD-BF0E-1C07FD741866}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sender", "Sender", "{79884FC0-9091-4345-B70F-FD677E0CF231}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestRmqSenderProject", "tests\Sender\TestRmqSenderProject\TestRmqSenderProject.csproj", "{5E31E3C1-6DA3-425E-8AE6-74986D100654}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestRmqSenderProject", "tests\Sender\TestRmqSenderProject\TestRmqSenderProject.csproj", "{5E31E3C1-6DA3-425E-8AE6-74986D100654}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6C427799-1C1A-48A0-B8FA-F79B790CA6DB}"
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestServer", "TestServer", "{23880924-6281-4F76-A106-AD8A006E1CB0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RmqRpcServerClear", "tests\Sender\TestServer\RmqRpcServerClear\RmqRpcServerClear.csproj", "{1287FB47-F67F-4AB2-AB78-E017B700287E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -60,6 +64,10 @@ Global
 		{5E31E3C1-6DA3-425E-8AE6-74986D100654}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5E31E3C1-6DA3-425E-8AE6-74986D100654}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5E31E3C1-6DA3-425E-8AE6-74986D100654}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1287FB47-F67F-4AB2-AB78-E017B700287E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1287FB47-F67F-4AB2-AB78-E017B700287E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1287FB47-F67F-4AB2-AB78-E017B700287E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1287FB47-F67F-4AB2-AB78-E017B700287E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -72,6 +80,8 @@ Global
 		{2FBACCED-A53C-4258-B0BA-626E149A5907} = {F8078C70-673D-481D-AF9B-A23A99AD4AA9}
 		{79884FC0-9091-4345-B70F-FD677E0CF231} = {1CDC355A-2DC8-48BD-BF0E-1C07FD741866}
 		{5E31E3C1-6DA3-425E-8AE6-74986D100654} = {79884FC0-9091-4345-B70F-FD677E0CF231}
+		{23880924-6281-4F76-A106-AD8A006E1CB0} = {1CDC355A-2DC8-48BD-BF0E-1C07FD741866}
+		{1287FB47-F67F-4AB2-AB78-E017B700287E} = {23880924-6281-4F76-A106-AD8A006E1CB0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AB1EC0EF-2868-46F7-8594-74CFD27E229A}
