@@ -10,6 +10,10 @@ namespace RmqLib2 {
 			basicPublisher = new BasicPublisher(channelPool.GetChannel(), replyHandler);
 		}
 
+		/// <summary>
+		/// Получить объект умеющий публиковать сообщения в rmq
+		/// </summary>
+		/// <returns></returns>
 		public IPublisher GetBasicPublisher() {
 			
 			return basicPublisher;

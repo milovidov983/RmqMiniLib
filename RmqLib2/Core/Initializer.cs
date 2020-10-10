@@ -13,7 +13,6 @@ namespace RmqLib2 {
 
 		public IPublisherFactory InitPublisherFactory() {
 			IConnectionWrapper connection = new ConnectionWrapper(config);
-			connection.StartConnection();
 
 			IModel channel = connection.CreateChannel();
 			IChannelPool channelPool = new ChannelPool(channel);

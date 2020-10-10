@@ -14,7 +14,7 @@ namespace RmqLib2 {
 		public ConnectionWrapper(RmqConfig config) {
 			this.config = config;
 			this.connectionFactory = InitConnectionFactory();
-			StartConnection();
+			connection = connectionFactory.CreateConnection();
 
 		}
 
@@ -32,14 +32,7 @@ namespace RmqLib2 {
 			}
 		}
 
-		public void StartConnection() {
-			try {
-				semaphore.WaitOne();
-				connection = connectionFactory.CreateConnection();
-			} finally {
-				semaphore.Release();
-			}
-		}
+
 
 		public void AddConnectionShutdownHandler(IConnectionManager connectionManager) {
 			connection.ConnectionShutdown += connectionManager.ConnectionLostHandler;
