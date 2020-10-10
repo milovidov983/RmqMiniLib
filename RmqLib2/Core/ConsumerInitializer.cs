@@ -26,6 +26,8 @@ namespace RmqLib2 {
 				autoAck: true);
 			consumer.Received += replyHandler.ReceiveReply;
 			consumer.Registered += channelRecovery.ConsumerRegistred;
+
+			// TODO пересоздавать коньсюмера при неожиданном Shutdown
 		}
 	}
 }

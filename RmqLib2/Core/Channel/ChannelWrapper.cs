@@ -40,32 +40,38 @@ namespace RmqLib2 {
 
 
 
-		public async Task<PublishStatus> BasicPublish(DeliveryInfo deliveryInfo) {
-			try {
-				await semaphore.WaitAsync();
+		public Task<PublishStatus> BasicPublish(DeliveryInfo deliveryInfo) {
+			var tsc = new TaskCompletionSource<PublishStatus>();
+			Task.Factory.StartNew(async () => {
+				try {
+					await semaphore.WaitAsync();
 
-				var props = channel.CreateBasicProperties();
-				props.CorrelationId = deliveryInfo.CorrelationId;
-				props.ReplyTo = ServiceConstants.REPLY_QUEUE_NAME;
+					var props = channel.CreateBasicProperties();
+					props.CorrelationId = deliveryInfo.CorrelationId;
+					props.ReplyTo = ServiceConstants.REPLY_QUEUE_NAME;
+					props.AppId = deliveryInfo.AppId;
 
-				channel.BasicPublish(
-					exchange: deliveryInfo.ExhangeName,
-					routingKey: deliveryInfo.Topic,
-					basicProperties: props,
-					body: deliveryInfo.Body
-					);
+					channel.BasicPublish(
+						exchange: deliveryInfo.ExhangeName,
+						routingKey: deliveryInfo.Topic,
+						basicProperties: props,
+						body: deliveryInfo.Body
+						);
 
-				return new PublishStatus {
-					IsSuccess = true
-				};
-			} catch (Exception ex) {
-				return new PublishStatus {
-					IsSuccess = false,
-					Error = ex.Message
-				};
-			} finally {
-				semaphore.Release();
-			}
+					tsc.SetResult(new PublishStatus {
+						 IsSuccess = true
+					});
+				} catch (Exception ex) {
+					tsc.SetResult(new PublishStatus {
+						IsSuccess = false,
+						Error = ex.Message
+					});
+				} finally {
+					semaphore.Release();
+				}
+			});
+
+			return tsc.Task;
 		}
 
 		public void Close() {

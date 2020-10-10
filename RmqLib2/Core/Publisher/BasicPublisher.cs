@@ -19,7 +19,7 @@ namespace RmqLib2 {
 
 			Task.Run(async () => await RequestHandlerStartMainLoop());
 		}
-
+		private const int MAX_REDELIVERED_COUNT = 1000;
 		/// <summary>
 		/// Запускаем прослушивание коллекции в которую попадают данные на отправку в рамках RPC вызова
 		/// </summary>
@@ -32,13 +32,17 @@ namespace RmqLib2 {
 				if (!publishStatus.IsSuccess) {
 					Console.WriteLine($"{nameof(BasicPublisher)}{nameof(RequestHandlerStartMainLoop)} {publishStatus.Error}");
 
-					requests.TryAdd(deliveryInfo);
+					if (deliveryInfo.DeliveryAttemptCounter < MAX_REDELIVERED_COUNT) {
+						/// При возникновении exception  во время выполнения публикации сообщения
+						/// неотправленное сообщение помещается обратно в очередь
+						
+						deliveryInfo.DeliveryAttemptCounter++;
+						requests.TryAdd(deliveryInfo);
+					}
 				}
 
 			}
 		}
-
-
 
 		public DeliveredMessage Publish(DeliveryInfo deliveryInfo, TimeSpan? timeout = null) {
 			if (!requests.IsCompleted) {

@@ -24,7 +24,7 @@ namespace RmqLib2 {
 		public async Task<TResponse> ExecuteRpcAsync<TResponse, TRequest>(string topic, TRequest request, TimeSpan? timeout = null) where TResponse : class {
 			byte[] body = ToByteArray(request);
 			var correlationId = Guid.NewGuid().ToString("N");
-			var di = new DeliveryInfo(config.Exchange, topic, body, correlationId);
+			var di = new DeliveryInfo(config.Exchange, topic, body, correlationId, config.AppId);
 			var dm = ExecuteRpcAsync(di, timeout);
 			
 			await dm.WaitResult();

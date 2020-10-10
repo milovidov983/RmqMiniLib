@@ -13,8 +13,7 @@ namespace RmqLib2 {
 			= new ConcurrentDictionary<string, DeliveredMessage>();
 
 		public Task ReceiveReply(object model, BasicDeliverEventArgs ea) {
-			Console.WriteLine("ReplyHandelr ReceiveReply() start");
-
+			Console.WriteLine("Get response !");
 			var correlationId = ea.BasicProperties.CorrelationId;
 			var dm = GetCallbackTask(ea, correlationId);
 
@@ -27,7 +26,6 @@ namespace RmqLib2 {
 
 			RemoveReplySubscription(correlationId);
 
-			Console.WriteLine("ReplyHandelr ReceiveReply() end");
 			return Task.CompletedTask;
 		}
 
@@ -42,7 +40,11 @@ namespace RmqLib2 {
 
 		private DeliveredMessage GetCallbackTask(BasicDeliverEventArgs ea, string correlationId) {
 			if (!handlers.TryGetValue(correlationId, out var dm)) {
-				throw new Exception($"Критическая ошибка, в {nameof(handlers)} " +
+				//throw new Exception($"Критическая ошибка, в {nameof(handlers)} " +
+				//	$"не найден ни один обработчик для ответа " +
+				//	$"пришедшего из rmq с {nameof(correlationId)}:{correlationId} " +
+				//	$"{nameof(ea.RoutingKey)}:{ea.RoutingKey}");
+				Console.WriteLine($"Критическая ошибка, " +
 					$"не найден ни один обработчик для ответа " +
 					$"пришедшего из rmq с {nameof(correlationId)}:{correlationId} " +
 					$"{nameof(ea.RoutingKey)}:{ea.RoutingKey}");

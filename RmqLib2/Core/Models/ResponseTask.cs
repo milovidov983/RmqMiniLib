@@ -19,14 +19,11 @@ namespace RmqLib2 {
 		}
 
 		public void SetResult(byte[] body) {
-			Console.WriteLine("ResponseTask SetResult start");
 			timer.Enabled = false;
 			taskCompletionSource.SetResult(body);
-			Console.WriteLine("ResponseTask SetResult end");
 		}
 
 		public Task<byte[]> GetResult() {
-			Console.WriteLine("ResponseTask GetResult start");
 			return taskCompletionSource.Task;
 		}
 

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using RmqLib2;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace TestRmqSenderProject {
@@ -13,25 +14,38 @@ namespace TestRmqSenderProject {
 		public const string Topic = "example.topic.rpc";
 		static async Task Main(string[] args) {
 
+			var rand = new Random((int)DateTime.UtcNow.Ticks);
+
 			var startup = new Startup();
 
 			var hub = startup.Init();
 
-			while (true) {
+			var tasks = Enumerable.Range(1, 10).Select((x) => Task.Run(async () => {
 				try {
+					var delayMs = rand.Next(1000, 4000);
+					Console.WriteLine($"[{x}] Start delay {delayMs}");
+
+					await Task.Delay(delayMs);
+
+					Console.WriteLine($"[{x}] Start process");
 					var response = await hub.ExecuteRpcAsync<RequestResponse, RequestResponse>(
 						Topic,
 						new RequestResponse {
-							Message = "hello!"
+							Message = $"hello! {x}"
 						}
 					);
 
-					Console.WriteLine(response.Message);
-					Console.ReadKey();
-				}catch(Exception e) {
+					Console.WriteLine($"[{x}] Resp {response.Message}");
+				} catch (Exception e) {
 					Console.WriteLine(e.Message);
 				}
-			}
+
+			})).ToArray();
+
+			await Task.WhenAll(tasks);
+
+
+			Console.ReadKey();
 		}
 	}
 
@@ -51,9 +65,10 @@ namespace TestRmqSenderProject {
 
 			Console.Title = $"{rmqConfigInstance.AppId}";
 			Console.WriteLine($"{rmqConfigInstance.AppId} loading...........................");
+			Console.WriteLine($"...........................");
 
-
-			return new RabbitHub(rmqConfigInstance);
+			var hub = new RabbitHub(rmqConfigInstance);
+			return hub;
 		}
 
 
