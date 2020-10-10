@@ -1,6 +1,6 @@
 # RmqMiniLib
 
-RmqMiniLib
+Обёртка вокруг стандартной библиотеки RabbitMq
 
 ## Roadmap
 
