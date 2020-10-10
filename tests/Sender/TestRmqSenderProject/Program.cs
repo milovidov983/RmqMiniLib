@@ -26,7 +26,7 @@ namespace TestRmqSenderProject {
 						}
 					);
 
-					Console.WriteLine(response);
+					Console.WriteLine(response.Message);
 					Console.ReadKey();
 				}catch(Exception e) {
 					Console.WriteLine(e.Message);

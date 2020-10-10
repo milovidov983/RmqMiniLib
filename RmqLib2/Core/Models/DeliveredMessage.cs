@@ -32,7 +32,9 @@ namespace RmqLib2 {
 		}
 
 		public async Task WaitResult() {
+			Console.WriteLine("WaitResult() start");
 			responseBody = await ResponseTask.GetResult();
+			Console.WriteLine("WaitResult() end");
 		}
 
 		private TResponse Deserialize<TResponse>(byte[] responseBody) where TResponse : class {

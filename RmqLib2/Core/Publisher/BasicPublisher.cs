@@ -67,7 +67,7 @@ namespace RmqLib2 {
 
 			timer.Elapsed += (object source, ElapsedEventArgs e) => {
 				var dm = replyHandler.RemoveReplySubscription(correlationId);
-				dm.SetElapsedTimeout(timeout.Value.TotalMilliseconds);
+				//dm.SetElapsedTimeout(timeout.Value.TotalMilliseconds);
 				timer.Enabled = false;
 			};
 

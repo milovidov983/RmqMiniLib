@@ -12,9 +12,10 @@ namespace RmqLib2 {
 		private readonly ConcurrentDictionary<string, DeliveredMessage> handlers
 			= new ConcurrentDictionary<string, DeliveredMessage>();
 
-		public async Task ReceiveReply(object model, BasicDeliverEventArgs ea) {
+		public Task ReceiveReply(object model, BasicDeliverEventArgs ea) {
+			Console.WriteLine("ReplyHandelr ReceiveReply() start");
+
 			var correlationId = ea.BasicProperties.CorrelationId;
-			
 			var dm = GetCallbackTask(ea, correlationId);
 
 			dm.AppId = ea.BasicProperties.AppId;
@@ -26,7 +27,8 @@ namespace RmqLib2 {
 
 			RemoveReplySubscription(correlationId);
 
-			await Task.Yield();
+			Console.WriteLine("ReplyHandelr ReceiveReply() end");
+			return Task.CompletedTask;
 		}
 
 		public void AddReplySubscription(string correlationId, DeliveredMessage resonseHandler) {
