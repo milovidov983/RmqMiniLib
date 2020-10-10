@@ -17,12 +17,11 @@ namespace RmqLib2 {
 			this.channelPool = channelPool;
 			this.replyHandler = replyHandler;
 
-			RequestHandlerStartMainLoop().GetAwaiter().GetResult();
+			Task.Run(async () => await RequestHandlerStartMainLoop());
 		}
 
 		/// <summary>
 		/// Запускаем прослушивание коллекции в которую попадают данные на отправку в рамках RPC вызова
-		/// Если во врем отправки происходит ошибка то переподключаемся и персоздаем все каналы
 		/// </summary>
 		/// <returns></returns>
 		private async Task RequestHandlerStartMainLoop() {
@@ -49,7 +48,7 @@ namespace RmqLib2 {
 			var timer = CreateTimer(timeout, deliveryInfo.CorrelationId);
 			var task = new ResponseTask(timer);
 			var dm = new DeliveredMessage(task, deliveryInfo.CorrelationId);
-			timer.Enabled = true;
+			timer.Start();
 			return dm;
 		}
 		private System.Timers.Timer CreateTimer(TimeSpan? timeout, string correlationId) {
