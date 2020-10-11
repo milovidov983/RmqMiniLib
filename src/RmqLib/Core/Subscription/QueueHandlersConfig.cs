@@ -2,15 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace RmqLib2 {
 	/// <summary>
 	/// Concept TODO доделать
 	/// </summary>
 	internal class QueueHandlersConfig : IQueueHandlersConfig {
-		public Func<ResponseMessage, MessageProcessResult, MessageProcessResult> afterExecuteHandler;
-		public Func<ResponseMessage, bool> beforeExecuteHandler;
-		public Func<Exception, ResponseMessage, bool> onExceptionHandler;
+
 
 		public readonly Dictionary<string, IRabbitCommand> commandHandlers = new Dictionary<string, IRabbitCommand>();
 
@@ -20,18 +19,23 @@ namespace RmqLib2 {
 			this.rabbitHub = rabbitHub;
 		}
 
-		public IQueueHandlersConfig AfterExecute(Func<ResponseMessage, MessageProcessResult, MessageProcessResult> handler) {
+		public IQueueHandlersConfig AfterExecute(Func<ResponseMessage, MessageProcessResult, Task<MessageProcessResult>> handler) {
 			afterExecuteHandler = handler;
 			return this;
 		}
 
-		public IQueueHandlersConfig BeforeExecute(Func<ResponseMessage, bool> handler) {
+		public IQueueHandlersConfig BeforeExecute(Func<ResponseMessage, Task<bool>> handler) {
 			beforeExecuteHandler = handler;
 			return this;
 		}
 
-		public IQueueHandlersConfig OnException(Func<Exception, ResponseMessage, bool> handler) {
+		public IQueueHandlersConfig OnException(Func<Exception, ResponseMessage, Task<bool>> handler) {
 			onExceptionHandler = handler;
+			return this;
+		}
+
+		public IQueueHandlersConfig OnUnexpectedTopic(Func<ResponseMessage, Task<MessageProcessResult>> handler) {
+			onUnexpectedTopicHandler = handler;
 			return this;
 		}
 

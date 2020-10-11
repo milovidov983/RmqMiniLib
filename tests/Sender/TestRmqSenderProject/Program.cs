@@ -11,16 +11,18 @@ namespace TestRmqSenderProject {
 	}
 
 	class Program {
-		public const string RpcTopic = "example.topic.rpc";
+		public const string RpcTopic = "test.topic.rpc";
 		public const string NotifyTopic = "exampleNotify.topic.none";
 		static async Task Main(string[] args) {
 			var startup = new Startup();
 			var hub = startup.Init();
 
 
-
-			//await TestRpc(hub);
-			await TestNotify(hub);
+			while (true) {
+				await TestRpc2(hub);
+				Console.ReadKey();
+			}
+			//await TestNotify(hub);
 
 			Console.ReadKey();
 		}
@@ -46,10 +48,10 @@ namespace TestRmqSenderProject {
 		}
 
 		private static async Task TestRpc(IRabbitHub hub) {
-			var rand = new Random((int)DateTime.UtcNow.Ticks);
-			var tasks = Enumerable.Range(1, 10).Select((x) => Task.Run(async () => {
+			//var rand = new Random((int)DateTime.UtcNow.Ticks);
+			var tasks = Enumerable.Range(1, 1000).Select((x) => Task.Run(async () => {
 				try {
-					var delayMs = rand.Next(1000, 4000);
+					int delayMs = 0;// rand.Next(1000, 4000);
 					Console.WriteLine($"[{x}] Start delay {delayMs}");
 
 					await Task.Delay(delayMs);
@@ -70,6 +72,23 @@ namespace TestRmqSenderProject {
 			})).ToArray();
 
 			await Task.WhenAll(tasks);
+		}		
+		
+		private static async Task TestRpc2(IRabbitHub hub) {
+
+				try {
+
+
+					Console.WriteLine($"[] Start process");
+					var response = await hub.ExecuteRpcAsync<string, string>(
+						RpcTopic,
+						$"hello! "
+					);
+
+					Console.WriteLine($"Resp {response}");
+				} catch (Exception e) {
+					Console.WriteLine(e.Message);
+				}
 		}
 	}
 

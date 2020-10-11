@@ -6,6 +6,7 @@ using System.Text;
 namespace RmqLib2 {
 	internal class Initializer {
 		private RmqConfig config;
+		private ConnectionWrapper connection;
 
 		public Initializer(RmqConfig config) {
 			this.config = config;
@@ -15,7 +16,7 @@ namespace RmqLib2 {
 		}
 
 		public IPublisherFactory InitPublisherFactory() {
-			IConnectionWrapper connection = new ConnectionWrapper(config);
+			connection = new ConnectionWrapper(config);
 
 			IModel channel = connection.CreateChannel();
 			IChannelPool channelPool = new ChannelPool(channel);
@@ -27,6 +28,11 @@ namespace RmqLib2 {
 			consumerInitializer.InitConsumer();
 
 			return new PublisherFactory(channelPool, replyHandler);
+		}
+
+		public SubscriptionChannel InitSubscriptions() {
+			IModel channel = connection.CreateChannel();
+			return new SubscriptionChannel(channel);
 		}
 	}
 }

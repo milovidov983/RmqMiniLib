@@ -23,7 +23,6 @@ namespace RmqRpcServerClear {
 			var factory = new ConnectionFactory() { HostName = "localhost" };
 			connection = factory.CreateConnection();
 			channel = connection.CreateModel();
-
 			channel.ModelShutdown += (o, e) => Console.WriteLine($"ModelShutdown {e.Cause}");
 
 			connection.ConnectionShutdown += (o, e) => {

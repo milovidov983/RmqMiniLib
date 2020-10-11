@@ -12,5 +12,6 @@ namespace RmqLib2 {
 		Task PublishAsync<TRequest>(string topic, TRequest request, TimeSpan? timeout = null);
 		Task<TResponse> ExecuteRpcAsync<TResponse, TRequest>(string topic, TRequest request, TimeSpan? timeout = null) where TResponse : class;
 
+		SubscriptionChannel CreateSubscriptions();
 	}
 }

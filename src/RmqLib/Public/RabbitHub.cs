@@ -12,14 +12,18 @@ namespace RmqLib2 {
 	public class RabbitHub : IRabbitHub {
 		private IPublisherFactory publisherFactory;
 		private readonly RmqConfig config;
+		private readonly Initializer initializer;
 
 		public RabbitHub(RmqConfig config) {
 			this.config = config;
-			var init = new Initializer(config);
-			publisherFactory = init.InitPublisherFactory();
+			this.initializer = new Initializer(config);
+			publisherFactory = initializer.InitPublisherFactory();
 		}
 
 
+		public SubscriptionChannel CreateSubscriptions() {
+			return initializer.InitSubscriptions();
+		}
 
 		public async Task<TResponse> ExecuteRpcAsync<TResponse, TRequest>(string topic, TRequest request, TimeSpan? timeout = null) where TResponse : class {
 			byte[] body = ToByteArray(request);

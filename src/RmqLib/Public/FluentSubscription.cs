@@ -23,9 +23,10 @@ namespace RmqLib2 {
 
 
 	public interface IQueueHandlersConfig {
-		IQueueHandlersConfig AfterExecute(Func<ResponseMessage, MessageProcessResult, MessageProcessResult> handler);
-		IQueueHandlersConfig BeforeExecute(Func<ResponseMessage, bool> handler);
-		IQueueHandlersConfig OnException(Func<Exception, ResponseMessage, bool> handler);
+		IQueueHandlersConfig AfterExecute(Func<ResponseMessage, MessageProcessResult, Task<MessageProcessResult>> handler);
+		IQueueHandlersConfig BeforeExecute(Func<ResponseMessage, Task<bool>> handler);
+		IQueueHandlersConfig OnException(Func<Exception, ResponseMessage, Task<bool>> handler);
+		IQueueHandlersConfig OnUnexpectedTopic(Func<ResponseMessage, Task<MessageProcessResult>> handler);
 		IQueueHandlersConfig OnTopic(string topic, IRabbitCommand command);
 	}
 }
