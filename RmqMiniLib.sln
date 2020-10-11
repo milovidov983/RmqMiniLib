@@ -3,21 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30320.27
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RmqLibOld", "src\lib\RmqLibOld.csproj", "{E92446DC-23CA-42D7-A2CB-78B883F4D6F1}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Example1", "Example1", "{F73F4E5A-B0F3-4C27-990B-8205F6477C9C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server", "src\examples\ExampleServer\Server.csproj", "{5866D3B0-D142-459F-9347-7243028C344B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server", "examples\ExampleServer\Server.csproj", "{5866D3B0-D142-459F-9347-7243028C344B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExampleClient", "src\examples\ExampleClient\ExampleClient.csproj", "{9E03CA2B-9BBD-4CDF-A43C-ACBC6B577A3B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExampleClient", "examples\ExampleClient\ExampleClient.csproj", "{9E03CA2B-9BBD-4CDF-A43C-ACBC6B577A3B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Server", "Server", "{F8078C70-673D-481D-AF9B-A23A99AD4AA9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Client", "Client", "{5BB1D9BE-BC95-474B-9CCB-ECAF02BB3137}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerContracts", "src\examples\ServerContracts\ServerContracts.csproj", "{2FBACCED-A53C-4258-B0BA-626E149A5907}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RmqLib2", "RmqLib2\RmqLib2.csproj", "{806A6452-C072-42CE-B9E4-AC7DED238A30}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerContracts", "examples\ServerContracts\ServerContracts.csproj", "{2FBACCED-A53C-4258-B0BA-626E149A5907}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ManualTests", "ManualTests", "{1CDC355A-2DC8-48BD-BF0E-1C07FD741866}"
 EndProject
@@ -34,16 +30,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestServer", "TestServer", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RmqRpcServerClear", "tests\Sender\TestServer\RmqRpcServerClear\RmqRpcServerClear.csproj", "{1287FB47-F67F-4AB2-AB78-E017B700287E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{7115ADD4-50DC-4916-BF83-BBC8E9EE3E84}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RmqLib", "src\RmqLib\RmqLib.csproj", "{A0C4696B-9D2C-466F-8AB7-BEA33830DE08}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RmqLibOld", "src\OldVersion\RmqLibOld.csproj", "{873664D1-EA8F-48DD-AB70-33CC44D291F9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{E92446DC-23CA-42D7-A2CB-78B883F4D6F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E92446DC-23CA-42D7-A2CB-78B883F4D6F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E92446DC-23CA-42D7-A2CB-78B883F4D6F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E92446DC-23CA-42D7-A2CB-78B883F4D6F1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5866D3B0-D142-459F-9347-7243028C344B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5866D3B0-D142-459F-9347-7243028C344B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5866D3B0-D142-459F-9347-7243028C344B}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -56,10 +54,6 @@ Global
 		{2FBACCED-A53C-4258-B0BA-626E149A5907}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2FBACCED-A53C-4258-B0BA-626E149A5907}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2FBACCED-A53C-4258-B0BA-626E149A5907}.Release|Any CPU.Build.0 = Release|Any CPU
-		{806A6452-C072-42CE-B9E4-AC7DED238A30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{806A6452-C072-42CE-B9E4-AC7DED238A30}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{806A6452-C072-42CE-B9E4-AC7DED238A30}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{806A6452-C072-42CE-B9E4-AC7DED238A30}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5E31E3C1-6DA3-425E-8AE6-74986D100654}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5E31E3C1-6DA3-425E-8AE6-74986D100654}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5E31E3C1-6DA3-425E-8AE6-74986D100654}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -68,6 +62,14 @@ Global
 		{1287FB47-F67F-4AB2-AB78-E017B700287E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1287FB47-F67F-4AB2-AB78-E017B700287E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1287FB47-F67F-4AB2-AB78-E017B700287E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A0C4696B-9D2C-466F-8AB7-BEA33830DE08}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0C4696B-9D2C-466F-8AB7-BEA33830DE08}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0C4696B-9D2C-466F-8AB7-BEA33830DE08}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0C4696B-9D2C-466F-8AB7-BEA33830DE08}.Release|Any CPU.Build.0 = Release|Any CPU
+		{873664D1-EA8F-48DD-AB70-33CC44D291F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{873664D1-EA8F-48DD-AB70-33CC44D291F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{873664D1-EA8F-48DD-AB70-33CC44D291F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{873664D1-EA8F-48DD-AB70-33CC44D291F9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -82,6 +84,8 @@ Global
 		{5E31E3C1-6DA3-425E-8AE6-74986D100654} = {79884FC0-9091-4345-B70F-FD677E0CF231}
 		{23880924-6281-4F76-A106-AD8A006E1CB0} = {1CDC355A-2DC8-48BD-BF0E-1C07FD741866}
 		{1287FB47-F67F-4AB2-AB78-E017B700287E} = {23880924-6281-4F76-A106-AD8A006E1CB0}
+		{A0C4696B-9D2C-466F-8AB7-BEA33830DE08} = {7115ADD4-50DC-4916-BF83-BBC8E9EE3E84}
+		{873664D1-EA8F-48DD-AB70-33CC44D291F9} = {7115ADD4-50DC-4916-BF83-BBC8E9EE3E84}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AB1EC0EF-2868-46F7-8594-74CFD27E229A}

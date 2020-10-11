@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\RmqLib2\RmqLib2.csproj" />
+    <ProjectReference Include="..\..\..\src\RmqLib\RmqLib.csproj" />
   </ItemGroup>
 
 </Project>

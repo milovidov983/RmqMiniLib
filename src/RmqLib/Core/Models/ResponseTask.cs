@@ -12,10 +12,12 @@ namespace RmqLib2 {
 		/// Таймер ссылается на таймер в связанном deliveryInfo
 		/// </summary>
 		private readonly System.Timers.Timer timer;
+		private readonly double interval;
 
 		public ResponseTask(Timer timer) {
 			this.taskCompletionSource = new TaskCompletionSource<byte[]>();
 			this.timer = timer;
+			this.interval = timer.Interval;
 		}
 
 		public void SetResult(byte[] body) {
@@ -34,7 +36,7 @@ namespace RmqLib2 {
 
 		public void SetCanceled() {
 			timer.Enabled = false;
-			taskCompletionSource.SetCanceled();
+			taskCompletionSource.SetException(new OperationCanceledException($"Task timeout canceled. Interval {interval}"));
 		}
 	}
 }

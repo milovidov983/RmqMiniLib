@@ -20,6 +20,7 @@ namespace ExampleServer.Commands {
 		public override async Task ExecuteImpl(RequestContext request) {
 			var req = request.GetContent<SC.NotifyExample.Message>();
 			logger.LogDebug(req.Data);
+			await Task.Yield();
 		}
 	}
 }

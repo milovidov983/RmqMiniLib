@@ -10,25 +10,13 @@ namespace RmqLib2 {
 
 
 
-	internal class BasicPublisher : IPublisher, IDisposable {
-		class DeliveryItem {
-			public DeliveryItem(DeliveryInfo deliveryInfo, Action<Exception> errorAction, Action successAction = null) {
-				ErrorAction = errorAction;
-				SuccessAction = successAction;
-				DeliveryInfo = deliveryInfo;
-			}
-
-			public Action<Exception> ErrorAction { get; }
-			public Action SuccessAction { get; }
-			public DeliveryInfo DeliveryInfo { get; }
-
-		}
+	internal partial class BasicPublisher : IPublisher, IDisposable {
 
 
 
 		private readonly IChannelWrapper channel;
 		private readonly IReplyHandler replyHandler;
-		private readonly BlockingCollection<DeliveryItem> deliveryItems = new BlockingCollection<DeliveryItem>();
+		private readonly BlockingCollection<PublishItem> deliveryItems = new BlockingCollection<PublishItem>();
 
 
 		public BasicPublisher(IChannelWrapper channel, IReplyHandler replyHandler) {
@@ -45,17 +33,19 @@ namespace RmqLib2 {
 		private async Task RequestHandlerStartMainLoop() {
 			while (!deliveryItems.IsCompleted) {
 				var item = deliveryItems.Take();
-				var status = await channel.BasicPublish(item.DeliveryInfo);
 
+				var status = await channel.BasicPublish(item);
+
+				
 				if (status.IsSuccess) {
-					item.SuccessAction?.Invoke();
+					item.PublishSuccessAction?.Invoke();
 
 				} else {
 					// debug
 					Console.WriteLine($"{nameof(BasicPublisher)}{nameof(RequestHandlerStartMainLoop)} {item.DeliveryInfo.Topic}" +
 						$"{status.Error}");
 
-					item.ErrorAction.Invoke(status.Error);
+					item.PublishErrorAction?.Invoke(status.Error);
 				}
 
 			}
@@ -63,32 +53,54 @@ namespace RmqLib2 {
 
 		public ResponseMessage CreateRpcPublication(DeliveryInfo deliveryInfo, TimeSpan? timeout = null) {
 			if (!deliveryItems.IsCompleted) {
-				var deliveryMessage = CreateDeliveryMessage(deliveryInfo, timeout);
+				var timer = CreateTimer(timeout);
 
-				var deliveryItem = new DeliveryItem(deliveryInfo, deliveryMessage.ResponseTask.SetException);
-				deliveryItems.Add(deliveryItem);
+				var responseMessage = CreateDeliveryMessage(deliveryInfo, timer);
 
-				return deliveryMessage;
+				var publishItem = new PublishItem(
+					deliveryInfo,
+					errorAction: (e) => { 
+						responseMessage.ResponseTask.SetException(e);
+						replyHandler.RemoveReplySubscription(deliveryInfo.CorrelationId);
+					});
+
+				timer.Elapsed += (object source, ElapsedEventArgs e) => {
+					timer.Enabled = false;
+					var rm = replyHandler.RemoveReplySubscription(deliveryInfo.CorrelationId);
+					rm?.SetElapsedTimeout();
+					publishItem.IsCanceled = true;
+				};
+
+				Task.Factory.StartNew(() => deliveryItems.Add(publishItem));
+
+				return responseMessage;
 			}
 			throw new InvalidOperationException("Очередь запросов завершила свою работу requests.IsCompleted == true");
 		}
 
 		public Task CreateNotify(DeliveryInfo deliveryInfo, TimeSpan? timeout = null) {
 			if (!deliveryItems.IsCompleted) {
-				var tsc = new TaskCompletionSource<bool>();
+				var tsc = new TaskCompletionSource<object>();
+				var timer = CreateTimer(timeout);
 
-				var timer = CreateTimer(timeout, () => {
-					tsc.SetCanceled();
-				});
-
-				var deliveryItem = new DeliveryItem(
+				var publishItem = new PublishItem(
 					deliveryInfo, 
-					errorAction: tsc.SetException, 
+					errorAction: (e)=> {
+						timer.Enabled = false;
+						tsc?.SetException(e);
+					}, 
 					successAction: () => {
 						timer.Enabled = false;
-						tsc.SetResult(true);
+						tsc?.SetResult(null);
 					});
-				deliveryItems.Add(deliveryItem);
+
+				timer.Elapsed += (object source, ElapsedEventArgs e) => {
+					timer.Enabled = false;
+					tsc?.SetException(new OperationCanceledException($"Task timeout canceled."));
+					publishItem.IsCanceled = true;
+				};
+
+				Task.Factory.StartNew(()=>deliveryItems.Add(publishItem));
 
 				return tsc.Task;
 			}
@@ -97,12 +109,7 @@ namespace RmqLib2 {
 
 
 
-		private ResponseMessage CreateDeliveryMessage(DeliveryInfo deliveryInfo, TimeSpan? timeout) {
-			var timer = CreateTimer(timeout, () => {
-				var responseMessage = replyHandler.RemoveReplySubscription(deliveryInfo.CorrelationId);
-				responseMessage.SetElapsedTimeout();
-			});
-
+		private ResponseMessage CreateDeliveryMessage(DeliveryInfo deliveryInfo, System.Timers.Timer timer) {
 			var task = new ResponseTask(timer);
 			var resp = new ResponseMessage(task, deliveryInfo.CorrelationId);
 
@@ -113,17 +120,13 @@ namespace RmqLib2 {
 
 		private const int DEFAULT_TIMEOUT_MS = 5;
 
-		private System.Timers.Timer CreateTimer(TimeSpan? timeout, Action timeoutAction) {
+		private System.Timers.Timer CreateTimer(TimeSpan? timeout) {
 			timeout = timeout ?? new TimeSpan(0, 0, DEFAULT_TIMEOUT_MS);
 
 			var timer = new System.Timers.Timer(timeout.Value.TotalMilliseconds) {
 				Enabled = true
 			};
 
-			timer.Elapsed += (object source, ElapsedEventArgs e) => {
-				timer.Enabled = false;
-				timeoutAction.Invoke();
-			};
 
 			return timer;
 		}

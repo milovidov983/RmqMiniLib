@@ -12,15 +12,15 @@ namespace RmqLib2 {
 		}
 
 		public Task ConsumerRegistred(object sender, ConsumerEventArgs @event) {
-			Console.WriteLine("Rmq connected");
+			Console.WriteLine($"Rmq connected.");
 			channel.UnlockChannel();
 			return Task.CompletedTask;
 		}
 
 
 		public void ConnectionLostHandler(object sender, ShutdownEventArgs e) {
-			Console.WriteLine($"Rmq disconnected {e.Cause}");
-			channel.LockChannel().GetAwaiter().GetResult();
+			Console.WriteLine($"Rmq disconnected. {e.Cause}");
+			channel.LockChannel();
 		}
 	}
 }

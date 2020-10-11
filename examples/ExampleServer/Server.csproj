@@ -5,7 +5,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\lib\RmqLibOld.csproj" />
+		<ProjectReference Include="..\..\src\OldVersion\RmqLibOld.csproj" />
 		<ProjectReference Include="..\ServerContracts\ServerContracts.csproj" />
 	</ItemGroup>
 	
