@@ -1,4 +1,6 @@
-﻿using System;
+﻿using RmqLib.Core;
+using RmqLib.Helper;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
@@ -6,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 
-namespace RmqLib2 {
+namespace RmqLib {
 
 
 	public class RabbitHub : IRabbitHub {
@@ -26,7 +28,7 @@ namespace RmqLib2 {
 		}
 
 		public async Task<TResponse> ExecuteRpcAsync<TResponse, TRequest>(string topic, TRequest request, TimeSpan? timeout = null) where TResponse : class {
-			byte[] body = ToByteArray(request);
+			byte[] body = request.ToByteArray();
 			var correlationId = Guid.NewGuid().ToString("N");
 			var di = new DeliveryInfo(topic, body, correlationId, ServiceConstants.REPLY_QUEUE_NAME);
 
@@ -40,18 +42,22 @@ namespace RmqLib2 {
 			return dm.GetResponse<TResponse>();
 		}
 
-		// todo refact
-		private byte[] ToByteArray<TRequest>(TRequest request) {
-			var json = JsonSerializer.Serialize(request);
-			return Encoding.UTF8.GetBytes(json);
-		}
+
 
 
 		public async Task PublishAsync<TRequest>(string topic, TRequest request, TimeSpan? timeout = null) {
-			byte[] body = ToByteArray(request);
+			byte[] body = request.ToByteArray();
 			var di = new DeliveryInfo(topic, body, null, null);
 			var pub = publisherFactory.GetBasicPublisher();
-			await pub.CreateNotify(di, timeout);
+			await pub.CreateNotifyPublication(di, timeout);
+		}
+
+		public Task SetRpcErrorAsync(DeliveredMessage dm, string error, int? statusCode = null) {
+			throw new NotImplementedException();
+		}
+
+		public Task SetRpcResultAsync<T>(DeliveredMessage dm, T payload, int? statusCode = null) {
+			throw new NotImplementedException();
 		}
 
 

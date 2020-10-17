@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RmqLib2 {
+namespace RmqLib.Core {
 	internal class ChannelPool: IChannelPool {
 		private readonly IChannelWrapper channel;
 

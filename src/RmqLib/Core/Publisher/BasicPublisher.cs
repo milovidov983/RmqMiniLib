@@ -6,7 +6,7 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using System.Timers;
 
-namespace RmqLib2 {
+namespace RmqLib.Core {
 
 
 
@@ -15,13 +15,13 @@ namespace RmqLib2 {
 
 
 		private readonly IChannelWrapper channel;
-		private readonly IReplyHandler replyHandler;
+		private readonly IResponseMessageHandler responseMessageHandler;
 		private readonly BlockingCollection<PublishItem> deliveryItems = new BlockingCollection<PublishItem>();
 
 
-		public BasicPublisher(IChannelWrapper channel, IReplyHandler replyHandler) {
+		public BasicPublisher(IChannelWrapper channel, IResponseMessageHandler responseMessageHandler) {
 			this.channel = channel;
-			this.replyHandler = replyHandler;
+			this.responseMessageHandler = responseMessageHandler;
 
 			Task.Run(async () => await RequestHandlerStartMainLoop());
 		}
@@ -55,22 +55,24 @@ namespace RmqLib2 {
 			if (!deliveryItems.IsCompleted) {
 				var timer = CreateTimer(timeout);
 
-				var responseMessage = CreateDeliveryMessage(deliveryInfo, timer);
+				var responseMessage = CreateResponse(deliveryInfo, timer);
 
+				// Специальный объект обёртка публикуемого сообщения 
 				var publishItem = new PublishItem(
 					deliveryInfo,
 					errorAction: (e) => { 
 						responseMessage.ResponseTask.SetException(e);
-						replyHandler.RemoveReplySubscription(deliveryInfo.CorrelationId);
+						responseMessageHandler.RemoveSubscription(deliveryInfo.CorrelationId);
 					});
 
 				timer.Elapsed += (object source, ElapsedEventArgs e) => {
 					timer.Enabled = false;
-					var rm = replyHandler.RemoveReplySubscription(deliveryInfo.CorrelationId);
+					var rm = responseMessageHandler.RemoveSubscription(deliveryInfo.CorrelationId);
 					rm?.SetElapsedTimeout();
-					publishItem.IsCanceled = true;
+					publishItem?.Abort();
 				};
 
+				// Подготовленный объект перед отправкой ставится в очередь в коллекцию deliveryItems
 				Task.Factory.StartNew(() => deliveryItems.Add(publishItem));
 
 				return responseMessage;
@@ -78,7 +80,7 @@ namespace RmqLib2 {
 			throw new InvalidOperationException("Очередь запросов завершила свою работу requests.IsCompleted == true");
 		}
 
-		public Task CreateNotify(DeliveryInfo deliveryInfo, TimeSpan? timeout = null) {
+		public Task CreateNotifyPublication(DeliveryInfo deliveryInfo, TimeSpan? timeout = null) {
 			if (!deliveryItems.IsCompleted) {
 				var tsc = new TaskCompletionSource<object>();
 				var timer = CreateTimer(timeout);
@@ -109,11 +111,11 @@ namespace RmqLib2 {
 
 
 
-		private ResponseMessage CreateDeliveryMessage(DeliveryInfo deliveryInfo, System.Timers.Timer timer) {
+		private ResponseMessage CreateResponse(DeliveryInfo deliveryInfo, System.Timers.Timer timer) {
 			var task = new ResponseTask(timer);
 			var resp = new ResponseMessage(task, deliveryInfo.CorrelationId);
 
-			replyHandler.AddReplySubscription(deliveryInfo.CorrelationId, resp);
+			responseMessageHandler.AddSubscription(deliveryInfo.CorrelationId, resp);
 
 			return resp;
 		}

@@ -3,37 +3,43 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
-namespace RmqLib2 {
+namespace RmqLib {
 	/// <summary>
 	/// Класс отвечает за получение ответов 
 	/// от RPC запросов нашего приложения к другим сервисам.
 	/// </summary>
-	internal class ReplyHandelr : IReplyHandler {
+	internal class ResponseMessageHandler : IResponseMessageHandler {
 		private readonly ConcurrentDictionary<string, ResponseMessage> handlers
 			= new ConcurrentDictionary<string, ResponseMessage>();
 
-		public Task ReceiveReply(object model, BasicDeliverEventArgs ea) {
-			Console.WriteLine("Get response !");
+		public Task HandleMessage(object model, BasicDeliverEventArgs ea) {
 			var correlationId = ea.BasicProperties.CorrelationId;
-			var dm = GetCallbackTask(ea, correlationId);
+			try {
+				var dm = GetCallbackTask(ea, correlationId);
 
-			dm.AppId = ea.BasicProperties.AppId;
-			dm.CorrelationId = correlationId;
-			dm.Headers = ea.BasicProperties.Headers;
-			dm.ReplyTo = ea.BasicProperties.ReplyTo;
-			dm.RoutingKey = ea.RoutingKey;
-			dm.ResponseTask.SetResult(ea.Body.ToArray());
+				if(dm is null) {
+					return Task.CompletedTask;
+				}
 
-			RemoveReplySubscription(correlationId);
+				dm.AppId = ea.BasicProperties.AppId;
+				dm.CorrelationId = correlationId;
+				dm.Headers = ea.BasicProperties.Headers;
+				dm.ReplyTo = ea.BasicProperties.ReplyTo;
+				dm.RoutingKey = ea.RoutingKey;
+				dm.ResponseTask.SetResult(ea.Body.ToArray());
 
-			return Task.CompletedTask;
+
+				return Task.CompletedTask;
+			} finally {
+				RemoveSubscription(correlationId);
+			}
 		}
 
-		public void AddReplySubscription(string correlationId, ResponseMessage resonseHandler) {
-			handlers.TryAdd(correlationId, resonseHandler);
+		public void AddSubscription(string correlationId, ResponseMessage responseHandler) {
+			handlers.TryAdd(correlationId, responseHandler);
 		}
 
-		public ResponseMessage RemoveReplySubscription(string correlationId) {
+		public ResponseMessage RemoveSubscription(string correlationId) {
 			handlers.TryRemove(correlationId, out var dm);
 			return dm;
 		}
@@ -48,6 +54,9 @@ namespace RmqLib2 {
 					$"не найден ни один обработчик для ответа " +
 					$"пришедшего из rmq с {nameof(correlationId)}:{correlationId} " +
 					$"{nameof(ea.RoutingKey)}:{ea.RoutingKey}");
+
+				Console.WriteLine("Ответ получать некому поэтому мы его просто дропаем");
+
 			}
 
 			return dm;

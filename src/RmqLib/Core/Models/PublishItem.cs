@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RmqLib2 {
+namespace RmqLib.Core {
 
 	class PublishItem {
 		public DeliveryInfo DeliveryInfo { get; }
@@ -23,6 +23,8 @@ namespace RmqLib2 {
 		/// </summary>
 		public bool IsCanceled { get; set; }
 
-	
+		public void Abort() {
+			IsCanceled = true;
+		}
 	}
 }

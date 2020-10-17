@@ -1,7 +1,7 @@
 ﻿using RabbitMQ.Client;
 using System.Threading;
 
-namespace RmqLib2 {
+namespace RmqLib {
 	internal class ConnectionWrapper : IConnectionWrapper {
 		private RabbitMQ.Client.IConnection connection;
 		private readonly IConnectionFactory connectionFactory;

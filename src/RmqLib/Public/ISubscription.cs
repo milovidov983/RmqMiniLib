@@ -4,7 +4,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RmqLib2 {
+namespace RmqLib {
 	public interface ISubscription : IDisposable {
 		Task StopGracefully(CancellationToken gracefulToken);
 	}

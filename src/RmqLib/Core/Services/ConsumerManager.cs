@@ -7,14 +7,14 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RmqLib2 {
+namespace RmqLib {
 	/// <summary>
 	/// Управляет потребителем для RPC ответов, 
 	/// в случае нештатных ситуаций пытается пересоздать и привязать обработчики повторно
 	/// </summary>
 	internal class ConsumerManager {
 		private IModel channel;
-		private IReplyHandler replyHandler;
+		private IResponseMessageHandler replyHandler;
 		private IConnectionManager channelRecovery;
 
 		private AsyncEventingBasicConsumer consumerInstance;
@@ -22,8 +22,8 @@ namespace RmqLib2 {
 		private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
 
 		public ConsumerManager(
-			IModel channel, 
-			IReplyHandler replyHandler, 
+			IModel channel,
+			IResponseMessageHandler replyHandler,
 			IConnectionManager channelRecovery) {
 			this.channel = channel;
 			this.replyHandler = replyHandler;
@@ -41,7 +41,7 @@ namespace RmqLib2 {
 
 			Log($"Создан потребитель для получения ответов от RPC вызовов.");
 
-			consumerInstance.Received += replyHandler.ReceiveReply;
+			consumerInstance.Received += replyHandler.HandleMessage;
 			consumerInstance.Registered += channelRecovery.ConsumerRegistred;
 			consumerInstance.Registered += Registered;
 
@@ -57,7 +57,7 @@ namespace RmqLib2 {
 
 		private void Unsubscribe() {
 			Log($"Отписываем обработчиков от событий потребителя.");
-			consumerInstance.Received -= replyHandler.ReceiveReply;
+			consumerInstance.Received -= replyHandler.HandleMessage;
 			consumerInstance.Registered -= channelRecovery.ConsumerRegistred;
 			consumerInstance.Registered -= Registered;
 
@@ -70,21 +70,29 @@ namespace RmqLib2 {
 
 
 		private async Task Recover() {
-			if (!consumerInstance.IsRunning) {
-				await semaphore.WaitAsync();
-
-				try {
-					Log($"Пытаемся восстановить потребителя RPC ответов.");
-
-					Unsubscribe();
-					InitConsumer();
-
-				}catch(Exception e) {
-					Log($"Ошибка при попытке пересоздать потребителя для RPC ответов: {e.Message}");
-				} finally {
-					semaphore.Release();
-				}
+			if (consumerInstance.IsRunning) {
+				return;
 			}
+
+			await semaphore.WaitAsync();
+
+			if (consumerInstance.IsRunning) {
+				return;
+			}
+
+			Log($"Пытаемся восстановить потребителя RPC ответов.");
+
+			try {
+
+				Unsubscribe();
+				InitConsumer();
+
+			} catch (Exception e) {
+				Log($"Ошибка при попытке пересоздать потребителя для RPC ответов: {e.Message}");
+			} finally {
+				semaphore.Release();
+			}
+
 		}
 
 		private Task Shutdown(object sender, ShutdownEventArgs @event) {

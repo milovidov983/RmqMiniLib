@@ -1,4 +1,4 @@
-﻿namespace RmqLib2 {
+﻿namespace RmqLib {
 	internal interface IReplySubscriptionsManager {
 	}
 }

@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\RmqLib\RmqLib.csproj" />
+    <ProjectReference Include="..\..\Subscriptions\SubscriptionTest\SubscriptionTestContract\SubscriptionTestContract.csproj" />
   </ItemGroup>
 
 </Project>

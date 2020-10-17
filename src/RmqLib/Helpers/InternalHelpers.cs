@@ -8,7 +8,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Text.Json;
 
-namespace RmqLib {
+namespace RmqLib.Helper {
 	internal static class InternalHelpers {
         public static byte[] ObjectToByteArray(object obj) {
             BinaryFormatter bf = new BinaryFormatter();
@@ -51,6 +51,11 @@ namespace RmqLib {
 
             return (true, null);
                 
+        }
+
+        public static byte[] ToByteArray<TRequest>(this TRequest request) {
+            var json = JsonSerializer.Serialize(request);
+            return Encoding.UTF8.GetBytes(json);
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using RabbitMQ.Client;
 
-namespace RmqLib2 {
+namespace RmqLib {
 	internal interface IConnectionWrapper {
 		IModel CreateChannel();
 		bool IsOpen { get; }

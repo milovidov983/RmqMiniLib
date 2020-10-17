@@ -1,8 +1,10 @@
 ﻿using Microsoft.Extensions.Configuration;
-using RmqLib2;
+using RmqLib;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+
+using STC = SubscriptionTest.Contract;
 
 namespace TestRmqSenderProject {
 
@@ -80,10 +82,12 @@ namespace TestRmqSenderProject {
 
 
 					Console.WriteLine($"[] Start process");
-					var response = await hub.ExecuteRpcAsync<string, string>(
-						RpcTopic,
-						$"hello! "
-					);
+					var response = await hub.ExecuteRpcAsync<STC.ExampleClass.Response, STC.ExampleClass.Request>(
+					STC.ExampleClass.Topic,
+					new STC.ExampleClass.Request {
+						Message = "hello from sender"
+					}
+					); 
 
 					Console.WriteLine($"Resp {response}");
 				} catch (Exception e) {

@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using System.Timers;
 
-namespace RmqLib2 {
+namespace RmqLib {
 	/// <summary>
 	/// Задача для ответа RPC вызова
 	/// </summary>

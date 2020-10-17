@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace RmqLib2 {
+namespace RmqLib.Core {
 	internal class Initializer {
 		private RmqConfig config;
 		private ConnectionWrapper connection;
@@ -23,7 +23,7 @@ namespace RmqLib2 {
 			IConnectionManager connectionManager = new ConnectionManager(channelPool.GetChannel());
 			connection.AddConnectionShutdownHandler(connectionManager);
 
-			IReplyHandler replyHandler = new ReplyHandelr();
+			IResponseMessageHandler replyHandler = new ResponseMessageHandler();
 			ConsumerManager consumerInitializer = new ConsumerManager(channel, replyHandler, connectionManager);
 			consumerInitializer.InitConsumer();
 

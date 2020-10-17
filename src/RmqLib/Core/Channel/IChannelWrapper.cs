@@ -1,7 +1,7 @@
 ﻿using RabbitMQ.Client;
 using System.Threading.Tasks;
 
-namespace RmqLib2 {
+namespace RmqLib.Core {
 	internal interface IChannelWrapper {
 		Task<PublishStatus> BasicPublish(PublishItem deliveryInfo);
 		void Close();

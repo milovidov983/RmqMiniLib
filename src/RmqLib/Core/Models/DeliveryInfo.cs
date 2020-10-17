@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 
-namespace RmqLib2 {
+namespace RmqLib.Core {
 	public class DeliveryInfo {
 		public static string AppId { get; set; }
 		public static string ExhangeName { get; set; }

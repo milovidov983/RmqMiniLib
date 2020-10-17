@@ -4,7 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace RmqLib2 {
+namespace RmqLib {
 	public class ResponseMessage {
 		private byte[] responseBody;
 

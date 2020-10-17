@@ -1,5 +1,6 @@
 ﻿using RabbitMQ.Client.Events;
 using RmqLib.Core;
+using RmqLib.Helper;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;

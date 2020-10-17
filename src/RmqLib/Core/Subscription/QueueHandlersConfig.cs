@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RmqLib2 {
+namespace RmqLib {
 	/// <summary>
 	/// Concept TODO доделать
 	/// </summary>
@@ -20,22 +20,22 @@ namespace RmqLib2 {
 		}
 
 		public IQueueHandlersConfig AfterExecute(Func<ResponseMessage, MessageProcessResult, Task<MessageProcessResult>> handler) {
-			afterExecuteHandler = handler;
+			//afterExecuteHandler = handler;
 			return this;
 		}
 
 		public IQueueHandlersConfig BeforeExecute(Func<ResponseMessage, Task<bool>> handler) {
-			beforeExecuteHandler = handler;
+			///beforeExecuteHandler = handler;
 			return this;
 		}
 
 		public IQueueHandlersConfig OnException(Func<Exception, ResponseMessage, Task<bool>> handler) {
-			onExceptionHandler = handler;
+			///onExceptionHandler = handler;
 			return this;
 		}
 
 		public IQueueHandlersConfig OnUnexpectedTopic(Func<ResponseMessage, Task<MessageProcessResult>> handler) {
-			onUnexpectedTopicHandler = handler;
+			///onUnexpectedTopicHandler = handler;
 			return this;
 		}
 

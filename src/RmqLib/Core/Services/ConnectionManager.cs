@@ -3,7 +3,7 @@ using RabbitMQ.Client.Events;
 using System;
 using System.Threading.Tasks;
 
-namespace RmqLib2 {
+namespace RmqLib.Core {
 	internal class ConnectionManager : IConnectionManager {
 		private readonly IChannelWrapper channel;
 

@@ -6,6 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="SubscriptionTestContract\**" />
+    <EmbeddedResource Remove="SubscriptionTestContract\**" />
+    <None Remove="SubscriptionTestContract\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="settings.json" />
   </ItemGroup>
 
@@ -25,6 +31,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\RmqLib\RmqLib.csproj" />
+    <ProjectReference Include="SubscriptionTestContract\SubscriptionTestContract.csproj" />
   </ItemGroup>
 
 </Project>

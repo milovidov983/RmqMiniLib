@@ -1,14 +1,13 @@
 ﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using RmqLib;
-using RmqLib.Public.Models;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RmqLib2 {
+namespace RmqLib {
 	public class SubscriptionChannel {
 		private IModel channel;
 		private string queueName = "q_testQueue";
@@ -16,7 +15,7 @@ namespace RmqLib2 {
 
 
 
-		private Dictionary<string, Func<string, Task<MessageProcessResult>>> topicHandlers = new Dictionary<string, Func<string, Task<MessageProcessResult>>>() {
+		private ConcurrentDictionary<string, Func<DeliveredMessage, Task<MessageProcessResult>>> topicHandlers = new ConcurrentDictionary<string, Func<DeliveredMessage, Task<MessageProcessResult>>>() {
 			["test.topic.rpc"] = async (msg) => {
 				Console.WriteLine($"Message get! {msg}");
 				await Task.Yield();
@@ -88,7 +87,7 @@ namespace RmqLib2 {
 					string content = GetContent(body);
 					MessageProcessResult processResult = MessageProcessResult.Reject;
 					try {
-						processResult = await handler.Invoke(content);
+						processResult = await handler.Invoke(deliveredMessage);
 					} catch(Exception e) {
 						await ExecuteExceptionHandler(e, deliveredMessage);
 					} finally {
@@ -115,7 +114,7 @@ namespace RmqLib2 {
 		}
 
 		private Task<MessageProcessResult> ExecuteUnexpectedTopicHandler(DeliveredMessage deliveredMessage) {
-			throw new NotImplementedException();
+			return Task.FromResult(MessageProcessResult.Ack);
 		}
 
 		private async Task Ask(ulong dt, MessageProcessResult processResult) {
@@ -138,19 +137,19 @@ namespace RmqLib2 {
 		}
 
 		private Task ExecuteExceptionHandler(Exception e, DeliveredMessage deliveredMessage) {
-			throw new NotImplementedException();
+			return Task.CompletedTask;
 		}
 
 		private Task<MessageProcessResult> ExecuteAfterExecuteHandler(DeliveredMessage deliveredMessage, MessageProcessResult processResult) {
-			throw new NotImplementedException();
+			return Task.FromResult(MessageProcessResult.Ack);
 		}
 
 		private Task ExecuteBeforeExecuteHandler(DeliveredMessage deliveredMessage) {
-			throw new NotImplementedException();
+			return Task.CompletedTask;
 		}
 
 		private DeliveredMessage CreateDeliveredMessage(BasicDeliverEventArgs ea) {
-			throw new NotImplementedException();
+			return null;
 		}
 
 		private void ProcessHandlerException(string routingKey, Exception e) {

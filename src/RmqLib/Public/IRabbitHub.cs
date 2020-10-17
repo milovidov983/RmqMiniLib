@@ -4,7 +4,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RmqLib2 {
+namespace RmqLib {
 	public interface IRabbitHub {
 		//Task PublishAsync(DeliveryInfo deliveryInfo, Payload payload, CancellationToken token);
 		//Task<DeliveredMessage> ExecuteRpcAsync(DeliveryInfo deliveryInfo,  Payload payload, CancellationToken token);
@@ -13,5 +13,10 @@ namespace RmqLib2 {
 		Task<TResponse> ExecuteRpcAsync<TResponse, TRequest>(string topic, TRequest request, TimeSpan? timeout = null) where TResponse : class;
 
 		SubscriptionChannel CreateSubscriptions();
+
+		Task SetRpcErrorAsync(DeliveredMessage dm, string error, int? statusCode = null);
+		Task SetRpcResultAsync<T>(DeliveredMessage dm, T payload, int? statusCode = null);
+
+
 	}
 }

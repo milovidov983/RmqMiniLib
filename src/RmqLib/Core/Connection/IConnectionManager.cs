@@ -2,7 +2,7 @@
 using RabbitMQ.Client.Events;
 using System.Threading.Tasks;
 
-namespace RmqLib2 {
+namespace RmqLib {
 	internal interface IConnectionManager {
 		void ConnectionLostHandler(object sender, ShutdownEventArgs e);
 		Task ConsumerRegistred(object sender, ConsumerEventArgs @event);

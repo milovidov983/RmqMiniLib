@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
-using RmqLib2;
+using RmqLib;
 using System;
 
 namespace SubscriptionTest {

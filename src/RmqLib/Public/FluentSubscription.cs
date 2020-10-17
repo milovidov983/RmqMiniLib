@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RmqLib2 {
+namespace RmqLib {
 	public static class FluentSubscription {
 		public static IHubHandlersConfig DefineHandlers(this IRabbitHub hub, int prefetchCount = 32) {
 			//var config = new HubHandlersConfig(hub);

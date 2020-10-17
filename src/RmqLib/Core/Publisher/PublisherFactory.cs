@@ -1,12 +1,12 @@
 ﻿using RabbitMQ.Client;
 using System.Threading.Tasks;
 
-namespace RmqLib2 {
+namespace RmqLib.Core {
 
 	internal class PublisherFactory : IPublisherFactory {
 		private readonly IPublisher basicPublisher;
 
-		public PublisherFactory(IChannelPool channelPool, IReplyHandler replyHandler) {
+		public PublisherFactory(IChannelPool channelPool, IResponseMessageHandler replyHandler) {
 			basicPublisher = new BasicPublisher(channelPool.GetChannel(), replyHandler);
 		}
 
