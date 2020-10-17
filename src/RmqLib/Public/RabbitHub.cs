@@ -53,11 +53,22 @@ namespace RmqLib {
 		}
 
 		public Task SetRpcErrorAsync(DeliveredMessage dm, string error, int? statusCode = null) {
-			throw new NotImplementedException();
+			if (!dm.IsRpcMessage()) {
+				throw new InvalidOperationException("Can't reply on non-RPC request");
+			}
+
+
+			return Task.CompletedTask;
 		}
 
 		public Task SetRpcResultAsync<T>(DeliveredMessage dm, T payload, int? statusCode = null) {
-			throw new NotImplementedException();
+			if (!dm.IsRpcMessage()) {
+				throw new InvalidOperationException("Can't reply on non-RPC request");
+			}
+
+			var replyTo = dm.ReplyProps.ReplyTo;
+
+			return Task.CompletedTask;
 		}
 
 

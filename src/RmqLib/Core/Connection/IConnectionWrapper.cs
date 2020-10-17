@@ -1,9 +1,11 @@
 ﻿using RabbitMQ.Client;
+using System;
 
 namespace RmqLib {
 	internal interface IConnectionWrapper {
 		IModel CreateChannel();
 		bool IsOpen { get; }
-		void AddConnectionShutdownHandler(IConnectionManager connectionManager);
+		void BindEventHandlers(Action<IConnection> config);
+		void UnBindEventHandlers(Action<IConnection> config);
 	}
 }

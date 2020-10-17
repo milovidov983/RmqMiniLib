@@ -21,7 +21,7 @@ namespace RmqLib.Core {
 			IModel channel = connection.CreateChannel();
 			IChannelPool channelPool = new ChannelPool(channel);
 			IConnectionManager connectionManager = new ConnectionManager(channelPool.GetChannel());
-			connection.AddConnectionShutdownHandler(connectionManager);
+		
 
 			IResponseMessageHandler replyHandler = new ResponseMessageHandler();
 			ConsumerManager consumerInitializer = new ConsumerManager(channel, replyHandler, connectionManager);

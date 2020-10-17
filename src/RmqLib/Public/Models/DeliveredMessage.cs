@@ -27,6 +27,15 @@ namespace RmqLib {
 		public IBasicProperties ReplyProps { get; private set; }
 
 		public ReadOnlyMemory<byte> Body { get; private  set; }
-		
+
+
+
+		public bool IsRpcMessage() {
+			if (Guid.TryParse(ReplyProps?.CorrelationId ?? "", out var _)) {
+				return !string.IsNullOrEmpty(ReplyProps?.ReplyTo);
+			}
+			return false;
+		}
+
 	}
 }

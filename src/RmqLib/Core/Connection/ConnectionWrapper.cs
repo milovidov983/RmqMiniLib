@@ -1,9 +1,12 @@
 ﻿using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
+using System;
 using System.Threading;
 
 namespace RmqLib {
-	internal class ConnectionWrapper : IConnectionWrapper {
+	internal class ConnectionWrapper : IConnectionWrapper , IDisposable{
 		private RabbitMQ.Client.IConnection connection;
+		private Action<IConnection> unsubscribeAction;
 		private readonly IConnectionFactory connectionFactory;
 		private readonly Semaphore semaphore = new Semaphore(1,1);
 		private readonly RmqConfig config;
@@ -18,6 +21,13 @@ namespace RmqLib {
 
 		}
 
+		public void BindEventHandlers(Action<IConnection> config) {
+			config.Invoke(connection);
+		}
+
+		public void UnBindEventHandlers(Action<IConnection> unsubscriptionAction) {
+			this.unsubscribeAction = unsubscriptionAction;
+		}
 
 
 		public IModel CreateChannel() {
@@ -33,12 +43,6 @@ namespace RmqLib {
 		}
 
 
-
-		public void AddConnectionShutdownHandler(IConnectionManager connectionManager) {
-			connection.ConnectionShutdown += connectionManager.ConnectionLostHandler;
-		}
-
-
 		private IConnectionFactory InitConnectionFactory() {
 			var factory = new RabbitMQ.Client.ConnectionFactory {
 				HostName = config.HostName,
@@ -50,5 +54,11 @@ namespace RmqLib {
 			return factory;
 		}
 
+		public void Dispose() {
+			if(connection != null) {
+				unsubscribeAction.Invoke(connection);
+				connection.Close();
+			}
+		}
 	}
 }
