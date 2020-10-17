@@ -24,7 +24,7 @@ namespace RmqLib2 {
 			connection.AddConnectionShutdownHandler(connectionManager);
 
 			IReplyHandler replyHandler = new ReplyHandelr();
-			ConsumerInitializer consumerInitializer = new ConsumerInitializer(channel, replyHandler, connectionManager);
+			ConsumerManager consumerInitializer = new ConsumerManager(channel, replyHandler, connectionManager);
 			consumerInitializer.InitConsumer();
 
 			return new PublisherFactory(channelPool, replyHandler);
