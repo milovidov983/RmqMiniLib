@@ -25,8 +25,8 @@ namespace RmqLib {
 			config.Invoke(connection);
 		}
 
-		public void UnBindEventHandlers(Action<IConnection> unsubscriptionAction) {
-			this.unsubscribeAction = unsubscriptionAction;
+		public void RegisterUnsubscribeAction(Action<IConnection> action) {
+			this.unsubscribeAction = action;
 		}
 
 

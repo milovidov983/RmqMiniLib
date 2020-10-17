@@ -6,17 +6,22 @@ using System.Threading.Tasks;
 namespace RmqLib.Core {
 	internal class ConnectionManager : IConnectionManager {
 		private IChannelWrapper rpcChannel;
-		private IChannelWrapper subscriptionChannel;
 
 		private IConnectionWrapper connection;
 
 		private IChannelPoolFactory channelPoolFactory;
+		private readonly IResponseMessageHandlerFactory responseMessageHandlerFactory;
 
+		private IChannelPool rpcChannelPool;
+		private IChannelPool subsChannelPool;
 		private readonly RmqConfig config;
 
-		public ConnectionManager(RmqConfig config, IChannelPoolFactory channelPoolFactory) {
+		public ConnectionManager(RmqConfig config, 
+			IChannelPoolFactory channelPoolFactory,
+			IResponseMessageHandlerFactory responseMessageHandlerFactory) {
 			this.config = config;
 			this.channelPoolFactory = channelPoolFactory;
+			this.responseMessageHandlerFactory = responseMessageHandlerFactory;
 			StartInitialization();
 		}
 
@@ -26,16 +31,28 @@ namespace RmqLib.Core {
 			var rpcCh = connection.CreateChannel();
 			var subsCh = connection.CreateChannel();
 
-			var rpcChannelPool = channelPoolFactory.CreateChannelPool(rpcCh);
-			var subsChannelPool = channelPoolFactory.CreateChannelPool(subsCh);
+			rpcChannelPool = channelPoolFactory.CreateChannelPool(rpcCh);
+			subsChannelPool = channelPoolFactory.CreateChannelPool(subsCh);
 
 			rpcChannel = rpcChannelPool.GetChannel();
-			subscriptionChannel = subsChannelPool.GetChannel();
 
 			InitEventHandlers();
+			RegisterUnsubscribe();
+
+			IResponseMessageHandler responseMessageHandler = responseMessageHandlerFactory.GetHandler();
+			IConsumerBinder consumerBinder = new ConsumerBinder(rpcCh);
+			IConsumerFactory consumerFactory = new ConsumerFactory(rpcCh);
+
+			ConsumerManager consumerManager = new ConsumerManager(consumerFactory, responseMessageHandler, this, consumerBinder);
+			consumerManager.InitConsumer();
 		}
 
-
+		public IChannelPool GetRpcChannelPool() {
+			return rpcChannelPool;
+		}
+		public IChannelPool GetSubsChannelPool() {
+			return subsChannelPool;
+		}
 
 
 		public IConnectionWrapper GetConnection() {
@@ -47,39 +64,33 @@ namespace RmqLib.Core {
 				c.ConnectionBlocked += ConnectionBlocked;
 				c.CallbackException += CallbackException;
 				c.ConnectionUnblocked += ConnectionUnblocked;
-				c.ConnectionShutdown += ConnectionShutdown;
-				c.ConnectionShutdown += ConnectionLostHandler;
+
+
+			});
+		}
+
+		public void RegisterUnsubscribe() {
+			connection.RegisterUnsubscribeAction((c) => {
+				c.ConnectionBlocked -= ConnectionBlocked;
+				c.CallbackException -= CallbackException;
+				c.ConnectionUnblocked -= ConnectionUnblocked;
+
+
 			});
 		}
 
 
 
-
-		public Task ConsumerRegistred(object sender, ConsumerEventArgs @event) {
-			Console.WriteLine($"ConsumerRegistred.");
-			rpcChannel.UnlockChannel();
-			return Task.CompletedTask;
-		}
-		public void ConnectionLostHandler(object sender, ShutdownEventArgs e) {
-			Console.WriteLine($"ConnectionLostHandler. {e.Cause}");
-			rpcChannel.LockChannel();
-		}
-
-
-		private void ConnectionShutdown(object sender, ShutdownEventArgs e) {
-			Console.WriteLine($"ConnectionShutdown. {e.Cause}");
-		}
-
 		private void ConnectionUnblocked(object sender, EventArgs e) {
-			Console.WriteLine($"ConnectionUnblocked. ");
+			Console.WriteLine($"ConnectionEvent ConnectionUnblocked. ");
 		}
 
 		private void CallbackException(object sender, CallbackExceptionEventArgs e) {
-			Console.WriteLine($"CallbackException. {e.Exception.Message}");
+			Console.WriteLine($"ConnectionEvent CallbackException. Exception.Message: {e.Exception.Message}");
 		}
 
 		private void ConnectionBlocked(object sender, ConnectionBlockedEventArgs e) {
-			Console.WriteLine($"ConnectionBlocked. {e.Reason}");
+			Console.WriteLine($"ConnectionEvent ConnectionBlocked. Reason: {e.Reason}");
 		}
 	}
 }

@@ -6,6 +6,6 @@ namespace RmqLib {
 		IModel CreateChannel();
 		bool IsOpen { get; }
 		void BindEventHandlers(Action<IConnection> config);
-		void UnBindEventHandlers(Action<IConnection> config);
+		void RegisterUnsubscribeAction(Action<IConnection> config);
 	}
 }

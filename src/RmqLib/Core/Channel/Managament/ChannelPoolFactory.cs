@@ -27,7 +27,7 @@ namespace RmqLib.Core {
 			});
 
 			/// Будет вызвано в случае необходимости
-			pool.UnBindEventHandlers(ch => {
+			pool.RegisterUnsubscribeAction(ch => {
 				ch.ModelShutdown -= eventHandler.ModelShutdown;
 				ch.CallbackException -= eventHandler.CallbackException;
 				ch.BasicReturn -= eventHandler.BasicReturn;
@@ -38,6 +38,11 @@ namespace RmqLib.Core {
 			});
 
 			return pool;
+		}
+
+
+		public static IChannelPoolFactory Create(IChannelEventsHandlerFactory channelEventsHandlerFactory) {
+			return new ChannelPoolFactory(channelEventsHandlerFactory);
 		}
 	}
 }

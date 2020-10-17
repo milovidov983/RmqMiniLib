@@ -12,42 +12,48 @@ namespace RmqLib {
 	/// Управляет потребителем для RPC ответов, 
 	/// в случае нештатных ситуаций пытается пересоздать и привязать обработчики повторно
 	/// </summary>
-	internal class ConsumerManager {
-		private IModel channel;
-		private IResponseMessageHandler replyHandler;
-		private IConnectionManager channelRecovery;
-
+	internal class ConsumerManager : IConsumerManager {
+		private IConsumerFactory consumerFactory;
+		private readonly IConsumerBinder consumerBinder;
 		private AsyncEventingBasicConsumer consumerInstance;
-
+		private Action<AsyncEventingBasicConsumer> unsubscribeEventsAction;
+		private Action<AsyncEventingBasicConsumer> bindEventHandlers;
 		private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
 
 		public ConsumerManager(
-			IModel channel,
-			IResponseMessageHandler replyHandler,
-			IConnectionManager channelRecovery) {
-			this.channel = channel;
-			this.replyHandler = replyHandler;
-			this.channelRecovery = channelRecovery;
+			IConsumerFactory consumerFactory,
+			IConsumerBinder consumerBinder) {
+			this.consumerFactory = consumerFactory;
+			this.consumerBinder = consumerBinder;
+		}
+
+		public void BindEventHandlers(Action<AsyncEventingBasicConsumer> action) {
+			bindEventHandlers = action;
+			bindEventHandlers.Invoke(consumerInstance);
+		}
+		public void RegisterUnsubscribeAction(Action<AsyncEventingBasicConsumer> action) {
+			unsubscribeEventsAction = action;
 		}
 
 		public void InitConsumer() {
 			Log($"Создаем потребителя отвечающего за прослушивание RPC ответов.");
-			consumerInstance = new AsyncEventingBasicConsumer(channel);
 
-			channel.BasicConsume(
-				consumer: consumerInstance,
-				queue: ServiceConstants.REPLY_QUEUE_NAME,
-				autoAck: true);
+
+			consumerInstance = consumerFactory.CreateBasicConsumer();
+
 
 			Log($"Создан потребитель для получения ответов от RPC вызовов.");
 
-			consumerInstance.Received += replyHandler.HandleMessage;
-			consumerInstance.Registered += channelRecovery.ConsumerRegistred;
+			//consumerInstance.Received += responseMessageHandler.HandleMessage;
+			//consumerInstance.Registered += connectionManager.ConsumerRegistred;
 			consumerInstance.Registered += Registered;
-
 			consumerInstance.Shutdown += Shutdown;
 			consumerInstance.Unregistered += Unregistered;
 			consumerInstance.ConsumerCancelled += ConsumerCancelled;
+
+			consumerBinder.Bind(consumerInstance);
+
+			bindEventHandlers?.Invoke(consumerInstance);
 		}
 
 		private Task Registered(object sender, ConsumerEventArgs @event) {
@@ -57,13 +63,15 @@ namespace RmqLib {
 
 		private void Unsubscribe() {
 			Log($"Отписываем обработчиков от событий потребителя.");
-			consumerInstance.Received -= replyHandler.HandleMessage;
-			consumerInstance.Registered -= channelRecovery.ConsumerRegistred;
+			//consumerInstance.Received -= responseMessageHandler.HandleMessage;
+			//consumerInstance.Registered -= connectionManager.ConsumerRegistred;
 			consumerInstance.Registered -= Registered;
 
 			consumerInstance.Shutdown -= Shutdown;
 			consumerInstance.Unregistered -= Unregistered;
 			consumerInstance.ConsumerCancelled -= ConsumerCancelled;
+
+			unsubscribeEventsAction?.Invoke(consumerInstance);
 		}
 
 
@@ -87,6 +95,7 @@ namespace RmqLib {
 				Unsubscribe();
 				InitConsumer();
 
+
 			} catch (Exception e) {
 				Log($"Ошибка при попытке пересоздать потребителя для RPC ответов: {e.Message}");
 			} finally {
@@ -96,16 +105,16 @@ namespace RmqLib {
 		}
 
 		private Task Shutdown(object sender, ShutdownEventArgs @event) {
-			Log($"Shutdown.... reply text: {@event.ReplyText}");
+			Log($"ConsumerEvent Shutdown. ReplyText {@event.ReplyText}");
 			return Recover();
 		}
 
 		private Task Unregistered(object sender, ConsumerEventArgs @event) {
-			Log($"Unregistered.... ");
+			Log($"ConsumerEvent Unregistered.");
 			return Recover();
 		}
 		private Task ConsumerCancelled(object sender, ConsumerEventArgs @event) {
-			Log($"ConsumerCancelled.... ");
+			Log($"ConsumerEvent ConsumerCancelled. ");
 			return Recover();
 		}
 

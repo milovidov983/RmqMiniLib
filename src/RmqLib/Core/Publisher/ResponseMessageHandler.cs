@@ -62,4 +62,20 @@ namespace RmqLib {
 			return dm;
 		}
 	}
+
+
+	class ResponseMessageHandlerFactory : IResponseMessageHandlerFactory {
+		IResponseMessageHandler responseMessageHandler = new ResponseMessageHandler();
+		public IResponseMessageHandler GetHandler() {
+			return responseMessageHandler;
+		}
+
+		public static IResponseMessageHandlerFactory Create() {
+			return new ResponseMessageHandlerFactory();
+		}
+	}
+
+	interface IResponseMessageHandlerFactory {
+		IResponseMessageHandler GetHandler();
+	}
 }

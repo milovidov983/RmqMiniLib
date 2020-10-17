@@ -17,12 +17,12 @@ namespace RmqLib.Core {
 		}
 
 
-		public void BindEventHandlers(Action<IModel> bindEvent) {
-			bindEvent.Invoke(trueChannel);
+		public void BindEventHandlers(Action<IModel> action) {
+			action.Invoke(trueChannel);
 		}
 
-		public void UnBindEventHandlers(Action<IModel> unBindEvent) {
-			this.unbindEventHandlers = unBindEvent;
+		public void RegisterUnsubscribeAction(Action<IModel> action) {
+			this.unbindEventHandlers = action;
 		}
 
 		

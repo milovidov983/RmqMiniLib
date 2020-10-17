@@ -15,19 +15,29 @@ namespace RmqLib.Core {
 			DeliveryInfo.ExhangeName = config.Exchange;
 		}
 
-		public IPublisherFactory InitPublisherFactory() {
-			connection = new ConnectionWrapper(config);
+		public IConnectionManager InitConnectionManager() {
+			var channelEventsHandlerFactory = ChannelEventsHandlerFactory.Create();
+			var channelPoolFactory = ChannelPoolFactory.Create(channelEventsHandlerFactory);
+			var responseMessageHandlerFactory = ResponseMessageHandlerFactory.Create();
 
-			IModel channel = connection.CreateChannel();
-			IChannelPool channelPool = new ChannelPool(channel);
-			IConnectionManager connectionManager = new ConnectionManager(channelPool.GetChannel());
-		
+			return new ConnectionManager(
+				config, 
+				channelPoolFactory, 
+				responseMessageHandlerFactory);
+
+		}
+
+		public IPublisherFactory InitPublisherFactory() {
+
+			IConnectionManager connectionManager = InitConnectionManager();
+
+
 
 			IResponseMessageHandler replyHandler = new ResponseMessageHandler();
 			ConsumerManager consumerInitializer = new ConsumerManager(channel, replyHandler, connectionManager);
 			consumerInitializer.InitConsumer();
 
-			return new PublisherFactory(channelPool, replyHandler);
+			return new PublisherFactory(connectionManager, replyHandler);
 		}
 
 		public SubscriptionChannel InitSubscriptions() {

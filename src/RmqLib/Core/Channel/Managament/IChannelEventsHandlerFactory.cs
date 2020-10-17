@@ -9,5 +9,10 @@ namespace RmqLib.Core {
 		public IChannelEventsHandler CreateHandler(IChannelPool pool) {
 			return new ChannelEventsHandler(pool);
 		}
+
+		public static IChannelEventsHandlerFactory Create() {
+			return new ChannelEventsHandlerFactory();
+		}
+
 	}
 }
