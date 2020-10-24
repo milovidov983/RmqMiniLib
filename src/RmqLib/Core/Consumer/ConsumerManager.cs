@@ -16,8 +16,13 @@ namespace RmqLib {
 		private IConsumerFactory consumerFactory;
 		private readonly IConsumerBinder consumerBinder;
 		private AsyncEventingBasicConsumer consumerInstance;
-		private Action<AsyncEventingBasicConsumer> unsubscribeEventsAction;
-		private Action<AsyncEventingBasicConsumer> bindEventHandlers;
+
+		private List<Action<AsyncEventingBasicConsumer>> unsubscribeEventHandlers
+			= new List<Action<AsyncEventingBasicConsumer>>();
+
+		private List<Action<AsyncEventingBasicConsumer>> activeEventHandlers 
+			= new List<Action<AsyncEventingBasicConsumer>>();
+
 		private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
 
 		public ConsumerManager(
@@ -27,12 +32,19 @@ namespace RmqLib {
 			this.consumerBinder = consumerBinder;
 		}
 
+
 		public void BindEventHandlers(Action<AsyncEventingBasicConsumer> action) {
-			bindEventHandlers = action;
-			bindEventHandlers.Invoke(consumerInstance);
+			activeEventHandlers.Add(action);
+			action.Invoke(consumerInstance);
 		}
+
+
+
+
 		public void RegisterUnsubscribeAction(Action<AsyncEventingBasicConsumer> action) {
-			unsubscribeEventsAction = action;
+			unsubscribeEventHandlers.Add(action);
+			
+
 		}
 
 		public void InitConsumer() {
@@ -53,7 +65,7 @@ namespace RmqLib {
 
 			consumerBinder.Bind(consumerInstance);
 
-			bindEventHandlers?.Invoke(consumerInstance);
+			activeEventHandlers.ForEach(action => action.Invoke(consumerInstance));
 		}
 
 		private Task Registered(object sender, ConsumerEventArgs @event) {
@@ -71,7 +83,7 @@ namespace RmqLib {
 			consumerInstance.Unregistered -= Unregistered;
 			consumerInstance.ConsumerCancelled -= ConsumerCancelled;
 
-			unsubscribeEventsAction?.Invoke(consumerInstance);
+			unsubscribeEventHandlers.ForEach(action => action.Invoke(consumerInstance));
 		}
 
 

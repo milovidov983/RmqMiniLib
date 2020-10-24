@@ -12,6 +12,9 @@ namespace RmqLib {
 		private readonly RmqConfig config;
 
 
+		
+
+
 		public bool IsOpen { get { return connection?.IsOpen ?? false; } }
 
 		public ConnectionWrapper(RmqConfig config) {
