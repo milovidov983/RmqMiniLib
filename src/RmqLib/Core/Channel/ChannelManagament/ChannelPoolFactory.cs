@@ -4,7 +4,7 @@ using System.Text;
 
 namespace RmqLib.Core {
 	class ChannelPoolFactory : IChannelPoolFactory {
-
+		private readonly IRmqLogger logger;
 		private readonly IChannelEventsHandlerFactory channelEventsHandlerFactory;
 
 		public ChannelPoolFactory(IChannelEventsHandlerFactory channelEventsHandlerFactory) {
@@ -14,7 +14,7 @@ namespace RmqLib.Core {
 		public IChannelPool CreateChannelPool(IModel model) {
 			var pool = new ChannelPool(model);
 
-			var eventHandler = channelEventsHandlerFactory.CreateHandler(pool);
+			var eventHandler = channelEventsHandlerFactory.CreateHandler();
 			pool.BindEventHandlers(ch => {
 				ch.ModelShutdown += eventHandler.ModelShutdown;
 				ch.CallbackException += eventHandler.CallbackException;

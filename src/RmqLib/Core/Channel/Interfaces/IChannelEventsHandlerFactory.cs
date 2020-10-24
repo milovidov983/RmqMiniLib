@@ -2,16 +2,22 @@
 
 namespace RmqLib.Core {
 	internal interface IChannelEventsHandlerFactory {
-		IChannelEventsHandler CreateHandler(IChannelPool pool);
+		IChannelEventsHandler CreateHandler();
 	}
 
-	class ChannelEventsHandlerFactory : IChannelEventsHandlerFactory {
-		public IChannelEventsHandler CreateHandler(IChannelPool pool) {
-			return new ChannelEventsHandler(pool);
+	internal class ChannelEventsHandlerFactory : IChannelEventsHandlerFactory {
+		private readonly IRmqLogger logger;
+
+		public ChannelEventsHandlerFactory(IRmqLogger logger) {
+			this.logger = logger;
 		}
 
-		public static IChannelEventsHandlerFactory Create() {
-			return new ChannelEventsHandlerFactory();
+		public IChannelEventsHandler CreateHandler() {
+			return new ChannelEventsHandler(logger);
+		}
+
+		public static IChannelEventsHandlerFactory Create(IRmqLogger logger) {
+			return new ChannelEventsHandlerFactory(logger);
 		}
 
 	}
