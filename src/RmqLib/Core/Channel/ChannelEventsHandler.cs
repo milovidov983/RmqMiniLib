@@ -27,7 +27,7 @@ namespace RmqLib.Core {
 		}
 
 		public void CallbackException(object sender, CallbackExceptionEventArgs e) {
-			logger.Debug($"{nameof(ChannelEventsHandler)} {nameof(CallbackException)} Exception message: {.Exception.Message}");
+			logger.Debug($"{nameof(ChannelEventsHandler)} {nameof(CallbackException)} Exception message: {e.Exception.Message}");
 		}
 
 		public void FlowControl(object sender, FlowControlEventArgs e) {
@@ -35,7 +35,7 @@ namespace RmqLib.Core {
 		}
 
 		public void ModelShutdown(object sender, ShutdownEventArgs e) {
-			logger.Debug($"{nameof(ChannelEventsHandler)} {nameof(ModelShutdown)} {nameof(e.ReplyText)}: {e.ReplyText});
+			logger.Debug($"{nameof(ChannelEventsHandler)} {nameof(ModelShutdown)} {nameof(e.ReplyText)}: {e.ReplyText}");
 		}
 	}
 }

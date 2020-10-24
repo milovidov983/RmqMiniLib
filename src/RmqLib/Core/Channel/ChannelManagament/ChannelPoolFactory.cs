@@ -4,7 +4,6 @@ using System.Text;
 
 namespace RmqLib.Core {
 	class ChannelPoolFactory : IChannelPoolFactory {
-		private readonly IRmqLogger logger;
 		private readonly IChannelEventsHandlerFactory channelEventsHandlerFactory;
 
 		public ChannelPoolFactory(IChannelEventsHandlerFactory channelEventsHandlerFactory) {
@@ -23,11 +22,13 @@ namespace RmqLib.Core {
 				ch.BasicNacks += eventHandler.BasicNacks;
 				ch.BasicAcks += eventHandler.BasicAcks;
 				ch.FlowControl += eventHandler.FlowControl;
-
 			});
 
 			/// Будет вызвано в случае необходимости
 			pool.RegisterUnsubscribeAction(ch => {
+				if(eventHandler is null) {
+					return;
+				}
 				ch.ModelShutdown -= eventHandler.ModelShutdown;
 				ch.CallbackException -= eventHandler.CallbackException;
 				ch.BasicReturn -= eventHandler.BasicReturn;

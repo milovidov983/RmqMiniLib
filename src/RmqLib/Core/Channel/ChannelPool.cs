@@ -25,8 +25,6 @@ namespace RmqLib.Core {
 			this.unbindEventHandlers = action;
 		}
 
-		
-
 		public IChannelWrapper GetChannel() {
 			return wrappedChannel;
 		}

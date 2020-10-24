@@ -19,7 +19,7 @@ namespace RmqLib.Core {
 
 
 	internal class ChannelWrapper : IChannelWrapper {
-		private IModel channel;
+		private readonly IModel channel;
 		private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
 
 
@@ -35,7 +35,7 @@ namespace RmqLib.Core {
 		}
 
 		/// <summary>
-		/// Восстановить доступ к каналу после регисттрации consumer
+		/// Восстановить доступ к каналу после регистрации consumer
 		/// </summary>
 		public void UnlockChannel() {
 			semaphore.Release();
@@ -73,11 +73,14 @@ namespace RmqLib.Core {
 		}
 
 		public void Close() {
-			semaphore.Wait();
-			if (!channel.IsClosed) {
-				channel.Close();
+			try {
+				semaphore.Wait();
+				if (!channel.IsClosed) {
+					channel.Close();
+				}
+			} finally {
+				semaphore.Release();
 			}
-			semaphore.Release();
 		}
 
 	}

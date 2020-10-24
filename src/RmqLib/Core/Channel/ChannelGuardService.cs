@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace RmqLib.Core {
-	class ChannelGuardService {
+	internal class ChannelGuardService {
 		private readonly IChannelWrapper channel;
 		private readonly IRmqLogger logger;
 
@@ -15,12 +15,23 @@ namespace RmqLib.Core {
 			IConnectionWrapper connection,
 			IRmqLogger logger) {
 
-			channel = channelPool.GetChannel();
-
-
-			connection.BindEventHandlers(c => c.ConnectionShutdown += ConnectionShutdownEventHandler);
-			connection.RegisterUnsubscribeAction(c => c.ConnectionShutdown -= ConnectionShutdownEventHandler);
 			this.logger = logger;
+
+			channel = channelPool.GetChannel();
+			connection.BindEventHandlers(c => {
+				try {
+					c.ConnectionShutdown += ConnectionShutdownEventHandler;
+					logger.Debug($"{nameof(ChannelGuardService)} binded to connection shutdown event");
+				} catch(Exception e) {
+					logger.Error($"{nameof(ChannelGuardService)} error to bind to connection shutdown event: {e.Message}");
+				}
+			});
+			connection.RegisterUnsubscribeAction(c => {
+				if(this is null) {
+					return;
+				}
+				c.ConnectionShutdown -= ConnectionShutdownEventHandler;
+			});
 		}
 
 
@@ -29,7 +40,7 @@ namespace RmqLib.Core {
 
 			// судя по всему это тут надо для того что 
 			// бы consumer успевал зарегистрироваться при потере связи
-			channel.UnlockChannel();
+			channel?.UnlockChannel();
 
 
 			logger.Debug($"ConsumerEvent ConsumerRegistred. Channel unlocked");
@@ -43,7 +54,7 @@ namespace RmqLib.Core {
 
 			// судя по всему это тут надо для того что 
 			// бы consumer успевал зарегистрироваться при потере связи
-			channel.LockChannel();
+			channel?.LockChannel();
 
 
 			logger.Debug($"ConnectionEvent ConnectionShutdown. Channel is locked");
