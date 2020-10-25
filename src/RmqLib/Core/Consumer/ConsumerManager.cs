@@ -14,14 +14,14 @@ namespace RmqLib {
 	/// в случае нештатных ситуаций пытается пересоздать и привязать обработчики повторно
 	/// </summary>
 	internal class ConsumerManager : IConsumerManager, IDisposable {
-		private IConsumerFactory consumerFactory;
+		private readonly IConsumerFactory consumerFactory;
+		private readonly IRmqLogger logger;
+		private readonly List<Action<AsyncEventingBasicConsumer>> unsubscribeEventHandlers
+			= new List<Action<AsyncEventingBasicConsumer>>();
 
 		private AsyncEventingBasicConsumer consumerInstance;
 
-		private readonly IRmqLogger logger;
 
-		private List<Action<AsyncEventingBasicConsumer>> unsubscribeEventHandlers
-			= new List<Action<AsyncEventingBasicConsumer>>();
 
 	
 		public ConsumerManager(
@@ -43,7 +43,11 @@ namespace RmqLib {
 
 		public void InitConsumer() {
 			logger.Info($"Пробуем создать consumer...");
-			consumerInstance = consumerFactory.CreateBasicConsumer();
+
+			// придётся пилить свой враппер вокруг AsyncEventingBasicConsumer
+			// тк интерфейсы не содержат событий IAsyncBasicConsumer
+			// а явно зависеть от библиотечной имплементации не очень
+			consumerInstance = consumerFactory.CreateBasicConsumer(); 
 			logger.Info($"Consumer создан успешно");
 		}
 

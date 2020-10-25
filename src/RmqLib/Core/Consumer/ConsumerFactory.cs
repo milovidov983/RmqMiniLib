@@ -12,7 +12,7 @@ namespace RmqLib {
 			this.consumerBinder = consumerBinder;
 		}
 
-		public AsyncEventingBasicConsumer CreateBasicConsumer() {
+		public IAsyncBasicConsumer CreateBasicConsumer() {
 
 
 			var consumerInstance = new AsyncEventingBasicConsumer(channel.GetTrueChannel());

@@ -1,10 +1,10 @@
-﻿using RabbitMQ.Client.Events;
+﻿using RabbitMQ.Client;
 using System;
 
 namespace RmqLib {
 	internal interface IConsumerManager {
-		void BindEventHandlers(Action<AsyncEventingBasicConsumer> action);
+		void BindEventHandlers(Action<IAsyncBasicConsumer> action);
 		void InitConsumer();
-		void RegisterUnsubscribeAction(Action<AsyncEventingBasicConsumer> action);
+		void RegisterUnsubscribeAction(Action<IAsyncBasicConsumer> action);
 	}
 }
