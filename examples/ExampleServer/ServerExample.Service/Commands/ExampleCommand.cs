@@ -3,14 +3,20 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using SEC = ServerExample.Contracts;
 
 namespace ServerExample.Service.Commands {
 	public class ExampleCommand : ReadonlyCommandHandler {
 		public ExampleCommand(Context context) : base(context) {
 		}
 
-		protected override Task ExecuteImpl(RequestContext ctx) {
-			throw new NotImplementedException();
+		protected override async Task ExecuteImpl(RequestContext ctx) {
+			var req = ctx.Message.GetContent<SEC.ExampleCommand.Request>();
+
+			Console.WriteLine($"Message get! {req.Message}");
+
+
+			await Hub.SetRpcResultAsync(ctx.Message, new SEC.ExampleCommand.Response { Message = "ServerExample set rpc result 42!" });
 		}
 	}
 }
