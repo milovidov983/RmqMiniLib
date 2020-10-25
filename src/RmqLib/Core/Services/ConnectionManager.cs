@@ -28,7 +28,9 @@ namespace RmqLib.Core {
 		}
 
 		public void StartInitialization() {
-			connection = new ConnectionWrapper(config, logger);
+			var connectionLoggerFactory = LoggerFactory.Create("");
+			var connectionLogger = connectionLoggerFactory.CreateLogger(nameof(ConnectionWrapper));
+			connection = new ConnectionWrapper(config, connectionLogger);
 
 			var rpcCh = connection.CreateChannel();
 
@@ -54,7 +56,6 @@ namespace RmqLib.Core {
 
 
 
-			var connectionLoggerFactory = LoggerFactory.Create("");
 			var connectionHandlerLogger = loggerFactory.CreateLogger(nameof(ConnectionEventHandlers));
 
 			IConnectionEventsHandlerFactory connectionEventsHandlerFactory 

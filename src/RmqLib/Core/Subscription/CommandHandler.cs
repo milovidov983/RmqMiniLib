@@ -3,7 +3,7 @@
 namespace RmqLib {
 
 	public class CommandHandler {
-		public IRabbitCommand Command { get; set; }
+		public IRabbitCommand Handler { get; set; }
 		public string Topic { get; set; }
 	}
 	

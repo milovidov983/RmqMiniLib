@@ -41,13 +41,13 @@ namespace RmqLib {
 
 			this.channel = channel;
 
-			foreach (var handelr in commandHandlers) {
+			foreach (var commandHandlerData in commandHandlers) {
 				channel.QueueBind(queue: config.Queue,
 							exchange: config.Exchange,
-							routingKey: handelr.Topic);
+							routingKey: commandHandlerData.Topic);
 
-				topicHandlers.TryAdd(handelr.Topic, handelr.Command);
-				handelr.Command.WithHub(hub);
+				topicHandlers.TryAdd(commandHandlerData.Topic, commandHandlerData.Handler);
+				commandHandlerData.Handler.WithHub(hub);
 			}
 
 

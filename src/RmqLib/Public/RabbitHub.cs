@@ -23,12 +23,14 @@ namespace RmqLib {
 			initializer.InitConnectionManager();
 			publisherFactory = initializer.InitPublisherFactory();
 
-			subscriptionChannel = initializer.connectionManager.GetSubscriptionChannel();
+			var connectionManager = initializer.connectionManager;
+			connectionManager.CreateSubscriptionChannelPool(config.PrefetchCount);
+			subscriptionChannel = connectionManager.GetSubscriptionChannel();
 		}
 
 
-		public SubscriptionManager CreateSubscriptions() {
-			return initializer.InitSubscriptions(this);
+		public SubscriptionManager CreateSubscriptions(CommandHandler[] commands) {
+			return initializer.InitSubscriptions(this, commands);
 		}
 
 		public async Task<TResponse> ExecuteRpcAsync<TResponse, TRequest>(string topic, TRequest request, TimeSpan? timeout = null) where TResponse : class {
@@ -79,10 +81,13 @@ namespace RmqLib {
 				await semaphore.WaitAsync();
 				var replyProps = subscriptionChannel.CreateBasicProperties();
 				replyProps.CorrelationId = dm.ReplyProps.CorrelationId;
-
-				Console.WriteLine("SetRpcResultAsync " + replyProps.CorrelationId);
 				
-				subscriptionChannel.BasicPublish(exchange: "", routingKey: dm.ReplyProps.ReplyTo, basicProperties: replyProps, body: respBody);
+				subscriptionChannel.BasicPublish(
+					exchange: "", 
+					routingKey: dm.ReplyProps.ReplyTo, 
+					basicProperties: replyProps, 
+					body: respBody);
+
 			} finally {
 				semaphore.Release();
 			}

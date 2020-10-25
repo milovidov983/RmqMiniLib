@@ -22,13 +22,13 @@ namespace RmqLib {
 			this.config = config;
 			this.logger = logger;
 
-			logger.Debug($"{nameof(ConnectionWrapper)} try to create {nameof(connectionFactory)}...");
+			logger.Debug($"try to create {nameof(connectionFactory)}...");
 			this.connectionFactory = InitConnectionFactory();
 
-			logger.Debug($"{nameof(ConnectionWrapper)} try to create {nameof(connection)}...");
+			logger.Debug($"try to create {nameof(connection)}...");
 			connection = connectionFactory.CreateConnection();
 
-			logger.Debug($"{nameof(ConnectionWrapper)} {nameof(connection)} created");
+			logger.Debug($"{nameof(connection)} created");
 
 		}
 
@@ -44,15 +44,15 @@ namespace RmqLib {
 		public IModel CreateChannel() {
 			try {
 				semaphore.WaitOne();
-				logger.Debug($"{nameof(ConnectionWrapper)} {nameof(CreateChannel)} try to create channel...");
+				logger.Debug($"{nameof(CreateChannel)} try to create channel...");
 
 				var channel = connection.CreateModel();
 				channel.ExchangeDeclare(config.Exchange, ExchangeType.Topic, durable: true);
 
-				logger.Debug($"{nameof(ConnectionWrapper)} {nameof(CreateChannel)} channel created");
+				logger.Debug($"{nameof(CreateChannel)} channel created");
 				return channel;
 			} catch(Exception e) {
-				logger.Error($"{nameof(ConnectionWrapper)} create channel error: {nameof(e.Message)}");
+				logger.Error($"create channel error: {nameof(e.Message)}");
 				throw;
 			} finally {
 				semaphore.Release();
@@ -76,7 +76,7 @@ namespace RmqLib {
 				try {
 					unbindEventHandler.Invoke(connection);
 				} catch (Exception e) {
-					logger.Error($"{nameof(ConnectionWrapper)} error to {nameof(unbindEventHandler)}: {nameof(e.Message)}");
+					logger.Error($"error to {nameof(unbindEventHandler)}: {nameof(e.Message)}");
 				}
 				connection.Close();
 			}

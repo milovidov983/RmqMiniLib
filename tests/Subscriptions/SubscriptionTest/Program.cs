@@ -24,7 +24,10 @@ namespace SubscriptionTest {
 		static void Main(string[] args) {
 			var startup = new Startup();
 			var hub = startup.Init();
-			var subs = hub.CreateSubscriptions();
+			var subs = hub.CreateSubscriptions(new[] { new CommandHandler {
+				Topic = ExampleClass.Topic,
+				Handler = new CommandBase()
+			} });
 			Console.WriteLine("Subscriptions init");
 			Console.ReadKey();// ("Hello World!");
 		}
