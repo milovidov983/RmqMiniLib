@@ -13,14 +13,14 @@ namespace RmqLib {
 			ulong deliveryTag) {
 
 
-			ReplyProps = replyProps; // channel.CreateBasicProperties();
-			RoutingKey = routingKey; //ea.RoutingKey;
-			Body = body; //ea.Body.ToArray();
-			DeliveryTag = deliveryTag;// ea.DeliveryTag;
+			ReplyProps = replyProps; 
+			RoutingKey = routingKey; 
+			Body = body; 
+			DeliveryTag = deliveryTag;
 		}
 
 
-		// topic
+
 		public string RoutingKey { get; private set; }
 
 
@@ -47,5 +47,11 @@ namespace RmqLib {
 		public string GetTopic() {
 			return RoutingKey;
 		}
+
+
+		public string GetAppId() {
+			return ReplyProps.AppId;
+		}
+
 	}
 }
