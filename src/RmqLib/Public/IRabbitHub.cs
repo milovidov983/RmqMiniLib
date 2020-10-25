@@ -11,9 +11,6 @@ namespace RmqLib {
 		//void SubscribeAsync(string queueName, Func<DeliveredMessage, Task<MessageProcessResult>> onMessage, int prefetchCount = 32);
 		Task PublishAsync<TRequest>(string topic, TRequest request, TimeSpan? timeout = null);
 		Task<TResponse> ExecuteRpcAsync<TResponse, TRequest>(string topic, TRequest request, TimeSpan? timeout = null) where TResponse : class;
-
-		SubscriptionManager CreateSubscriptions(CommandHandler[] commands);
-
 		Task SetRpcErrorAsync(DeliveredMessage dm, string error, int? statusCode = null);
 		Task SetRpcResultAsync<T>(DeliveredMessage dm, T payload, int? statusCode = null);
 

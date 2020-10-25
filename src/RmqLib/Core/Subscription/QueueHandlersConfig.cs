@@ -11,31 +11,36 @@ namespace RmqLib {
 	internal class QueueHandlersConfig : IQueueHandlersConfig {
 
 
-		public readonly Dictionary<string, IRabbitCommand> commandHandlers = new Dictionary<string, IRabbitCommand>();
+		internal readonly Dictionary<string, IRabbitCommand> commandHandlers = new Dictionary<string, IRabbitCommand>();
 
-		private IRabbitHub rabbitHub;
+		internal Func<DeliveredMessage, MessageProcessResult, Task<MessageProcessResult>> afterExecuteHandler;
+		internal Func<DeliveredMessage, Task<bool>> beforeExecuteHandler;
+		internal Func<Exception, DeliveredMessage, Task<bool>> onExceptionHandler;
+		internal Func<DeliveredMessage, Task<MessageProcessResult>> onUnexpectedTopicHandler;
+
+		private readonly IRabbitHub rabbitHub;
 
 		public QueueHandlersConfig(IRabbitHub rabbitHub) {
 			this.rabbitHub = rabbitHub;
 		}
 
-		public IQueueHandlersConfig AfterExecute(Func<ResponseMessage, MessageProcessResult, Task<MessageProcessResult>> handler) {
-			//afterExecuteHandler = handler;
+		public IQueueHandlersConfig AfterExecute(Func<DeliveredMessage, MessageProcessResult, Task<MessageProcessResult>> handler) {
+			afterExecuteHandler = handler;
 			return this;
 		}
 
-		public IQueueHandlersConfig BeforeExecute(Func<ResponseMessage, Task<bool>> handler) {
-			///beforeExecuteHandler = handler;
+		public IQueueHandlersConfig BeforeExecute(Func<DeliveredMessage, Task<bool>> handler) {
+			beforeExecuteHandler = handler;
 			return this;
 		}
 
-		public IQueueHandlersConfig OnException(Func<Exception, ResponseMessage, Task<bool>> handler) {
-			///onExceptionHandler = handler;
+		public IQueueHandlersConfig OnException(Func<Exception, DeliveredMessage, Task<bool>> handler) {
+			onExceptionHandler = handler;
 			return this;
 		}
 
-		public IQueueHandlersConfig OnUnexpectedTopic(Func<ResponseMessage, Task<MessageProcessResult>> handler) {
-			///onUnexpectedTopicHandler = handler;
+		public IQueueHandlersConfig OnUnexpectedTopic(Func<DeliveredMessage, Task<MessageProcessResult>> handler) {
+			onUnexpectedTopicHandler = handler;
 			return this;
 		}
 
@@ -44,5 +49,6 @@ namespace RmqLib {
 			commandHandlers.Add(topic, command);
 			return this;
 		}
+
 	}
 }

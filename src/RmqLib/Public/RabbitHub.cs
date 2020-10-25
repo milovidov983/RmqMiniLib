@@ -29,8 +29,8 @@ namespace RmqLib {
 		}
 
 
-		public SubscriptionManager CreateSubscriptions(CommandHandler[] commands) {
-			return initializer.InitSubscriptions(this, commands);
+		public SubscriptionManager CreateSubscriptions(Dictionary<string, IRabbitCommand> commandHandlers) {
+			return initializer.InitSubscriptions(this, commandHandlers);
 		}
 
 		public async Task<TResponse> ExecuteRpcAsync<TResponse, TRequest>(string topic, TRequest request, TimeSpan? timeout = null) where TResponse : class {
@@ -47,6 +47,9 @@ namespace RmqLib {
 			}
 			return dm.GetResponse<TResponse>();
 		}
+
+
+
 
 
 
@@ -69,6 +72,7 @@ namespace RmqLib {
 
 
 		private SemaphoreSlim semaphore = new SemaphoreSlim(1);
+		private QueueHandlersConfig queueHandlersConfig;
 		private readonly IModel subscriptionChannel;
 		public async Task SetRpcResultAsync<T>(DeliveredMessage dm, T payload, int? statusCode = null) {
 			if (!dm.IsRpcMessage()) {

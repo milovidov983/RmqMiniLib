@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace RmqLib.Core {
 	internal class Initializer {
@@ -33,8 +34,8 @@ namespace RmqLib.Core {
 			return new PublisherFactory(connectionManager);
 		}
 
-		public SubscriptionManager InitSubscriptions(IRabbitHub hub, CommandHandler[] commands) {
-			SubscriptionManager subscription = null;
+		public SubscriptionManager InitSubscriptions(IRabbitHub hub, Dictionary<string, IRabbitCommand> commandHandlers) {
+			SubscriptionManager subscriptionManager = null;
 			try {
 				var topicManageChannel = connectionManager.GetSubscriptionChannel();
 
@@ -53,10 +54,10 @@ namespace RmqLib.Core {
 
 				var topicListenerConsumerEventHandlers = topicListenerConsumerEventHandlersFactory.CreateMainHandler();
 
-				ISubscriptionManager subscriptionManager = new SubscriptionManager(
+				subscriptionManager = new SubscriptionManager(
 					topicManageChannel,
 					hub,
-					commands,
+					commandHandlers,
 					config);
 
 				topicListenerConsumerEventHandlers.AddHandler(subscriptionManager.Handler);
@@ -67,7 +68,7 @@ namespace RmqLib.Core {
 						$"Error: {e.Message} ", e);
 
 			}
-			return subscription;
+			return subscriptionManager;
 		}
 	}
 }

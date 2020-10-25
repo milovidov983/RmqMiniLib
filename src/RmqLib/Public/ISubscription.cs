@@ -8,4 +8,16 @@ namespace RmqLib {
 	public interface ISubscription : IDisposable {
 		Task StopGracefully(CancellationToken gracefulToken);
 	}
+
+
+	public class Subscription : ISubscription {
+		public void Dispose() {
+			//TODO
+		}
+
+		public Task StopGracefully(CancellationToken gracefulToken) {
+			//TODO
+			return Task.CompletedTask;
+		}
+	}
 }

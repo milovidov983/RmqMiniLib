@@ -31,23 +31,23 @@ namespace RmqLib {
 
 		private readonly ConcurrentDictionary<string, IRabbitCommand> topicHandlers = new ConcurrentDictionary<string, IRabbitCommand>();
 
-
+		private QueueHandlersConfig queueHandlersConfig;
 
 		public SubscriptionManager(
 			IModel channel,
 			IRabbitHub hub,
-			CommandHandler[] commandHandlers,
+			Dictionary<string, IRabbitCommand> commandHandlers,
 			RmqConfig config) { 
 
 			this.channel = channel;
 
-			foreach (var commandHandlerData in commandHandlers) {
+			foreach (var handler in commandHandlers) {
 				channel.QueueBind(queue: config.Queue,
 							exchange: config.Exchange,
-							routingKey: commandHandlerData.Topic);
+							routingKey: handler.Key);
 
-				topicHandlers.TryAdd(commandHandlerData.Topic, commandHandlerData.Handler);
-				commandHandlerData.Handler.WithHub(hub);
+				topicHandlers.TryAdd(handler.Key, handler.Value);
+				handler.Value.WithHub(hub);
 			}
 
 
@@ -89,9 +89,58 @@ namespace RmqLib {
 			});
 		}
 
+		internal void AddHandler(QueueHandlersConfig queueHandlersConfig) {
+			this.queueHandlersConfig = queueHandlersConfig;
+		}
+
 		private Task<MessageProcessResult> ExecuteUnexpectedTopicHandler(DeliveredMessage deliveredMessage) {
-			//  залогировать и отправить error отправителю если rpc
+			if(queueHandlersConfig.onUnexpectedTopicHandler != null) {
+				return queueHandlersConfig.onUnexpectedTopicHandler(deliveredMessage);
+			}
 			return Task.FromResult(MessageProcessResult.Ack);
+		}
+
+
+
+		private Task ExecuteExceptionHandler(Exception e, DeliveredMessage deliveredMessage) {
+			if (queueHandlersConfig.onExceptionHandler != null) {
+				return queueHandlersConfig.onExceptionHandler(e, deliveredMessage);
+			}
+			return Task.CompletedTask;
+		}
+
+		private Task<MessageProcessResult> ExecuteAfterExecuteHandler(
+			DeliveredMessage deliveredMessage, 
+			MessageProcessResult processResult) {
+
+			if (queueHandlersConfig.afterExecuteHandler != null) {
+				return queueHandlersConfig.afterExecuteHandler(deliveredMessage, processResult);
+			}
+			return Task.FromResult(MessageProcessResult.Ack);
+		}
+
+		private Task ExecuteBeforeExecuteHandler(DeliveredMessage deliveredMessage) {
+			if (queueHandlersConfig.beforeExecuteHandler != null) {
+				return queueHandlersConfig.beforeExecuteHandler(deliveredMessage);
+			}
+			return Task.CompletedTask;
+		}
+
+		private DeliveredMessage CreateDeliveredMessage(BasicDeliverEventArgs ea) {
+			var body = ea.Body;
+			var props = ea.BasicProperties;
+			var routingKey = ea.RoutingKey;
+			var dt = ea.DeliveryTag;
+			return new DeliveredMessage(props, routingKey, body, dt);
+		}
+
+		private void ProcessHandlerException(string routingKey, Exception e) {
+			SetError($"Handler exception for topic {routingKey} {e.Message}");
+		}
+
+
+		private void SetError(string v) {
+			Console.WriteLine($"Rmq error: {v}");
 		}
 
 		private async Task Ask(ulong dt, MessageProcessResult processResult) {
@@ -111,35 +160,6 @@ namespace RmqLib {
 			} finally {
 				semaphore.Release();
 			}
-		}
-
-		private Task ExecuteExceptionHandler(Exception e, DeliveredMessage deliveredMessage) {
-			return Task.CompletedTask;
-		}
-
-		private Task<MessageProcessResult> ExecuteAfterExecuteHandler(DeliveredMessage deliveredMessage, MessageProcessResult processResult) {
-			return Task.FromResult(MessageProcessResult.Ack);
-		}
-
-		private Task ExecuteBeforeExecuteHandler(DeliveredMessage deliveredMessage) {
-			return Task.CompletedTask;
-		}
-
-		private DeliveredMessage CreateDeliveredMessage(BasicDeliverEventArgs ea) {
-			var body = ea.Body;
-			var props = ea.BasicProperties;
-			var routingKey = ea.RoutingKey;
-			var dt = ea.DeliveryTag;
-			return new DeliveredMessage(props, routingKey, body, dt);
-		}
-
-		private void ProcessHandlerException(string routingKey, Exception e) {
-			SetError($"Handler exception for topic {routingKey} {e.Message}");
-		}
-
-
-		private void SetError(string v) {
-			Console.WriteLine($"Rmq error: {v}");
 		}
 	}
 }
