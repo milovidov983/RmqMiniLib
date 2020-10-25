@@ -56,18 +56,33 @@ namespace RmqLib {
 			await pub.CreateBroadcastPublication(di, timeout);
 		}
 
-		public Task SetRpcErrorAsync(DeliveredMessage dm, string error, int? statusCode = null) {
+		public async Task SetRpcErrorAsync(DeliveredMessage dm, string error, int? statusCode = null) {
 			if (!dm.IsRpcMessage()) {
 				throw new InvalidOperationException("Can't reply on non-RPC request");
 			}
 
+			try {
+				await semaphore.WaitAsync();
+				var replyProps = subscriptionChannel.CreateBasicProperties();
+				replyProps.CorrelationId = dm.ReplyProps.CorrelationId;
 
-			return Task.CompletedTask;
+				replyProps.Headers.Add(RmqLib.Core.Headers.Error, error);
+				replyProps.Headers.Add(RmqLib.Core.Headers.StatusCode, statusCode);
+
+				subscriptionChannel.BasicPublish(
+					exchange: "",
+					routingKey: dm.ReplyProps.ReplyTo,
+					basicProperties: replyProps
+					);
+
+			} finally {
+				semaphore.Release();
+			}
 		}
 
 
 		private SemaphoreSlim semaphore = new SemaphoreSlim(1);
-		private QueueHandlersConfig queueHandlersConfig;
+
 		private readonly IModel subscriptionChannel;
 		public async Task SetRpcResultAsync<T>(DeliveredMessage dm, T payload, int? statusCode = null) {
 			if (!dm.IsRpcMessage()) {
