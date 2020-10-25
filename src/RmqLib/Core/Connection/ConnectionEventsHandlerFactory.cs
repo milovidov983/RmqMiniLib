@@ -1,17 +1,19 @@
 ﻿namespace RmqLib.Core {
 	internal class ConnectionEventsHandlerFactory : IConnectionEventsHandlerFactory {
+		private readonly IConnectionWrapper connectionWrapper;
 		private readonly IRmqLogger logger;
 
-		public ConnectionEventsHandlerFactory(IRmqLogger logger) {
+		public ConnectionEventsHandlerFactory(IConnectionWrapper connectionWrapper, IRmqLogger logger)  {
 			this.logger = logger;
+			this.connectionWrapper = connectionWrapper;
 		}
 
-		public IChannelEventsHandler CreateHandler() {
-			return new ChannelEventsHandler(logger);
+		public IConnectionEventHandlers CreateHandler() {
+			return new ConnectionEventHandlers(connectionWrapper, logger);
 		}
 
-		public static IChannelEventsHandlerFactory Create(IRmqLogger logger) {
-			return new ChannelEventsHandlerFactory(logger);
+		public static IConnectionEventsHandlerFactory Create(IRmqLogger logger, IConnectionWrapper connectionWrapper) {
+			return new ConnectionEventsHandlerFactory(connectionWrapper, logger);
 		}
 
 	}

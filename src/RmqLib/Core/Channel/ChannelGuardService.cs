@@ -25,22 +25,23 @@ namespace RmqLib.Core {
 		}
 
 
-		public Task ConsumerRegistredEventHandelr(object sender, ConsumerEventArgs @event) {
-			logger.Debug($"ConsumerEvent ConsumerRegistred. Try to unlock channel");
+		public void ConsumerRegistredEventHandelr(object sender, ConsumerEventArgs @event) {
+			logger.Debug($"{nameof(ChannelGuardService)} ConsumerRegistred. Try to unlock channel");
 
 			// судя по всему это тут надо для того что 
 			// бы consumer успевал зарегистрироваться при потере связи
 			channel?.UnlockChannel();
 
 
-			logger.Debug($"ConsumerEvent ConsumerRegistred. Channel unlocked");
-			return Task.CompletedTask;
+			logger.Debug($"{nameof(ChannelGuardService)} ConsumerRegistred. Channel unlocked");
+			
 		}
 
 
 
 		private void ConnectionShutdownEventHandler(object sender, ShutdownEventArgs e) {
-			logger.Debug($"ConnectionEvent ConnectionShutdown. Try to lock channel. ReplyText: {e.ReplyText}");
+			logger.Debug($"{nameof(ChannelGuardService)} ConnectionShutdown." +
+				$" Try to lock channel. ReplyText: {e.ReplyText}");
 
 			// судя по всему это тут надо для того что 
 			// бы consumer успевал зарегистрироваться при потере связи

@@ -7,49 +7,37 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace RmqLib.Core.Connection {
+namespace RmqLib.Core {
 	class ConnectionEventHandlers : IConnectionEventHandlers {
-		private readonly List<Action<IConnection>> activeEventHandlers = new List<Action<IConnection>>();
-
-		private readonly ConcurrentBag<Action<IConnection>> unsubscribeEventHandlers = new ConcurrentBag<Action<IConnection>>();
-
-		private readonly ConcurrentBag<Action<object, ShutdownEventArgs>> connectionShutdownEventHandlers = new ConcurrentBag<Action<object, ShutdownEventArgs>>();
+		private readonly ConcurrentBag<Action<object, ShutdownEventArgs>> connectionShutdownEventHandlers 
+			= new ConcurrentBag<Action<object, ShutdownEventArgs>>();
 
 		private readonly IConnectionWrapper connectionWrapper;
 		private readonly IRmqLogger logger;
 
-		
 
-		public ConnectionEventHandlers(IConnectionWrapper connectionWrapper) {
+		public ConnectionEventHandlers(IConnectionWrapper connectionWrapper, IRmqLogger logger) {
 			this.connectionWrapper = connectionWrapper;
-
-			connectionWrapper.RegisterUnsubscribeAction(c => { UnsubscribeAll(); });
-		}
-
-		private void UnsubscribeAll() {
-			throw new NotImplementedException();
-		}
-
-		public void AddEventHandler(Action<ICollection> initAction) {
-
+			this.logger = logger;
+			Init();
 		}
 
 		void Init() {
 
-			connectionWrapper.SetSettings(c => {
+			connectionWrapper.BindEventHandler(c => {
 				try {
 					c.ConnectionShutdown += ConnectionShutdownEventHandler;
 					c.ConnectionBlocked += ConnectionBlockedHandler;
 					c.CallbackException += CallbackExceptionHandler;
 					c.ConnectionUnblocked += ConnectionUnblockedHandler;
 
-					logger.Debug($"{nameof(ConnectionEventHandlers)} binded to connection shutdown event");
+					logger.Debug($"{nameof(ConnectionEventHandlers)} binded to connection event handlers");
 				} catch (Exception e) {
-					logger.Error($"{nameof(ConnectionEventHandlers)} error to bind to connection shutdown event: {e.Message}");
+					logger.Error($"{nameof(ConnectionEventHandlers)} error to bind connection event handlers: {e.Message}");
 				}
 			});
 
-			connectionWrapper.RegisterUnsubscribeAction(c => {
+			connectionWrapper.RegisterUnsubscribeHandler(c => {
 				if (this is null) {
 					return;
 				}
@@ -66,14 +54,16 @@ namespace RmqLib.Core.Connection {
 
 		private void CallbackExceptionHandler(object sender, CallbackExceptionEventArgs e) {
 			logger.Debug($"{nameof(ConnectionEventHandlers)} CallbackException event happened " +
-			$"{nameof(e.Exception)} {e.Exception?.Message} " +
-			$"{nameof(e.Detail)}  {string.Join( " ",  e.Detail?.Select(kv => ($"{kv.Key}: {kv.Value}") ) ) } ");
+			$"{nameof(CallbackExceptionEventArgs.Exception)} {e.Exception?.Message} " +
+			$"{nameof(CallbackExceptionEventArgs.Detail)}  {string.Join( " ",  e.Detail?.Select(kv => ($"{kv.Key}: {kv.Value}") ) ) } ");
 		}
 
 		private void ConnectionBlockedHandler(object sender, ConnectionBlockedEventArgs e) {
 			logger.Debug($"{nameof(ConnectionEventHandlers)} ConnectionBlocked event happened " +
-			$"{nameof(e.Reason)} {e.Reason}");
+			$"{nameof(ConnectionBlockedEventArgs.Reason)} {e.Reason}");
 		}
+
+
 
 		public void AddHandler(Action<object, ShutdownEventArgs> shutdownHandler) {
 			connectionShutdownEventHandlers.Add(shutdownHandler);
@@ -81,14 +71,14 @@ namespace RmqLib.Core.Connection {
 
 		private void ConnectionShutdownEventHandler(object sender, ShutdownEventArgs e) {
 			logger.Debug($"{nameof(ConnectionEventHandlers)} ConnectionShutdownEvent event happened " +
-				$"{nameof(e.ReplyText)} {e.ReplyText}");
+				$"{nameof(ShutdownEventArgs.ReplyText)} {e.ReplyText}");
 
 			connectionShutdownEventHandlers.ToList().ForEach(handler => {
 				try {
 					handler.Invoke(sender, e);
-				} catch(Exception e) {
+				} catch(Exception ex) {
 					logger.Error($"{nameof(ConnectionEventHandlers)} " +
-						$"ConnectionShutdownEvent handler error: {e.Message}");
+						$"ConnectionShutdownEvent handler error: {ex.Message}");
 				}
 			});
 		}

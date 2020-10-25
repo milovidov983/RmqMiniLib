@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RmqLib.Core;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -17,24 +18,24 @@ namespace RmqLib {
 		private readonly IConsumerBinder consumerBinder;
 		private AsyncEventingBasicConsumer consumerInstance;
 
-		private List<Action<AsyncEventingBasicConsumer>> unsubscribeEventHandlers
-			= new List<Action<AsyncEventingBasicConsumer>>();
+		private readonly IRmqLogger logger;
 
-		private List<Action<AsyncEventingBasicConsumer>> activeEventHandlers 
+		private List<Action<AsyncEventingBasicConsumer>> unsubscribeEventHandlers
 			= new List<Action<AsyncEventingBasicConsumer>>();
 
 		private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
 
 		public ConsumerManager(
 			IConsumerFactory consumerFactory,
-			IConsumerBinder consumerBinder) {
+			IConsumerBinder consumerBinder,
+			IRmqLogger logger) {
 			this.consumerFactory = consumerFactory;
 			this.consumerBinder = consumerBinder;
+			this.logger = logger;
 		}
 
 
 		public void BindEventHandlers(Action<AsyncEventingBasicConsumer> action) {
-			activeEventHandlers.Add(action);
 			action.Invoke(consumerInstance);
 		}
 
@@ -43,8 +44,7 @@ namespace RmqLib {
 
 		public void RegisterUnsubscribeAction(Action<AsyncEventingBasicConsumer> action) {
 			unsubscribeEventHandlers.Add(action);
-			
-
+		
 		}
 
 		public void InitConsumer() {
@@ -65,7 +65,7 @@ namespace RmqLib {
 
 			consumerBinder.Bind(consumerInstance);
 
-			activeEventHandlers.ForEach(action => action.Invoke(consumerInstance));
+			
 		}
 
 		private Task Registered(object sender, ConsumerEventArgs @event) {
@@ -87,9 +87,11 @@ namespace RmqLib {
 		}
 
 
-
-
 		private async Task Recover() {
+			// TODO пока не понятно надо ли оно вообще  и будет ли работать
+			Log($" ХХХ Восстановление временно отключено. ХХХ ");
+			return;
+
 			if (consumerInstance.IsRunning) {
 				return;
 			}
@@ -116,6 +118,8 @@ namespace RmqLib {
 
 		}
 
+		// TODO перенсти  все обработчики в отдельный класс ConsumerEventHandlers
+
 		private Task Shutdown(object sender, ShutdownEventArgs @event) {
 			Log($"ConsumerEvent Shutdown. ReplyText {@event.ReplyText}");
 			return Recover();
@@ -132,7 +136,7 @@ namespace RmqLib {
 
 
 		private void Log(string msg) {
-			Console.WriteLine($"[{nameof(ConsumerManager)}]: {msg}");
+			logger.Debug($"[{nameof(ConsumerManager)}]: {msg}");
 		}
 
 

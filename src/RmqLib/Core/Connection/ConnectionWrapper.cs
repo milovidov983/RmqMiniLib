@@ -7,7 +7,7 @@ using System.Threading;
 namespace RmqLib {
 	internal class ConnectionWrapper : IConnectionWrapper , IDisposable{
 		private RabbitMQ.Client.IConnection connection;
-		private Action<IConnection> unsubscribeAction;
+		private Action<IConnection> unbindEventHandler;
 		private readonly IConnectionFactory connectionFactory;
 		private readonly Semaphore semaphore = new Semaphore(1,1);
 		private readonly RmqConfig config;
@@ -21,21 +21,23 @@ namespace RmqLib {
 		public ConnectionWrapper(RmqConfig config, IRmqLogger logger) {
 			this.config = config;
 			this.logger = logger;
+
+			logger.Debug($"{nameof(ConnectionWrapper)} try to create {nameof(connectionFactory)}...");
 			this.connectionFactory = InitConnectionFactory();
+
+			logger.Debug($"{nameof(ConnectionWrapper)} try to create {nameof(connection)}...");
 			connection = connectionFactory.CreateConnection();
 
+			logger.Debug($"{nameof(ConnectionWrapper)} {nameof(connection)} created");
+
 		}
 
-		public void SetSettings(Action<IConnection> config) {
-			try {
-				config.Invoke(connection);
-			} catch(Exception e) {
-				logger.Error($"{nameof(ConnectionWrapper)} error in {nameof(SetSettings)}: {nameof(e.Message)}");
-			}
+		public void BindEventHandler(Action<IConnection> bindEventHandler) {
+			bindEventHandler.Invoke(connection);
 		}
 
-		public void RegisterUnsubscribeAction(Action<IConnection> action) {
-			this.unsubscribeAction = action;
+		public void RegisterUnsubscribeHandler(Action<IConnection> unbindHandler) {
+			this.unbindEventHandler = unbindHandler;
 		}
 
 
@@ -50,8 +52,8 @@ namespace RmqLib {
 				logger.Debug($"{nameof(ConnectionWrapper)} {nameof(CreateChannel)} channel created");
 				return channel;
 			} catch(Exception e) {
-				logger.Error($"{nameof(ConnectionWrapper)} try to create channel {nameof(SetSettings)}: {nameof(e.Message)}");
-				return null;
+				logger.Error($"{nameof(ConnectionWrapper)} create channel error: {nameof(e.Message)}");
+				throw;
 			} finally {
 				semaphore.Release();
 			}
@@ -72,9 +74,9 @@ namespace RmqLib {
 		public void Dispose() {
 			if(connection != null) {
 				try {
-					unsubscribeAction.Invoke(connection);
+					unbindEventHandler.Invoke(connection);
 				} catch (Exception e) {
-					logger.Error($"{nameof(ConnectionWrapper)} error in {nameof(Dispose)}: {nameof(e.Message)}");
+					logger.Error($"{nameof(ConnectionWrapper)} error to {nameof(unbindEventHandler)}: {nameof(e.Message)}");
 				}
 				connection.Close();
 			}
