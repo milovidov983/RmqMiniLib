@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using RmqLib;
+﻿using RmqLib;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -18,18 +17,18 @@ namespace ServerExample.Service.Infrastructure {
 
 		public async Task OnError(RequestContext ctx, CMCI.MicroServiceException ex) {
 			if (ex.StatusCode == CMCI.StatusCodes.InternalError) {
-				//logger.Error(ex, ctx.Message.GetRequestAndInnerExceptionInfo(ex));
+				logger.Error(ex, ctx.Message.GetRequestAndInnerExceptionInfo(ex));
 			} else {
-				//logger.Warn(ex, CMCI.Extensions.GetRequestInfo(ctx.Message));
+				logger.Warn(ex, CMCI.Extensions.GetRequestInfo(ctx.Message));
 			}
 			try {
 				if (ctx.Message.IsRpcMessage()) {
 					await hub.SetRpcErrorAsync(ctx.Message, ex.Message, (int)ex.StatusCode);
 				}
 			} catch (Exception e) {
-				//logger.Fatal(e, $"Не удалось отправить сообщение об ошибке вызывающей стороне {ctx.Message.GetAppId()} " +
-					//$"на вызов {ctx.Message.GetTopic()}, " +
-					//$"подробности: {e.Message}");
+				logger.Fatal(e, $"Не удалось отправить сообщение об ошибке вызывающей стороне {ctx.Message.GetAppId()} " +
+					$"на вызов {ctx.Message.GetTopic()}, " +
+					$"подробности: {e.Message}");
 			}
 		}
 	}

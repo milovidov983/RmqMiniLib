@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+﻿
 using RmqLib;
 using System;
 using System.Threading.Tasks;

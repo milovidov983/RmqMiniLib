@@ -27,6 +27,10 @@ namespace RmqLib {
 		public ulong DeliveryTag { get; private set; }
 		public IBasicProperties ReplyProps { get; private set; }
 
+		public string GetRequestAndInnerExceptionInfo(Exception ex) {
+			return ex.InnerException?.Message;
+		}
+
 		public ReadOnlyMemory<byte> Body { get; private  set; }
 
 
