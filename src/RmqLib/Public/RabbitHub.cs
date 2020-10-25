@@ -23,12 +23,11 @@ namespace RmqLib {
 			initializer.InitConnectionManager();
 			publisherFactory = initializer.InitPublisherFactory();
 
-			var pool = initializer.connectionManager.CreateChannelPool();
-			channel = pool.GetChannelWrapper().GetTrueChannel();
+			subscriptionChannel = initializer.connectionManager.GetSubscriptionChannel();
 		}
 
 
-		public SubscriptioManager CreateSubscriptions() {
+		public SubscriptionManager CreateSubscriptions() {
 			return initializer.InitSubscriptions(this);
 		}
 
@@ -68,7 +67,7 @@ namespace RmqLib {
 
 
 		private SemaphoreSlim semaphore = new SemaphoreSlim(1);
-		private readonly IModel channel;
+		private readonly IModel subscriptionChannel;
 		public async Task SetRpcResultAsync<T>(DeliveredMessage dm, T payload, int? statusCode = null) {
 			if (!dm.IsRpcMessage()) {
 				throw new InvalidOperationException("Can't reply on non-RPC request");
@@ -78,12 +77,12 @@ namespace RmqLib {
 			byte[] respBody = Encoding.UTF8.GetBytes(resp);
 			try {
 				await semaphore.WaitAsync();
-				var replyProps = channel.CreateBasicProperties();
+				var replyProps = subscriptionChannel.CreateBasicProperties();
 				replyProps.CorrelationId = dm.ReplyProps.CorrelationId;
 
 				Console.WriteLine("SetRpcResultAsync " + replyProps.CorrelationId);
 				
-				channel.BasicPublish(exchange: "", routingKey: dm.ReplyProps.ReplyTo, basicProperties: replyProps, body: respBody);
+				subscriptionChannel.BasicPublish(exchange: "", routingKey: dm.ReplyProps.ReplyTo, basicProperties: replyProps, body: respBody);
 			} finally {
 				semaphore.Release();
 			}

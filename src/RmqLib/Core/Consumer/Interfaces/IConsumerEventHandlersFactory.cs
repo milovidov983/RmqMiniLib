@@ -1,5 +1,6 @@
 ﻿namespace RmqLib.Core {
 	internal interface IConsumerEventHandlersFactory {
-		IConsumerEventHandlers CreateHandler();
+		IConsumerRegisterEventHandler CreateRegisterEventHandler();
+		IConsumerReceiveEventHandelr CreateReceiveEventHandelr();
 	}
 }

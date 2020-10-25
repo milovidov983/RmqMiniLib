@@ -8,6 +8,7 @@ namespace RmqLib {
 		IConnectionWrapper GetConnection();
 		IResponseMessageHandler GetResponseMessageHandler();
 		IChannelPool GetRpcChannelPool();
-		IChannelPool CreateChannelPool();
+		IChannelPool CreateSubscriptionChannelPool(ushort prefechCount);
+		IModel GetSubscriptionChannel();
 	}
 }

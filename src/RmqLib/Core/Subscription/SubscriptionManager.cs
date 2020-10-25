@@ -25,78 +25,38 @@ namespace RmqLib {
 
 
 
-	public class SubscriptioManager : ISubscriptionManager {
-		private IModel channel;
-		private string queueName = "q_testQueue";
-		private SemaphoreSlim semaphore = new SemaphoreSlim(1);
-		private IRabbitHub Hub;
+	public class SubscriptionManager : ISubscriptionManager {
+		private readonly IModel channel;
+		private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
 
-
-		private ConcurrentDictionary<string, IRabbitCommand> topicHandlers = new ConcurrentDictionary<string, IRabbitCommand>() {
-			[ExampleClass.Topic] = null
-		};
+		private readonly ConcurrentDictionary<string, IRabbitCommand> topicHandlers = new ConcurrentDictionary<string, IRabbitCommand>();
 
 
 
-		public SubscriptioManager(
-			IChannelFactory channelFactory,
-			SubscrSettings[] subscriptions,
+		public SubscriptionManager(
+			IModel channel,
 			IRabbitHub hub,
-			ushort prefechCount = 32) {
+			CommandHandler[] commandHandlers,
+			RmqConfig config) { 
 
 			this.channel = channel;
-			this.Hub = hub;
-			channel.BasicQos(0, prefechCount, false);
 
-			channel.ModelShutdown += (o, e) => Console.WriteLine($"RMQ Channel shutdown {e.Cause}");
+			foreach (var handelr in commandHandlers) {
+				channel.QueueBind(queue: config.Queue,
+							exchange: config.Exchange,
+							routingKey: handelr.Topic);
 
-			channel.QueueDeclare(
-				queueName,
-				durable: true,
-				exclusive: false,
-				autoDelete: false);
-
-
-			//var consumer = new EventingBasicConsumer(channel);
-			var consumer = new AsyncEventingBasicConsumer(channel);
-
-			consumer.Shutdown += async (o, e) => {
-				Console.WriteLine($"consumer.Shutdown {e.ReplyText}");
-				await Task.Yield();
-			};
-			consumer.Registered += async (o, e) => {
-				Console.WriteLine($"consumer.Registered");
-				await Task.Yield();
-
-			};
-
-			consumer.Received += Handler;
-
-			channel.BasicConsume(queue: queueName,
-						autoAck: false,
-						consumer: consumer);
-
-			foreach (var topic in topicHandlers.Keys) {
-				channel.QueueBind(queue: queueName,
-							exchange: "my_exchange",
-							routingKey: topic);
-
-				topicHandlers[topic] = new CommandBase();
-				topicHandlers[topic].WithHub(hub);
+				topicHandlers.TryAdd(handelr.Topic, handelr.Command);
+				handelr.Command.WithHub(hub);
 			}
 
 
 		}
 
 		public void Handler(object model, BasicDeliverEventArgs ea) {
-			var body = ea.Body.ToArray();
-			var props = ea.BasicProperties;
 			var routingKey = ea.RoutingKey;
 			var dt = ea.DeliveryTag;
-
 			DeliveredMessage deliveredMessage = CreateDeliveredMessage(ea);
-
-
 			Task.Factory.StartNew(async () => {
 				try {
 					await ExecuteBeforeExecuteHandler(deliveredMessage);

@@ -14,7 +14,7 @@ namespace RmqLib.Core {
 			IChannelPool channelPool,
 			IRmqLogger logger,
 			IConnectionEventHandlers connectionEventHandlers,
-			IConsumerEventHandlers consumerEventHandlers) {
+			IConsumerMainEventHandlers consumerEventHandlers) {
 
 			this.logger = logger;
 
@@ -26,21 +26,21 @@ namespace RmqLib.Core {
 
 
 		public void ConsumerRegistredEventHandelr(object sender, ConsumerEventArgs @event) {
-			logger.Debug($"{nameof(ChannelGuardService)} ConsumerRegistred. Try to unlock channel");
+			logger.Debug($"ConsumerRegistred. Try to unlock channel");
 
 			// судя по всему это тут надо для того что 
 			// бы consumer успевал зарегистрироваться при потере связи
 			channel?.UnlockChannel();
 
 
-			logger.Debug($"{nameof(ChannelGuardService)} ConsumerRegistred. Channel unlocked");
+			logger.Debug($"ConsumerRegistred. Channel unlocked");
 			
 		}
 
 
 
 		private void ConnectionShutdownEventHandler(object sender, ShutdownEventArgs e) {
-			logger.Debug($"{nameof(ChannelGuardService)} ConnectionShutdown." +
+			logger.Debug($"ConnectionShutdown." +
 				$" Try to lock channel. ReplyText: {e.ReplyText}");
 
 			// судя по всему это тут надо для того что 

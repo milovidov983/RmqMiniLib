@@ -31,9 +31,9 @@ namespace RmqLib.Core {
 					c.CallbackException += CallbackExceptionHandler;
 					c.ConnectionUnblocked += ConnectionUnblockedHandler;
 
-					logger.Debug($"{nameof(ConnectionEventHandlers)} binded to connection event handlers");
+					logger.Debug($"binded to connection event handlers");
 				} catch (Exception e) {
-					logger.Error($"{nameof(ConnectionEventHandlers)} error to bind connection event handlers: {e.Message}");
+					logger.Error($"error to bind connection event handlers: {e.Message}");
 				}
 			});
 
@@ -49,17 +49,17 @@ namespace RmqLib.Core {
 		}
 
 		private void ConnectionUnblockedHandler(object sender, EventArgs e) {
-			logger.Debug($"{nameof(ConnectionEventHandlers)} ConnectionShutdownEvent event happened ");
+			logger.Debug($"ConnectionShutdownEvent event happened ");
 		}
 
 		private void CallbackExceptionHandler(object sender, CallbackExceptionEventArgs e) {
-			logger.Debug($"{nameof(ConnectionEventHandlers)} CallbackException event happened " +
+			logger.Debug($"CallbackException event happened " +
 			$"{nameof(CallbackExceptionEventArgs.Exception)} {e.Exception?.Message} " +
 			$"{nameof(CallbackExceptionEventArgs.Detail)}  {string.Join( " ",  e.Detail?.Select(kv => ($"{kv.Key}: {kv.Value}") ) ) } ");
 		}
 
 		private void ConnectionBlockedHandler(object sender, ConnectionBlockedEventArgs e) {
-			logger.Debug($"{nameof(ConnectionEventHandlers)} ConnectionBlocked event happened " +
+			logger.Debug($"ConnectionBlocked event happened " +
 			$"{nameof(ConnectionBlockedEventArgs.Reason)} {e.Reason}");
 		}
 
@@ -70,14 +70,14 @@ namespace RmqLib.Core {
 		}
 
 		private void ConnectionShutdownEventHandler(object sender, ShutdownEventArgs e) {
-			logger.Debug($"{nameof(ConnectionEventHandlers)} ConnectionShutdownEvent event happened " +
+			logger.Debug($"ConnectionShutdownEvent event happened " +
 				$"{nameof(ShutdownEventArgs.ReplyText)} {e.ReplyText}");
 
 			connectionShutdownEventHandlers.ToList().ForEach(handler => {
 				try {
 					handler.Invoke(sender, e);
 				} catch(Exception ex) {
-					logger.Error($"{nameof(ConnectionEventHandlers)} " +
+					logger.Error($"" +
 						$"ConnectionShutdownEvent handler error: {ex.Message}");
 				}
 			});

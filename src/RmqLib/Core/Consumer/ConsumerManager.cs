@@ -15,7 +15,7 @@ namespace RmqLib {
 	/// </summary>
 	internal class ConsumerManager : IConsumerManager {
 		private IConsumerFactory consumerFactory;
-		private readonly IConsumerBinder consumerBinder;
+
 		private AsyncEventingBasicConsumer consumerInstance;
 
 		private readonly IRmqLogger logger;
@@ -27,10 +27,8 @@ namespace RmqLib {
 
 		public ConsumerManager(
 			IConsumerFactory consumerFactory,
-			IConsumerBinder consumerBinder,
 			IRmqLogger logger) {
 			this.consumerFactory = consumerFactory;
-			this.consumerBinder = consumerBinder;
 			this.logger = logger;
 		}
 
@@ -39,45 +37,23 @@ namespace RmqLib {
 			action.Invoke(consumerInstance);
 		}
 
-
-
-
 		public void RegisterUnsubscribeAction(Action<AsyncEventingBasicConsumer> action) {
 			unsubscribeEventHandlers.Add(action);
 		
 		}
 
 		public void InitConsumer() {
-			Log($"Создаем потребителя отвечающего за прослушивание RPC ответов.");
-
-
+			Log($"Пробуем создать consumer...");
 			consumerInstance = consumerFactory.CreateBasicConsumer();
+			Log($"Consumer создан успешно");
 
-
-			Log($"Создан потребитель для получения ответов от RPC вызовов.");
-
-			
-			consumerInstance.Registered += Registered;
 			consumerInstance.Shutdown += Shutdown;
 			consumerInstance.Unregistered += Unregistered;
 			consumerInstance.ConsumerCancelled += ConsumerCancelled;
-
-			consumerBinder.Bind(consumerInstance);
-		}
-
-
-
-		private Task Registered(object sender, ConsumerEventArgs @event) {
-			Log($"Потребитель ответов RPC успешно подключен к шине.");
-			return Task.CompletedTask;
 		}
 
 		private void Unsubscribe() {
 			Log($"Отписываем обработчиков от событий потребителя.");
-			//consumerInstance.Received -= responseMessageHandler.HandleMessage;
-			//consumerInstance.Registered -= connectionManager.ConsumerRegistred;
-			consumerInstance.Registered -= Registered;
-
 			consumerInstance.Shutdown -= Shutdown;
 			consumerInstance.Unregistered -= Unregistered;
 			consumerInstance.ConsumerCancelled -= ConsumerCancelled;
@@ -89,6 +65,7 @@ namespace RmqLib {
 		private async Task Recover() {
 			// TODO пока не понятно надо ли оно вообще  и будет ли работать
 			Log($" ХХХ Восстановление временно отключено. ХХХ если возникли проблемы с потерей консьюмера можно попробовать код ниже");
+			await Task.Yield();
 			return;
 
 			//if (consumerInstance.IsRunning) {
@@ -117,6 +94,8 @@ namespace RmqLib {
 
 		}
 
+		
+		
 		// TODO перенсти  все обработчики в отдельный класс ConsumerEventHandlers
 
 		private Task Shutdown(object sender, ShutdownEventArgs @event) {
@@ -135,7 +114,7 @@ namespace RmqLib {
 
 
 		private void Log(string msg) {
-			logger.Debug($"[{nameof(ConsumerManager)}]: {msg}");
+			logger.Debug($" {msg}");
 		}
 
 

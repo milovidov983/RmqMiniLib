@@ -14,6 +14,7 @@ namespace RmqLib.Core {
 		private IChannelPool rpcChannelPool;
 		private IResponseMessageHandler responseMessageHandler;
 		private ChannelGuardService channelGuardService;
+		private IModel subsCh;
 
 		public ConnectionManager(RmqConfig config, 
 			IChannelPoolFactory channelPoolFactory,
@@ -34,35 +35,44 @@ namespace RmqLib.Core {
 
 			rpcChannelPool = channelPoolFactory.CreateChannelPool(rpcCh);
 
-			IConsumerFactory consumerFactory = new ConsumerFactory(rpcCh);
-			IConsumerBinder consumerBinder = new ResponseConsumerBinder(rpcCh);
+			IConsumerBinder rpcConsumerBinder = new RpcConsumerBinder();
+			IConsumerFactory rpcConsumerFactory = new ConsumerFactory(rpcCh, rpcConsumerBinder);
+			
+			var loggerFactory = LoggerFactory.Create(ConsumerType.Rpc.ToString());
+			var managerLogger = loggerFactory.CreateLogger(nameof(ConsumerManager));
 
-			IConsumerManager consumerManager = new ConsumerManager(consumerFactory, consumerBinder, logger);
-			consumerManager.InitConsumer();
+			IConsumerManager rpcConsumerManager = new ConsumerManager(
+				rpcConsumerFactory, 
+				managerLogger);
+
+			rpcConsumerManager.InitConsumer();
+
+			IMainConsumerEventHandlerFactory rpcMainEventHandlerFactory 
+				= ConsumerEventHandlersFactory.Create(rpcConsumerManager, loggerFactory);
+
+			var rpcConsumerMainEventHandler = rpcMainEventHandlerFactory.CreateMainHandler();
 
 
 
-			IConsumerEventHandlersFactory consumerEventHandlersFactory 
-				= ConsumerEventHandlersFactory.Create(logger, consumerManager);
-			var consumerEventHandlers = consumerEventHandlersFactory.CreateHandler();
-
+			var connectionLoggerFactory = LoggerFactory.Create("");
+			var connectionHandlerLogger = loggerFactory.CreateLogger(nameof(ConnectionEventHandlers));
 
 			IConnectionEventsHandlerFactory connectionEventsHandlerFactory 
-				= ConnectionEventsHandlerFactory.Create(logger, connection);
-			var connectionEventHandler = connectionEventsHandlerFactory.CreateHandler();
+				= ConnectionEventsHandlerFactory.Create(connectionHandlerLogger, connection);
+			IConnectionEventHandlers connectionEventHandler = connectionEventsHandlerFactory.CreateHandler();
 
 
-
+			var channelGuardLogger = loggerFactory.CreateLogger(nameof(ChannelGuardService));
 			this.channelGuardService 
 				= new ChannelGuardService(
 					rpcChannelPool, // <--- TODO только rpc?
 					logger, 
 					connectionEventHandler, 
-					consumerEventHandlers);
+					rpcConsumerMainEventHandler);
 
 			// Подписка на ответы запросов rpc
 			responseMessageHandler = responseMessageHandlerFactory.GetHandler();
-			consumerEventHandlers.AddHandler(responseMessageHandler.HandleMessage);
+			rpcConsumerMainEventHandler.AddHandler(responseMessageHandler.HandleMessage);
 
 		}
 
@@ -74,18 +84,23 @@ namespace RmqLib.Core {
 			return rpcChannelPool;
 		}
 
-		public IChannelPool CreateChannelPool(ushort prefechCount) {
-			var subsCh = connection.CreateChannel();
-			subsCh.BasicQos(0, prefechCount, false);
-			subsCh.QueueDeclare(
-				config.Queue,
-				durable: true,
-				exclusive: false,
-				autoDelete: false);
-
+		public IChannelPool CreateSubscriptionChannelPool(ushort prefechCount) {
+			if (subsCh is null) {
+				subsCh = connection.CreateChannel();
+				subsCh.BasicQos(0, prefechCount, false);
+				subsCh.QueueDeclare(
+					config.Queue,
+					durable: true,
+					exclusive: false,
+					autoDelete: false);
+			}
 
 
 			return channelPoolFactory.CreateChannelPool(subsCh);
+		}
+
+		public IModel GetSubscriptionChannel() {
+			return subsCh;
 		}
 
 

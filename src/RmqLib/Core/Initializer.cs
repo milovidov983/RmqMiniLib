@@ -1,9 +1,4 @@
-﻿using RabbitMQ.Client;
-using RmqLib.Core.Logger;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System;
 
 namespace RmqLib.Core {
 	internal class Initializer {
@@ -17,7 +12,7 @@ namespace RmqLib.Core {
 			DeliveryInfo.AppId = config.AppId;
 			DeliveryInfo.ExhangeName = config.Exchange;
 
-			var loggerFactory = LoggerFactory.Create();
+			var loggerFactory = LoggerFactory.Create("");
 			logger = loggerFactory.CreateLogger();
 		}
 
@@ -35,36 +30,43 @@ namespace RmqLib.Core {
 		}
 
 		public IPublisherFactory InitPublisherFactory() {
-
 			return new PublisherFactory(connectionManager);
 		}
 
-		public SubscriptioManager InitSubscriptions(IRabbitHub hub) {
-			SubscriptioManager subscription;
+		public SubscriptionManager InitSubscriptions(IRabbitHub hub) {
+			SubscriptionManager subscription = null;
 			try {
-				//var pool = connectionManager.CreateNewChannelPool();
-				//var channelWrapper = pool.GetChannel();
-				//var channel = channelWrapper.GetDebugChannel();
-				SubscrSettings[] subscriptions = Array.Empty<SubscrSettings>();
-				var channelPool = connectionManager.CreateChannelPool();
-				var trueChannel = channelPool.GetChannelWrapper().GetTrueChannel();
+				CommandHandler[] subscriptions = Array.Empty<CommandHandler>();
 
-				IConsumerBinder consumerBinder = new SubscriptionConsumerBinder(trueChannel, config.Queue);
-				IConsumerFactory consumerFactory = new ConsumerFactory(trueChannel);
+				connectionManager.CreateSubscriptionChannelPool(config.PrefetchCount);
+				var topicManageChannel = connectionManager.GetSubscriptionChannel();
 
-				var consumerManager = new ConsumerManager(consumerFactory, consumerBinder, logger);
+				IConsumerBinder topicListenerBinder = new TopicListinerConsumerBinder(config.Queue);
+				IConsumerFactory topicListenerConsumerFactory = new ConsumerFactory(topicManageChannel, topicListenerBinder);
 
-				ISubscriptionManager subscriptionManager = new SubscriptioManager(null, subscriptions, hub, config.PrefetchCount);
 
-				IConsumerEventHandlersFactory consumerEventHandlersFactory
-					= ConsumerEventHandlersFactory.Create(logger, consumerManager);
-				var consumerEventHandlers = consumerEventHandlersFactory.CreateHandler();
+				var loggerFactory = LoggerFactory.Create(ConsumerType.Subs.ToString());
+				var managerLogger = loggerFactory.CreateLogger(nameof(ConsumerManager));
 
-				consumerEventHandlers.AddHandler(subscriptionManager.Handler);
+				IConsumerManager topicListenerConsumerManager = new ConsumerManager(topicListenerConsumerFactory, managerLogger);
+
+
+				IMainConsumerEventHandlerFactory topicListenerConsumerEventHandlersFactory
+					= ConsumerEventHandlersFactory.Create(topicListenerConsumerManager, loggerFactory);
+
+				var topicListenerConsumerEventHandlers = topicListenerConsumerEventHandlersFactory.CreateMainHandler();
+
+				ISubscriptionManager subscriptionManager = new SubscriptionManager(
+					topicManageChannel,
+					hub,
+					subscriptions,
+					config);
+
+				topicListenerConsumerEventHandlers.AddHandler(subscriptionManager.Handler);
 
 			} catch (Exception e) {
-					throw new ArgumentNullException(
-						$"Cant create {nameof(SubscriptioManager)} " +
+					throw new InvalidOperationException(
+						$"Cant create {nameof(SubscriptionManager)} " +
 						$"Error: {e.Message} ", e);
 
 			}
