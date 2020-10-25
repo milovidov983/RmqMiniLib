@@ -10,8 +10,6 @@ namespace RmqLib {
 		public static IHubHandlersConfig DefineHandlers(this IRabbitHub hub) {
 			return new HubHandlersConfig((RabbitHub)hub);
 		}
-
-
 	}
 
 	public interface IHubHandlersConfig {

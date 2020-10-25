@@ -10,26 +10,27 @@ using System.Threading.Tasks;
 using System.Timers;
 
 namespace RmqLib {
-
-
 	public class RabbitHub : IRabbitHub {
-		private IPublisherFactory publisherFactory;
-		private readonly RmqConfig config;
+		private readonly IPublisherFactory publisherFactory;
 		private readonly Initializer initializer;
+		private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
+		private readonly RmqConfig config;
+		private IModel subscriptionChannel;
+
 
 		public RabbitHub(RmqConfig config) {
-			this.config = config;
 			this.initializer = new Initializer(config);
 			initializer.InitConnectionManager();
 			publisherFactory = initializer.InitPublisherFactory();
-
-			var connectionManager = initializer.connectionManager;
-			connectionManager.CreateSubscriptionChannelPool(config.PrefetchCount);
-			subscriptionChannel = connectionManager.GetSubscriptionChannel();
+			this.config = config;
 		}
 
 
 		public SubscriptionManager CreateSubscriptions(Dictionary<string, IRabbitCommand> commandHandlers) {
+			var connectionManager = initializer.connectionManager;
+			connectionManager.CreateSubscriptionChannelPool(config.PrefetchCount);
+			subscriptionChannel = connectionManager.GetSubscriptionChannel();
+
 			return initializer.InitSubscriptions(this, commandHandlers);
 		}
 
@@ -47,7 +48,6 @@ namespace RmqLib {
 			}
 			return dm.GetResponse<TResponse>();
 		}
-
 
 		public async Task PublishAsync<TRequest>(string topic, TRequest request, TimeSpan? timeout = null) {
 			byte[] body = request.ToByteArray();
@@ -81,10 +81,6 @@ namespace RmqLib {
 			}
 		}
 
-
-		private SemaphoreSlim semaphore = new SemaphoreSlim(1);
-
-		private readonly IModel subscriptionChannel;
 		public async Task SetRpcResultAsync<T>(DeliveredMessage dm, T payload, int? statusCode = null) {
 			if (!dm.IsRpcMessage()) {
 				throw new InvalidOperationException("Can't reply on non-RPC request");
@@ -108,11 +104,5 @@ namespace RmqLib {
 			}
 		}
 
-
-		//public void SubscribeAsync(string queueName, Func<DeliveredMessage, Task<MessageProcessResult>> onMessage, int prefetchCount = 32) {
-		//	IPublisher inputChannel = channelPool.GetInputChannel(queueName, prefetchCount);
-		//	inputChannel.OnMessage = onMessage;
-
-		//}
 	}
 }

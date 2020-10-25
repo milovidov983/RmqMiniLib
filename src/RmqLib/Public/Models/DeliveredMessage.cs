@@ -21,19 +21,15 @@ namespace RmqLib {
 
 
 
+		public ReadOnlyMemory<byte> Body { get; private  set; }
 		public string RoutingKey { get; private set; }
-
-
 		public ulong DeliveryTag { get; private set; }
 		public IBasicProperties ReplyProps { get; private set; }
 
+		/// TODO  временное решение пока нет доступа к CMC
 		public string GetRequestAndInnerExceptionInfo(Exception ex) {
 			return ex.InnerException?.Message;
 		}
-
-		public ReadOnlyMemory<byte> Body { get; private  set; }
-
-
 
 		public bool IsRpcMessage() {
 			if (Guid.TryParse(ReplyProps?.CorrelationId ?? "", out var _)) {

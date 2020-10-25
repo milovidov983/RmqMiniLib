@@ -42,50 +42,15 @@ namespace RmqLib {
 		}
 
 		public void InitConsumer() {
-			Log($"Пробуем создать consumer...");
+			logger.Info($"Пробуем создать consumer...");
 			consumerInstance = consumerFactory.CreateBasicConsumer();
-			Log($"Consumer создан успешно");
-
-			consumerInstance.Shutdown += Shutdown;
-			consumerInstance.Unregistered += Unregistered;
-			consumerInstance.ConsumerCancelled += ConsumerCancelled;
+			logger.Info($"Consumer создан успешно");
 		}
 
 		private void Unsubscribe() {
-			Log($"Отписываем обработчиков от событий потребителя.");
-			consumerInstance.Shutdown -= Shutdown;
-			consumerInstance.Unregistered -= Unregistered;
-			consumerInstance.ConsumerCancelled -= ConsumerCancelled;
-
 			unsubscribeEventHandlers.ForEach(action => action?.Invoke(consumerInstance));
 		}
 
-
-		
-
-
-		
-		
-		// TODO перенсти  все обработчики в отдельный класс ConsumerEventHandlers
-
-		private Task Shutdown(object sender, ShutdownEventArgs @event) {
-			Log($"ConsumerEvent Shutdown. ReplyText {@event.ReplyText}");
-			return Task.CompletedTask;
-		}
-
-		private Task Unregistered(object sender, ConsumerEventArgs @event) {
-			Log($"ConsumerEvent Unregistered.");
-			return Task.CompletedTask;
-		}
-		private Task ConsumerCancelled(object sender, ConsumerEventArgs @event) {
-			Log($"ConsumerEvent ConsumerCancelled. ");
-			return Task.CompletedTask;
-		}
-
-
-		private void Log(string msg) {
-			logger.Debug($" {msg}");
-		}
 
 		public void Dispose() {
 			Unsubscribe();
