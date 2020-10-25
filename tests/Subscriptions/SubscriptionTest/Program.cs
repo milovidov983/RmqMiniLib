@@ -12,7 +12,6 @@ namespace SubscriptionTest {
 			Console.WriteLine($"Message get! {req.Message}");
 
 
-
 			await Hub.SetRpcResultAsync(dm, new ExampleClass.Response { Message = "server set rpc result 42!" });
 
 			return MessageProcessResult.Ack;
@@ -26,7 +25,7 @@ namespace SubscriptionTest {
 			var hub = startup.Init();
 
 			var subs = hub.DefineHandlers()
-				.ForQueue("", 
+				.ForQueue("test", 
 					cfg => cfg
 					.OnTopic(ExampleClass.Topic, new CommandBase()))
 				.Start();
@@ -35,7 +34,7 @@ namespace SubscriptionTest {
 
 
 			Console.WriteLine("Subscriptions init");
-			Console.ReadKey();// ("Hello World!");
+			Console.ReadKey();
 		}
 
 
