@@ -66,6 +66,7 @@ namespace RmqLib {
 				var replyProps = subscriptionChannel.CreateBasicProperties();
 				replyProps.CorrelationId = dm.ReplyProps.CorrelationId;
 
+				replyProps.Headers = replyProps.Headers ?? new Dictionary<string, object>();
 				replyProps.Headers.Add(RmqLib.Core.Headers.Error, error);
 				replyProps.Headers.Add(RmqLib.Core.Headers.StatusCode, statusCode);
 

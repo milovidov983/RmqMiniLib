@@ -39,7 +39,7 @@ namespace RmqLib {
 				// TODO передавать ReadOnlyMemory
 				// TResponse response = JsonSerializer.Deserialize<TResponse>(Body.Span);
 
-				dm.ResponseTask.SetResult(ea.Body.ToArray());
+				dm.ResponseTask.SetResult(ea.Body);
 
 			} finally {
 				RemoveSubscription(correlationId);

@@ -16,7 +16,12 @@ namespace RmqLib.Core {
 
 
 		public IRmqLogger CreateLogger(string moduleName) {
-			return new RmqLoggerPrefix(new RmqLogger(), $"[{moduleName}:{prefix}]" );
+			var logMessage = string.IsNullOrEmpty(prefix)
+				? $"{moduleName}"
+				: $"{moduleName}:{prefix}";
+
+
+			return new RmqLoggerPrefix(new RmqLogger(), logMessage);
 		}
 
 

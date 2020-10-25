@@ -5,13 +5,6 @@
         "Password": "guest",
         "Exchange": "my_exchange",
         "UserName": "guest",
-        "Queue": "q_testQueue",
-        "Managament": {
-            "ManagmentHostName": "localhost",
-            "Port": 8080,
-            "Login": "guest",
-            "Password": "guest"
-        },
-        "IsClearUnusedRoutingKeys": true
+        "Queue": "q_testQueue"
     }
 }

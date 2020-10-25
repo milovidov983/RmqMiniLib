@@ -8,11 +8,11 @@ namespace RmqLib.Core {
 		}
 
 		public void Debug(string message) {
-			Console.WriteLine($"[{DateTime.Now.ToShortTimeString()}][debug] {message}");
+			Console.WriteLine($"[{DateTime.Now.ToLocalTime()}][debug] {message}");
 		}
 
 		public void Error(string message) {
-			Console.WriteLine($"[{DateTime.Now.ToShortTimeString()}][error] {message}");
+			Console.WriteLine($"[{DateTime.Now.ToLocalTime()}][error] {message}");
 		}
 	}
 

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RmqLib {
 	public class ResponseMessage {
-		private byte[] responseBody;
+		private ReadOnlyMemory<byte> responseBody;
 
 		public string RoutingKey { get; set; }
 
@@ -26,7 +26,7 @@ namespace RmqLib {
 		}
 
 		public TResponse GetResponse<TResponse>() where TResponse : class {
-			TResponse response = Deserialize<TResponse>(responseBody);
+			TResponse response = JsonSerializer.Deserialize<TResponse>(responseBody.Span);
 			return response;
 
 		}
@@ -35,34 +35,16 @@ namespace RmqLib {
 			responseBody = await ResponseTask.GetResult();
 		}
 
-		private TResponse Deserialize<TResponse>(byte[] responseBody) where TResponse : class {
-			var json = System.Text.Encoding.UTF8.GetString(responseBody);
-			if (!string.IsNullOrWhiteSpace(json)) {
-				return Deserialize<TResponse>(json);
-			}
-			return default;
-		}
-		private static TResponse Deserialize<TResponse>(string res) where TResponse : class {
-			try {
-				return JsonSerializer.Deserialize<TResponse>(res);
-			} catch (Exception exteption) {
-				var exceptionMessage
-					= $"Deserialize to type \"{typeof(TResponse).FullName}\" error: {exteption.Message}";
-				throw new Exception(
-					exceptionMessage,
-					exteption);
-			}
-		}
 
 		public void SetElapsedTimeout() {
 			ResponseTask.SetCanceled();
 		}
 
-		public bool HasError { get => Headers?.ContainsKey("-x-error") == true; }
+		public bool HasError { get => Headers?.ContainsKey(RmqLib.Core.Headers.Error) == true; }
 
 		public string GetError() {
 			if (HasError) {
-				return (string)Headers["-x-error"];
+				return Encoding.UTF8.GetString((byte[])Headers[RmqLib.Core.Headers.Error]);
 			}
 			return null;
 		}

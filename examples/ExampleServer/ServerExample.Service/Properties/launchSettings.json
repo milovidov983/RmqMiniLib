@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "ServerExample.Service.Develop": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "Key": "Value",
+        "ASPNETCORE_ENVIRONMENT": "develop"
+      }
+    }
+  }
+}

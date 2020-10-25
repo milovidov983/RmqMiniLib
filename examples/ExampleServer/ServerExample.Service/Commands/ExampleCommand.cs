@@ -15,6 +15,7 @@ namespace ServerExample.Service.Commands {
 
 			Console.WriteLine($"Message get! {req.Message}");
 
+			//throw new Exception("test exept");
 
 			await Hub.SetRpcResultAsync(ctx.Message, new SEC.ExampleCommand.Response { Message = "ServerExample set rpc result 42!" });
 		}

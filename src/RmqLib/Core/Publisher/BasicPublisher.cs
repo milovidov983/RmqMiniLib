@@ -13,18 +13,19 @@ namespace RmqLib.Core {
 	/// Класс отвечает за подготовку и отправку rpc и broadcast сообщений
 	/// </summary>
 	internal partial class BasicPublisher : IPublisher, IDisposable {
-
-
-
 		private readonly IChannelWrapper channel;
 		private readonly IResponseMessageHandler responseMessageHandler;
+		private readonly RmqConfig rmqConfig;
 		private readonly BlockingCollection<PublishItem> deliveryItems = new BlockingCollection<PublishItem>();
 
 
-		public BasicPublisher(IChannelWrapper channel, IResponseMessageHandler responseMessageHandler) {
+		public BasicPublisher(
+			IChannelWrapper channel, 
+			IResponseMessageHandler responseMessageHandler,
+			RmqConfig rmqConfig) {
 			this.channel = channel;
 			this.responseMessageHandler = responseMessageHandler;
-
+			this.rmqConfig = rmqConfig;
 			Task.Run(async () => await RequestHandlerStartMainLoop());
 		}
 	
@@ -122,15 +123,12 @@ namespace RmqLib.Core {
 			return resp;
 		}
 
-		private const int DEFAULT_TIMEOUT_MS = 5;
-
 		private System.Timers.Timer CreateTimer(TimeSpan? timeout) {
-			timeout = timeout ?? new TimeSpan(0, 0, DEFAULT_TIMEOUT_MS);
+			timeout = timeout ?? new TimeSpan().Add(rmqConfig.RequestTimeout);
 
 			var timer = new System.Timers.Timer(timeout.Value.TotalMilliseconds) {
 				Enabled = true
 			};
-
 
 			return timer;
 		}

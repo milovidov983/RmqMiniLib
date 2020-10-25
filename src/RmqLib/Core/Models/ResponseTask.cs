@@ -7,7 +7,7 @@ namespace RmqLib {
 	/// Задача для ответа RPC вызова
 	/// </summary>
 	public class ResponseTask {
-		private readonly TaskCompletionSource<byte[]> taskCompletionSource;
+		private readonly TaskCompletionSource<ReadOnlyMemory<byte>> taskCompletionSource;
 		/// <summary>
 		/// Таймер ссылается на таймер в связанном deliveryInfo
 		/// </summary>
@@ -15,17 +15,17 @@ namespace RmqLib {
 		private readonly double interval;
 
 		public ResponseTask(Timer timer) {
-			this.taskCompletionSource = new TaskCompletionSource<byte[]>();
+			this.taskCompletionSource = new TaskCompletionSource<ReadOnlyMemory<byte>>();
 			this.timer = timer;
 			this.interval = timer.Interval;
 		}
 
-		public void SetResult(byte[] body) {
+		public void SetResult(ReadOnlyMemory<byte> body) {
 			timer.Enabled = false;
 			taskCompletionSource.SetResult(body);
 		}
 
-		public Task<byte[]> GetResult() {
+		public Task<ReadOnlyMemory<byte>> GetResult() {
 			return taskCompletionSource.Task;
 		}
 

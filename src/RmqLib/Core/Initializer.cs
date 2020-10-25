@@ -31,7 +31,7 @@ namespace RmqLib.Core {
 		}
 
 		public IPublisherFactory InitPublisherFactory() {
-			return new PublisherFactory(connectionManager);
+			return new PublisherFactory(connectionManager, config);
 		}
 
 		public SubscriptionManager InitSubscriptions(IRabbitHub hub, Dictionary<string, IRabbitCommand> commandHandlers) {
