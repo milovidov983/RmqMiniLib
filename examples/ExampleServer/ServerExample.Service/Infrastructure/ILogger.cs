@@ -7,5 +7,6 @@ namespace ServerExample.Service.Infrastructure {
 		void Warn(MicroServiceException ex, string info);
 		void Fatal(Exception e, string info);
 		void Info(string info);
+		void Warn(string message);
 	}
 }

@@ -21,5 +21,9 @@ namespace ServerExample.Service.Infrastructure {
 			Console.WriteLine($"[Info] {info}");
 
 		}
+
+		public void Warn(string message) {
+			Console.WriteLine($"[Warn] {message}");
+		}
 	}
 }

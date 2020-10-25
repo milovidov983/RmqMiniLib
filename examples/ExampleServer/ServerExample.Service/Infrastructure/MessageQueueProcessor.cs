@@ -26,7 +26,7 @@ namespace ServerExample.Service.Infrastructure {
 					cfg =>
 						cfg
 							.OnException((exc, dm) => {
-								//logger.Fatal(exc, "Error on MessageProcessor.");
+								logger.Fatal(exc, "Error on MessageProcessor.");
 
 								if (dm.IsRpcMessage()) {
 									hub.SetRpcErrorAsync(dm, exc.Message, (int)CMCI.StatusCodes.InternalError);
@@ -36,7 +36,7 @@ namespace ServerExample.Service.Infrastructure {
 							})
 							.OnUnexpectedTopic(async dm => {
 								var message = $"{dm.GetTopic()} was unexpected";
-								//logger.Warn(message);
+								logger.Warn(message);
 
 
 								if (dm.IsRpcMessage()) {
