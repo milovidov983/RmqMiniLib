@@ -18,20 +18,26 @@ namespace RmqLib.Core {
 		}
 
 		public void InitConnectionManager() {
-			var channelEventsHandlerFactory = ChannelEventsHandlerFactory.Create(logger);
+			var loggerFactory = LoggerFactory.Create(ConsumerType.Rpc.ToString());
+			var channelLogger = loggerFactory.CreateLogger(nameof(ChannelEventsHandler));
+			var channelEventsHandlerFactory = ChannelEventsHandlerFactory.Create(channelLogger);
+
 			var channelPoolFactory = ChannelPoolFactory.Create(channelEventsHandlerFactory);
-			var responseMessageHandlerFactory = ResponseMessageHandlerFactory.Create(logger);
+
+			var responseHandelerLogger = loggerFactory.CreateLogger(nameof(ResponseMessageHandler));
+			var responseMessageHandlerFactory = ResponseMessageHandlerFactory.Create(responseHandelerLogger);
 			
+
 			connectionManager = new ConnectionManager(
 				config, 
 				channelPoolFactory,
-				responseMessageHandlerFactory,
-				logger);
+				responseMessageHandlerFactory
+				);
 
 		}
 
 		public IPublisherFactory InitPublisherFactory() {
-			return new PublisherFactory(connectionManager, config);
+			return new PublisherFactory(connectionManager, config, logger);
 		}
 
 		public SubscriptionManager InitSubscriptions(IRabbitHub hub, Dictionary<string, IRabbitCommand> commandHandlers) {

@@ -6,12 +6,12 @@ namespace RmqLib.Core {
 	internal class PublisherFactory : IPublisherFactory {
 		private readonly IPublisher basicPublisher;
 
-		public PublisherFactory(IConnectionManager connectionManager, RmqConfig rmqConfig) {
+		public PublisherFactory(IConnectionManager connectionManager, RmqConfig rmqConfig, IRmqLogger logger) {
 
 			IChannelPool channelPool = connectionManager.GetRpcChannelPool();
 			IResponseMessageHandler replyHandler = connectionManager.GetResponseMessageHandler();
 			
-			basicPublisher = new BasicPublisher(channelPool.GetChannelWrapper(), replyHandler, rmqConfig);
+			basicPublisher = new BasicPublisher(channelPool.GetChannelWrapper(), replyHandler, rmqConfig, logger);
 		}
 
 		/// <summary>

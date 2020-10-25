@@ -21,7 +21,7 @@ namespace RmqLib {
 
 		public void HandleMessage(object model, BasicDeliverEventArgs ea) {
 			var correlationId = ea.BasicProperties.CorrelationId;
-			//logger.Debug($"[{nameof(ResponseMessageHandler)}] handle msg with correlation id: {correlationId}");
+
 			try {
 				var dm = GetCallbackTask(ea, correlationId);
 
@@ -35,10 +35,6 @@ namespace RmqLib {
 				dm.ReplyTo = ea.BasicProperties.ReplyTo;
 				dm.RoutingKey = ea.RoutingKey;
 
-
-				// TODO передавать ReadOnlyMemory
-				// TResponse response = JsonSerializer.Deserialize<TResponse>(Body.Span);
-
 				dm.ResponseTask.SetResult(ea.Body);
 
 			} finally {
@@ -47,29 +43,19 @@ namespace RmqLib {
 		}
 
 		public void AddSubscription(string correlationId, ResponseMessage responseHandler) {
-			//logger.Debug($"[{nameof(ResponseMessageHandler)}] AddSubscription with correlation id: {correlationId}");
 			handlers.TryAdd(correlationId, responseHandler);
 		}
 
 		public ResponseMessage RemoveSubscription(string correlationId) {
-			//logger.Debug($"[{nameof(ResponseMessageHandler)}] RemoveSubscription with correlation id: {correlationId}");
 			handlers.TryRemove(correlationId, out var dm);
 			return dm;
 		}
 
 		private ResponseMessage GetCallbackTask(BasicDeliverEventArgs ea, string correlationId) {
 			if (!handlers.TryGetValue(correlationId, out var dm)) {
-				//throw new Exception($"Критическая ошибка, в {nameof(handlers)} " +
-				//	$"не найден ни один обработчик для ответа " +
-				//	$"пришедшего из rmq с {nameof(correlationId)}:{correlationId} " +
-				//	$"{nameof(ea.RoutingKey)}:{ea.RoutingKey}");
-				logger.Error($"[{nameof(ResponseMessageHandler)}] Критическая ошибка, " +
-					$"не найден ни один обработчик для ответа " +
-					$"пришедшего из rmq с {nameof(correlationId)}:{correlationId} " +
+				logger.Warn($"В пришедшем ответе указан неизвестный {nameof(correlationId)}" +
+					$" для данного ID нет ожидающей его задачи " +
 					$"{nameof(ea.RoutingKey)}:{ea.RoutingKey}");
-
-				logger.Error("[{nameof(ResponseMessageHandler)}] Ответ получать некому поэтому мы его просто дропаем");
-
 			}
 
 			return dm;

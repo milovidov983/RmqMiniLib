@@ -17,18 +17,21 @@ namespace RmqLib.Core {
 		private readonly IResponseMessageHandler responseMessageHandler;
 		private readonly RmqConfig rmqConfig;
 		private readonly BlockingCollection<PublishItem> deliveryItems = new BlockingCollection<PublishItem>();
-
+		private readonly IRmqLogger logger;
 
 		public BasicPublisher(
-			IChannelWrapper channel, 
+			IChannelWrapper channel,
 			IResponseMessageHandler responseMessageHandler,
-			RmqConfig rmqConfig) {
+			RmqConfig rmqConfig, 
+			IRmqLogger logger) {
+
 			this.channel = channel;
 			this.responseMessageHandler = responseMessageHandler;
 			this.rmqConfig = rmqConfig;
+			this.logger = logger;
 			Task.Run(async () => await RequestHandlerStartMainLoop());
 		}
-	
+
 		/// <summary>
 		/// Запускаем прослушивание коллекции в которую попадают данные на отправку в рамках RPC вызова
 		/// </summary>
@@ -45,7 +48,7 @@ namespace RmqLib.Core {
 
 				} else {
 					// debug
-					Console.WriteLine($"{nameof(BasicPublisher)}{nameof(RequestHandlerStartMainLoop)} {item.DeliveryInfo.Topic}" +
+					logger.Debug($"{nameof(BasicPublisher)}{nameof(RequestHandlerStartMainLoop)} {item.DeliveryInfo.Topic}" +
 						$"{status.Error}");
 
 					item.PublishErrorAction?.Invoke(status.Error);

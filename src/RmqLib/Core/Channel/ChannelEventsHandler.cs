@@ -11,31 +11,31 @@ namespace RmqLib.Core {
 		}
 
 		public void BasicAcks(object sender, BasicAckEventArgs e) {
-			logger.Debug($"{nameof(ChannelEventsHandler)} {nameof(BasicAcks)} ");
+			logger.Debug($"{nameof(BasicAcks)} ");
 		}
 
 		public void BasicNacks(object sender, BasicNackEventArgs e) {
-			logger.Debug($"{nameof(ChannelEventsHandler)} {nameof(BasicNacks)} ");
+			logger.Debug($"{nameof(BasicNacks)} ");
 		}
 
 		public void BasicRecoverOk(object sender, EventArgs e) {
-			logger.Debug($"{nameof(ChannelEventsHandler)} {nameof(BasicRecoverOk)}");
+			logger.Debug($"{nameof(BasicRecoverOk)}");
 		}
 
 		public void BasicReturn(object sender, BasicReturnEventArgs e) {
-			logger.Debug($"{nameof(ChannelEventsHandler)} {nameof(BasicReturn)} {nameof(e.ReplyText)}: {e.ReplyText}");
+			logger.Debug($"{nameof(BasicReturn)} {nameof(e.ReplyText)}: {e.ReplyText}");
 		}
 
 		public void CallbackException(object sender, CallbackExceptionEventArgs e) {
-			logger.Debug($"{nameof(ChannelEventsHandler)} {nameof(CallbackException)} Exception message: {e.Exception.Message}");
+			logger.Debug($"{nameof(CallbackException)} Exception message: {e.Exception.Message}");
 		}
 
 		public void FlowControl(object sender, FlowControlEventArgs e) {
-			logger.Debug($"{nameof(ChannelEventsHandler)} {nameof(FlowControl)}");
+			logger.Debug($"{nameof(FlowControl)}");
 		}
 
 		public void ModelShutdown(object sender, ShutdownEventArgs e) {
-			logger.Debug($"{nameof(ChannelEventsHandler)} {nameof(ModelShutdown)} {nameof(e.ReplyText)}: {e.ReplyText}");
+			logger.Debug($"{nameof(ModelShutdown)} {nameof(e.ReplyText)}: {e.ReplyText}");
 		}
 	}
 }

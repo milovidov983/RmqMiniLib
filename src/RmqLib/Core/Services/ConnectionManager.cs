@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 namespace RmqLib.Core {
 	internal class ConnectionManager : IConnectionManager {
 		private readonly IResponseMessageHandlerFactory responseMessageHandlerFactory;
-		private readonly IRmqLogger logger;
 		private readonly RmqConfig config;
 
 		private IConnectionWrapper connection;
@@ -18,12 +17,10 @@ namespace RmqLib.Core {
 
 		public ConnectionManager(RmqConfig config, 
 			IChannelPoolFactory channelPoolFactory,
-			IResponseMessageHandlerFactory responseMessageHandlerFactory,
-			IRmqLogger logger) {
+			IResponseMessageHandlerFactory responseMessageHandlerFactory) {
 			this.config = config;
 			this.channelPoolFactory = channelPoolFactory;
 			this.responseMessageHandlerFactory = responseMessageHandlerFactory;
-			this.logger = logger;
 			StartInitialization();
 		}
 
@@ -46,20 +43,18 @@ namespace RmqLib.Core {
 			IConsumerManager rpcConsumerManager = new ConsumerManager(
 				rpcConsumerFactory, 
 				managerLogger);
-
 			rpcConsumerManager.InitConsumer();
+
 
 			IMainConsumerEventHandlerFactory rpcMainEventHandlerFactory 
 				= ConsumerEventHandlersFactory.Create(rpcConsumerManager, loggerFactory);
-
 			var rpcConsumerMainEventHandler = rpcMainEventHandlerFactory.CreateMainHandler();
 
 
 
 			var connectionHandlerLogger = loggerFactory.CreateLogger(nameof(ConnectionEventHandlers));
-
 			IConnectionEventsHandlerFactory connectionEventsHandlerFactory 
-				= ConnectionEventsHandlerFactory.Create(connectionHandlerLogger, connection);
+							= ConnectionEventsHandlerFactory.Create(connectionHandlerLogger, connection);
 			IConnectionEventHandlers connectionEventHandler = connectionEventsHandlerFactory.CreateHandler();
 
 
@@ -67,7 +62,7 @@ namespace RmqLib.Core {
 			this.channelGuardService 
 				= new ChannelGuardService(
 					rpcChannelPool, // <--- TODO только rpc?
-					logger, 
+					channelGuardLogger, 
 					connectionEventHandler, 
 					rpcConsumerMainEventHandler);
 

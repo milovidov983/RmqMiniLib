@@ -10,20 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace RmqLib {
-	public class ExampleClass {
-		public const string Topic = "test.subscriptionTest.rpc";
-
-		public class Request {
-			public string Message { get; set; }
-		}
-
-		public class Response {
-			public string Message { get; set; }
-		}
-	}
-
-
-
 
 	public class SubscriptionManager : ISubscriptionManager {
 		private readonly IModel channel;
@@ -94,8 +80,8 @@ namespace RmqLib {
 		}
 
 		private Task<MessageProcessResult> ExecuteUnexpectedTopicHandler(DeliveredMessage deliveredMessage) {
-			if(queueHandlersConfig.onUnexpectedTopicHandler != null) {
-				return queueHandlersConfig.onUnexpectedTopicHandler(deliveredMessage);
+			if(queueHandlersConfig.OnUnexpectedTopicHandler != null) {
+				return queueHandlersConfig.OnUnexpectedTopicHandler(deliveredMessage);
 			}
 			return Task.FromResult(MessageProcessResult.Ack);
 		}
@@ -103,8 +89,8 @@ namespace RmqLib {
 
 
 		private Task ExecuteExceptionHandler(Exception e, DeliveredMessage deliveredMessage) {
-			if (queueHandlersConfig.onExceptionHandler != null) {
-				return queueHandlersConfig.onExceptionHandler(e, deliveredMessage);
+			if (queueHandlersConfig.OnExceptionHandler != null) {
+				return queueHandlersConfig.OnExceptionHandler(e, deliveredMessage);
 			}
 			return Task.CompletedTask;
 		}
@@ -113,15 +99,15 @@ namespace RmqLib {
 			DeliveredMessage deliveredMessage, 
 			MessageProcessResult processResult) {
 
-			if (queueHandlersConfig.afterExecuteHandler != null) {
-				return queueHandlersConfig.afterExecuteHandler(deliveredMessage, processResult);
+			if (queueHandlersConfig.AfterExecuteHandler != null) {
+				return queueHandlersConfig.AfterExecuteHandler(deliveredMessage, processResult);
 			}
 			return Task.FromResult(MessageProcessResult.Ack);
 		}
 
 		private Task ExecuteBeforeExecuteHandler(DeliveredMessage deliveredMessage) {
-			if (queueHandlersConfig.beforeExecuteHandler != null) {
-				return queueHandlersConfig.beforeExecuteHandler(deliveredMessage);
+			if (queueHandlersConfig.BeforeExecuteHandler != null) {
+				return queueHandlersConfig.BeforeExecuteHandler(deliveredMessage);
 			}
 			return Task.CompletedTask;
 		}
@@ -134,17 +120,16 @@ namespace RmqLib {
 			return new DeliveredMessage(props, routingKey, body, dt);
 		}
 
-
-		private void SetError(string v) {
-			Console.WriteLine($"Rmq error: {v}");
-		}
-
 		private async Task Ask(ulong dt, MessageProcessResult processResult) {
 			try {
 				await semaphore.WaitAsync();
 				switch (processResult) {
 					case MessageProcessResult _ when processResult == MessageProcessResult.Ack:
-						channel.BasicAck(deliveryTag: dt, multiple: false);
+						// TODO
+						// По хорошему надо все методы IModel обернуть 
+						// ChannelWrapperom и внутри него контролировать доступ к объекту
+						// А то это получается что семафоры раскиданы по всему коду.
+						channel.BasicAck(deliveryTag: dt, multiple: false); 
 						break;
 					case MessageProcessResult _ when processResult == MessageProcessResult.Requeue:
 						channel.BasicReject(dt, true);

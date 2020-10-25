@@ -13,34 +13,36 @@ namespace RmqLib {
 
 		internal readonly Dictionary<string, IRabbitCommand> commandHandlers = new Dictionary<string, IRabbitCommand>();
 
-		internal Func<DeliveredMessage, MessageProcessResult, Task<MessageProcessResult>> afterExecuteHandler;
-		internal Func<DeliveredMessage, Task<bool>> beforeExecuteHandler;
-		internal Func<Exception, DeliveredMessage, Task<bool>> onExceptionHandler;
-		internal Func<DeliveredMessage, Task<MessageProcessResult>> onUnexpectedTopicHandler;
+		internal Func<DeliveredMessage, MessageProcessResult, Task<MessageProcessResult>> AfterExecuteHandler { get; private set; }
+		internal Func<DeliveredMessage, Task<bool>> BeforeExecuteHandler { get; private set; }
+		internal Func<Exception, DeliveredMessage, Task<bool>> OnExceptionHandler { get; private set; }
+		internal Func<DeliveredMessage, Task<MessageProcessResult>> OnUnexpectedTopicHandler { get; private set; }
+
 
 		private readonly IRabbitHub rabbitHub;
+
 
 		public QueueHandlersConfig(IRabbitHub rabbitHub) {
 			this.rabbitHub = rabbitHub;
 		}
 
 		public IQueueHandlersConfig AfterExecute(Func<DeliveredMessage, MessageProcessResult, Task<MessageProcessResult>> handler) {
-			afterExecuteHandler = handler;
+			AfterExecuteHandler = handler;
 			return this;
 		}
 
 		public IQueueHandlersConfig BeforeExecute(Func<DeliveredMessage, Task<bool>> handler) {
-			beforeExecuteHandler = handler;
+			BeforeExecuteHandler = handler;
 			return this;
 		}
 
 		public IQueueHandlersConfig OnException(Func<Exception, DeliveredMessage, Task<bool>> handler) {
-			onExceptionHandler = handler;
+			OnExceptionHandler = handler;
 			return this;
 		}
 
 		public IQueueHandlersConfig OnUnexpectedTopic(Func<DeliveredMessage, Task<MessageProcessResult>> handler) {
-			onUnexpectedTopicHandler = handler;
+			OnUnexpectedTopicHandler = handler;
 			return this;
 		}
 
