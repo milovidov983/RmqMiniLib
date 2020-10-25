@@ -88,32 +88,32 @@ namespace RmqLib {
 
 		private async Task Recover() {
 			// TODO пока не понятно надо ли оно вообще  и будет ли работать
-			Log($" ХХХ Восстановление временно отключено. ХХХ ");
+			Log($" ХХХ Восстановление временно отключено. ХХХ если возникли проблемы с потерей консьюмера можно попробовать код ниже");
 			return;
 
-			if (consumerInstance.IsRunning) {
-				return;
-			}
+			//if (consumerInstance.IsRunning) {
+			//	return;
+			//}
 
-			await semaphore.WaitAsync();
+			//await semaphore.WaitAsync();
 
-			if (consumerInstance.IsRunning) {
-				return;
-			}
+			//if (consumerInstance.IsRunning) {
+			//	return;
+			//}
 
-			Log($"Пытаемся восстановить потребителя RPC ответов.");
+			//Log($"Пытаемся восстановить потребителя RPC ответов.");
 
-			try {
+			//try {
 
-				Unsubscribe();
-				InitConsumer();
+			//	Unsubscribe();
+			//	InitConsumer();
 
 
-			} catch (Exception e) {
-				Log($"Ошибка при попытке пересоздать потребителя для RPC ответов: {e.Message}");
-			} finally {
-				semaphore.Release();
-			}
+			//} catch (Exception e) {
+			//	Log($"Ошибка при попытке пересоздать потребителя для RPC ответов: {e.Message}");
+			//} finally {
+			//	semaphore.Release();
+			//}
 
 		}
 

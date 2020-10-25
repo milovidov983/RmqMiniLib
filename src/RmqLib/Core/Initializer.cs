@@ -2,13 +2,14 @@
 using RmqLib.Core.Logger;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace RmqLib.Core {
 	internal class Initializer {
 		private RmqConfig config;
 		private IRmqLogger logger;
-		private IConnectionManager connectionManager;
+		public IConnectionManager connectionManager;
 
 		public Initializer(RmqConfig config) {
 			this.config = config;
@@ -38,17 +39,32 @@ namespace RmqLib.Core {
 			return new PublisherFactory(connectionManager);
 		}
 
-		public SubscriptionChannel InitSubscriptions() {
-			SubscriptionChannel subscription;
+		public SubscriptioManager InitSubscriptions(IRabbitHub hub) {
+			SubscriptioManager subscription;
 			try {
-				var pool = connectionManager.GetSubsChannelPool();
-				var channelWrapper = pool.GetChannel();
-				var channel = channelWrapper.GetDebugChannel();
-				subscription = new SubscriptionChannel(channel);
+				//var pool = connectionManager.CreateNewChannelPool();
+				//var channelWrapper = pool.GetChannel();
+				//var channel = channelWrapper.GetDebugChannel();
+				SubscrSettings[] subscriptions = Array.Empty<SubscrSettings>();
+				var channelPool = connectionManager.CreateChannelPool();
+				var trueChannel = channelPool.GetChannelWrapper().GetTrueChannel();
+
+				IConsumerBinder consumerBinder = new SubscriptionConsumerBinder(trueChannel, config.Queue);
+				IConsumerFactory consumerFactory = new ConsumerFactory(trueChannel);
+
+				var consumerManager = new ConsumerManager(consumerFactory, consumerBinder, logger);
+
+				ISubscriptionManager subscriptionManager = new SubscriptioManager(null, subscriptions, hub, config.PrefetchCount);
+
+				IConsumerEventHandlersFactory consumerEventHandlersFactory
+					= ConsumerEventHandlersFactory.Create(logger, consumerManager);
+				var consumerEventHandlers = consumerEventHandlersFactory.CreateHandler();
+
+				consumerEventHandlers.AddHandler(subscriptionManager.Handler);
 
 			} catch (Exception e) {
 					throw new ArgumentNullException(
-						$"Cant create {nameof(SubscriptionChannel)} " +
+						$"Cant create {nameof(SubscriptioManager)} " +
 						$"Error: {e.Message} ", e);
 
 			}

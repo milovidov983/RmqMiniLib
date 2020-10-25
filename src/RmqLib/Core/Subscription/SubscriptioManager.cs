@@ -21,25 +21,31 @@ namespace RmqLib {
 			public string Message { get; set; }
 		}
 	}
-	public class SubscriptionChannel {
+
+
+
+
+	public class SubscriptioManager : ISubscriptionManager {
 		private IModel channel;
 		private string queueName = "q_testQueue";
 		private SemaphoreSlim semaphore = new SemaphoreSlim(1);
+		private IRabbitHub Hub;
 
 
-
-		private ConcurrentDictionary<string, Func<DeliveredMessage, Task<MessageProcessResult>>> topicHandlers = new ConcurrentDictionary<string, Func<DeliveredMessage, Task<MessageProcessResult>>>() {
-			[ExampleClass.Topic] = async (msg) => {
-				var req = msg.GetContent<ExampleClass.Request>();
-				Console.WriteLine($"Message get! {req.Message}");
-				await Task.Yield();
-				return MessageProcessResult.Ack;
-			}
+		private ConcurrentDictionary<string, IRabbitCommand> topicHandlers = new ConcurrentDictionary<string, IRabbitCommand>() {
+			[ExampleClass.Topic] = null
 		};
 
-		public SubscriptionChannel(IModel channel, ushort prefechCount = 32) {
-			this.channel = channel;
 
+
+		public SubscriptioManager(
+			IChannelFactory channelFactory,
+			SubscrSettings[] subscriptions,
+			IRabbitHub hub,
+			ushort prefechCount = 32) {
+
+			this.channel = channel;
+			this.Hub = hub;
 			channel.BasicQos(0, prefechCount, false);
 
 			channel.ModelShutdown += (o, e) => Console.WriteLine($"RMQ Channel shutdown {e.Cause}");
@@ -74,11 +80,15 @@ namespace RmqLib {
 				channel.QueueBind(queue: queueName,
 							exchange: "my_exchange",
 							routingKey: topic);
+
+				topicHandlers[topic] = new CommandBase();
+				topicHandlers[topic].WithHub(hub);
 			}
+
 
 		}
 
-		Task Handler(object model, BasicDeliverEventArgs ea) {
+		public void Handler(object model, BasicDeliverEventArgs ea) {
 			var body = ea.Body.ToArray();
 			var props = ea.BasicProperties;
 			var routingKey = ea.RoutingKey;
@@ -87,7 +97,7 @@ namespace RmqLib {
 			DeliveredMessage deliveredMessage = CreateDeliveredMessage(ea);
 
 
-			return Task.Factory.StartNew(async () => {
+			Task.Factory.StartNew(async () => {
 				try {
 					await ExecuteBeforeExecuteHandler(deliveredMessage);
 
@@ -101,25 +111,13 @@ namespace RmqLib {
 
 					MessageProcessResult processResult = MessageProcessResult.Reject;
 					try {
-						processResult = await handler.Invoke(deliveredMessage);
-					} catch(Exception e) {
+						processResult = await handler.Execute(deliveredMessage);
+					} catch (Exception e) {
 						await ExecuteExceptionHandler(e, deliveredMessage);
 					} finally {
 						processResult = await ExecuteAfterExecuteHandler(deliveredMessage, processResult);
 						await Ask(dt, processResult);
 					}
-
-					var respObg = new ExampleClass.Response {
-						Message = "server send this"
-					};
-					var resp = JsonSerializer.Serialize(respObg);
-					byte[] respBody = Encoding.UTF8.GetBytes(resp);
-
-					await semaphore.WaitAsync();
-					var replyProps = channel.CreateBasicProperties();
-					replyProps.CorrelationId = props.CorrelationId;
-					Console.WriteLine("BasicPublish [.] " + replyProps.CorrelationId);
-					channel.BasicPublish(exchange: "", routingKey: props.ReplyTo, basicProperties: replyProps, body: respBody);
 
 				} catch (Exception e) {
 					Console.WriteLine(" [.] " + e.Message);
@@ -132,6 +130,7 @@ namespace RmqLib {
 		}
 
 		private Task<MessageProcessResult> ExecuteUnexpectedTopicHandler(DeliveredMessage deliveredMessage) {
+			//  залогировать и отправить error отправителю если rpc
 			return Task.FromResult(MessageProcessResult.Ack);
 		}
 

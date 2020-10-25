@@ -2,18 +2,20 @@
 using RabbitMQ.Client.Events;
 
 namespace RmqLib {
-	internal class ConsumerBinder : IConsumerBinder {
+	internal class SubscriptionConsumerBinder : IConsumerBinder {
 		private readonly IModel channel;
+		private readonly string queueName;
 
-		public ConsumerBinder(IModel channel) {
+		public SubscriptionConsumerBinder(IModel channel, string queueName) {
 			this.channel = channel;
+			this.queueName = queueName;
 		}
 
 		public void Bind(AsyncEventingBasicConsumer consumerInstance) {
 			channel.BasicConsume(
 				consumer: consumerInstance,
-				queue: ServiceConstants.REPLY_QUEUE_NAME,
-				autoAck: true);
+				queue: queueName,
+				autoAck: false);
 		}
 	}
 }

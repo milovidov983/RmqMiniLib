@@ -11,7 +11,7 @@ namespace RmqLib.Core {
 			IChannelPool channelPool = connectionManager.GetRpcChannelPool();
 			IResponseMessageHandler replyHandler = connectionManager.GetResponseMessageHandler();
 			
-			basicPublisher = new BasicPublisher(channelPool.GetChannel(), replyHandler);
+			basicPublisher = new BasicPublisher(channelPool.GetChannelWrapper(), replyHandler);
 		}
 
 		/// <summary>

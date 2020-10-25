@@ -12,7 +12,6 @@ namespace RmqLib.Core {
 		private IConnectionWrapper connection;
 		private IChannelPoolFactory channelPoolFactory;
 		private IChannelPool rpcChannelPool;
-		private IChannelPool subsChannelPool;
 		private IResponseMessageHandler responseMessageHandler;
 		private ChannelGuardService channelGuardService;
 
@@ -31,15 +30,12 @@ namespace RmqLib.Core {
 			connection = new ConnectionWrapper(config, logger);
 
 			var rpcCh = connection.CreateChannel();
-			var subsCh = connection.CreateChannel();
+
 
 			rpcChannelPool = channelPoolFactory.CreateChannelPool(rpcCh);
-			subsChannelPool = channelPoolFactory.CreateChannelPool(subsCh);
-
-			
 
 			IConsumerFactory consumerFactory = new ConsumerFactory(rpcCh);
-			IConsumerBinder consumerBinder = new ConsumerBinder(rpcCh);
+			IConsumerBinder consumerBinder = new ResponseConsumerBinder(rpcCh);
 
 			IConsumerManager consumerManager = new ConsumerManager(consumerFactory, consumerBinder, logger);
 			consumerManager.InitConsumer();
@@ -78,8 +74,18 @@ namespace RmqLib.Core {
 			return rpcChannelPool;
 		}
 
-		public IChannelPool GetSubsChannelPool() {
-			return subsChannelPool;
+		public IChannelPool CreateChannelPool(ushort prefechCount) {
+			var subsCh = connection.CreateChannel();
+			subsCh.BasicQos(0, prefechCount, false);
+			subsCh.QueueDeclare(
+				config.Queue,
+				durable: true,
+				exclusive: false,
+				autoDelete: false);
+
+
+
+			return channelPoolFactory.CreateChannelPool(subsCh);
 		}
 
 

@@ -18,7 +18,7 @@ namespace RmqLib.Core {
 
 			this.logger = logger;
 
-			channel = channelPool.GetChannel();
+			channel = channelPool.GetChannelWrapper();
 
 			connectionEventHandlers.AddHandler(ConnectionShutdownEventHandler);
 			consumerEventHandlers.AddHandler(ConsumerRegistredEventHandelr);

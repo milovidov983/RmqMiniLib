@@ -1,4 +1,5 @@
-﻿using RmqLib.Core;
+﻿using RabbitMQ.Client;
+using RmqLib.Core;
 using RmqLib.Helper;
 using System;
 using System.Collections.Generic;
@@ -21,11 +22,14 @@ namespace RmqLib {
 			this.initializer = new Initializer(config);
 			initializer.InitConnectionManager();
 			publisherFactory = initializer.InitPublisherFactory();
+
+			var pool = initializer.connectionManager.CreateChannelPool();
+			channel = pool.GetChannelWrapper().GetTrueChannel();
 		}
 
 
-		public SubscriptionChannel CreateSubscriptions() {
-			return initializer.InitSubscriptions();
+		public SubscriptioManager CreateSubscriptions() {
+			return initializer.InitSubscriptions(this);
 		}
 
 		public async Task<TResponse> ExecuteRpcAsync<TResponse, TRequest>(string topic, TRequest request, TimeSpan? timeout = null) where TResponse : class {
@@ -62,14 +66,27 @@ namespace RmqLib {
 			return Task.CompletedTask;
 		}
 
-		public Task SetRpcResultAsync<T>(DeliveredMessage dm, T payload, int? statusCode = null) {
+
+		private SemaphoreSlim semaphore = new SemaphoreSlim(1);
+		private readonly IModel channel;
+		public async Task SetRpcResultAsync<T>(DeliveredMessage dm, T payload, int? statusCode = null) {
 			if (!dm.IsRpcMessage()) {
 				throw new InvalidOperationException("Can't reply on non-RPC request");
 			}
 
-			var replyTo = dm.ReplyProps.ReplyTo;
+			var resp = JsonSerializer.Serialize(payload);
+			byte[] respBody = Encoding.UTF8.GetBytes(resp);
+			try {
+				await semaphore.WaitAsync();
+				var replyProps = channel.CreateBasicProperties();
+				replyProps.CorrelationId = dm.ReplyProps.CorrelationId;
 
-			return Task.CompletedTask;
+				Console.WriteLine("SetRpcResultAsync " + replyProps.CorrelationId);
+				
+				channel.BasicPublish(exchange: "", routingKey: dm.ReplyProps.ReplyTo, basicProperties: replyProps, body: respBody);
+			} finally {
+				semaphore.Release();
+			}
 		}
 
 

@@ -1,8 +1,25 @@
 ﻿using Microsoft.Extensions.Configuration;
 using RmqLib;
 using System;
+using System.Threading.Tasks;
 
 namespace SubscriptionTest {
+
+	public class CommandBase : DefaultRabbitCommand {
+		public override async Task<MessageProcessResult> Execute(DeliveredMessage dm) {
+			var req = dm.GetContent<ExampleClass.Request>();
+
+			Console.WriteLine($"Message get! {req.Message}");
+
+
+
+			await Hub.SetRpcResultAsync(dm, new ExampleClass.Response { Message = "server set rpc result 42!" });
+
+			return MessageProcessResult.Ack;
+		}
+	}
+
+
 	class Program {
 		static void Main(string[] args) {
 			var startup = new Startup();
