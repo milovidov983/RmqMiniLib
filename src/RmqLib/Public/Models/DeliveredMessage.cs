@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 
 namespace RmqLib {
 	public class DeliveredMessage {
@@ -37,5 +38,10 @@ namespace RmqLib {
 			return false;
 		}
 
+		public TResponse GetContent<TResponse>() where TResponse : class {
+			TResponse response = JsonSerializer.Deserialize<TResponse>(Body.Span);
+			return response;
+
+		}
 	}
 }

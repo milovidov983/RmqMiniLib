@@ -1,4 +1,5 @@
 ﻿using RabbitMQ.Client.Events;
+using RmqLib.Core;
 using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
@@ -12,13 +13,20 @@ namespace RmqLib {
 		private readonly ConcurrentDictionary<string, ResponseMessage> handlers
 			= new ConcurrentDictionary<string, ResponseMessage>();
 
-		public Task HandleMessage(object model, BasicDeliverEventArgs ea) {
+		private readonly IRmqLogger logger;
+
+		public ResponseMessageHandler(IRmqLogger logger) {
+			this.logger = logger;
+		}
+
+		public void HandleMessage(object model, BasicDeliverEventArgs ea) {
 			var correlationId = ea.BasicProperties.CorrelationId;
+			//logger.Debug($"[{nameof(ResponseMessageHandler)}] handle msg with correlation id: {correlationId}");
 			try {
 				var dm = GetCallbackTask(ea, correlationId);
 
 				if(dm is null) {
-					return Task.CompletedTask;
+					return;
 				}
 
 				dm.AppId = ea.BasicProperties.AppId;
@@ -26,20 +34,25 @@ namespace RmqLib {
 				dm.Headers = ea.BasicProperties.Headers;
 				dm.ReplyTo = ea.BasicProperties.ReplyTo;
 				dm.RoutingKey = ea.RoutingKey;
+
+
+				// TODO передавать ReadOnlyMemory
+				// TResponse response = JsonSerializer.Deserialize<TResponse>(Body.Span);
+
 				dm.ResponseTask.SetResult(ea.Body.ToArray());
 
-
-				return Task.CompletedTask;
 			} finally {
 				RemoveSubscription(correlationId);
 			}
 		}
 
 		public void AddSubscription(string correlationId, ResponseMessage responseHandler) {
+			//logger.Debug($"[{nameof(ResponseMessageHandler)}] AddSubscription with correlation id: {correlationId}");
 			handlers.TryAdd(correlationId, responseHandler);
 		}
 
 		public ResponseMessage RemoveSubscription(string correlationId) {
+			//logger.Debug($"[{nameof(ResponseMessageHandler)}] RemoveSubscription with correlation id: {correlationId}");
 			handlers.TryRemove(correlationId, out var dm);
 			return dm;
 		}
@@ -50,32 +63,16 @@ namespace RmqLib {
 				//	$"не найден ни один обработчик для ответа " +
 				//	$"пришедшего из rmq с {nameof(correlationId)}:{correlationId} " +
 				//	$"{nameof(ea.RoutingKey)}:{ea.RoutingKey}");
-				Console.WriteLine($"Критическая ошибка, " +
+				logger.Error($"[{nameof(ResponseMessageHandler)}] Критическая ошибка, " +
 					$"не найден ни один обработчик для ответа " +
 					$"пришедшего из rmq с {nameof(correlationId)}:{correlationId} " +
 					$"{nameof(ea.RoutingKey)}:{ea.RoutingKey}");
 
-				Console.WriteLine("Ответ получать некому поэтому мы его просто дропаем");
+				logger.Error("[{nameof(ResponseMessageHandler)}] Ответ получать некому поэтому мы его просто дропаем");
 
 			}
 
 			return dm;
 		}
-	}
-
-
-	class ResponseMessageHandlerFactory : IResponseMessageHandlerFactory {
-		IResponseMessageHandler responseMessageHandler = new ResponseMessageHandler();
-		public IResponseMessageHandler GetHandler() {
-			return responseMessageHandler;
-		}
-
-		public static IResponseMessageHandlerFactory Create() {
-			return new ResponseMessageHandlerFactory();
-		}
-	}
-
-	interface IResponseMessageHandlerFactory {
-		IResponseMessageHandler GetHandler();
 	}
 }

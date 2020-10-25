@@ -7,7 +7,7 @@ namespace RmqLib.Core {
 	/// </summary>
 	internal interface IPublisher {
 		//Func<DeliveredMessage, Task<MessageProcessResult>> OnMessage { get; set; }
-		Task CreateNotifyPublication(DeliveryInfo deliveryInfo, TimeSpan? timeout = null);
+		Task CreateBroadcastPublication(DeliveryInfo deliveryInfo, TimeSpan? timeout = null);
 		ResponseMessage CreateRpcPublication(DeliveryInfo deliveryMessage, TimeSpan? timeout = null);
 	}
 }

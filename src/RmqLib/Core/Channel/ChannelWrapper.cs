@@ -22,6 +22,9 @@ namespace RmqLib.Core {
 		private readonly IModel channel;
 		private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
 
+		public IModel GetDebugChannel() {
+			return channel;
+		}
 
 		public ChannelWrapper(IModel channel) {
 			this.channel = channel;

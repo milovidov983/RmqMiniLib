@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 namespace RmqLib {
 	internal interface IConnectionManager {
 		IConnectionWrapper GetConnection();
+		IResponseMessageHandler GetResponseMessageHandler();
 		IChannelPool GetRpcChannelPool();
 		IChannelPool GetSubsChannelPool();
 	}

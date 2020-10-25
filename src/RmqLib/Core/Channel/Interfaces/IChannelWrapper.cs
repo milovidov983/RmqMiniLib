@@ -7,5 +7,6 @@ namespace RmqLib.Core {
 		void Close();
 		void UnlockChannel();
 		void LockChannel();
+		IModel GetDebugChannel();
 	}
 }

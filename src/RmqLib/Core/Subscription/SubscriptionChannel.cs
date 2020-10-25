@@ -4,10 +4,23 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace RmqLib {
+	public class ExampleClass {
+		public const string Topic = "test.subscriptionTest.rpc";
+
+		public class Request {
+			public string Message { get; set; }
+		}
+
+		public class Response {
+			public string Message { get; set; }
+		}
+	}
 	public class SubscriptionChannel {
 		private IModel channel;
 		private string queueName = "q_testQueue";
@@ -16,8 +29,9 @@ namespace RmqLib {
 
 
 		private ConcurrentDictionary<string, Func<DeliveredMessage, Task<MessageProcessResult>>> topicHandlers = new ConcurrentDictionary<string, Func<DeliveredMessage, Task<MessageProcessResult>>>() {
-			["test.topic.rpc"] = async (msg) => {
-				Console.WriteLine($"Message get! {msg}");
+			[ExampleClass.Topic] = async (msg) => {
+				var req = msg.GetContent<ExampleClass.Request>();
+				Console.WriteLine($"Message get! {req.Message}");
 				await Task.Yield();
 				return MessageProcessResult.Ack;
 			}
@@ -84,7 +98,7 @@ namespace RmqLib {
 						return;
 					}
 
-					string content = GetContent(body);
+
 					MessageProcessResult processResult = MessageProcessResult.Reject;
 					try {
 						processResult = await handler.Invoke(deliveredMessage);
@@ -95,12 +109,16 @@ namespace RmqLib {
 						await Ask(dt, processResult);
 					}
 
-					var resp = "resp";
+					var respObg = new ExampleClass.Response {
+						Message = "server send this"
+					};
+					var resp = JsonSerializer.Serialize(respObg);
 					byte[] respBody = Encoding.UTF8.GetBytes(resp);
 
 					await semaphore.WaitAsync();
 					var replyProps = channel.CreateBasicProperties();
 					replyProps.CorrelationId = props.CorrelationId;
+					Console.WriteLine("BasicPublish [.] " + replyProps.CorrelationId);
 					channel.BasicPublish(exchange: "", routingKey: props.ReplyTo, basicProperties: replyProps, body: respBody);
 
 				} catch (Exception e) {
@@ -149,15 +167,15 @@ namespace RmqLib {
 		}
 
 		private DeliveredMessage CreateDeliveredMessage(BasicDeliverEventArgs ea) {
-			return null;
+			var body = ea.Body;
+			var props = ea.BasicProperties;
+			var routingKey = ea.RoutingKey;
+			var dt = ea.DeliveryTag;
+			return new DeliveredMessage(props, routingKey, body, dt);
 		}
 
 		private void ProcessHandlerException(string routingKey, Exception e) {
 			SetError($"Handler exception for topic {routingKey} {e.Message}");
-		}
-
-		private string GetContent(byte[] body) {
-			return System.Text.Encoding.UTF8.GetString(body);
 		}
 
 

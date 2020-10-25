@@ -89,7 +89,7 @@ namespace TestRmqSenderProject {
 					}
 					); 
 
-					Console.WriteLine($"Resp {response}");
+					Console.WriteLine($"Resp {response.Message}");
 				} catch (Exception e) {
 					Console.WriteLine(e.Message);
 				}

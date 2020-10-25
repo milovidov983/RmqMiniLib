@@ -9,7 +9,9 @@ using System.Timers;
 namespace RmqLib.Core {
 
 
-
+	/// <summary>
+	/// Класс отвечает за подготовку и отправку rpc и broadcast сообщений
+	/// </summary>
 	internal partial class BasicPublisher : IPublisher, IDisposable {
 
 
@@ -80,7 +82,7 @@ namespace RmqLib.Core {
 			throw new InvalidOperationException("Очередь запросов завершила свою работу requests.IsCompleted == true");
 		}
 
-		public Task CreateNotifyPublication(DeliveryInfo deliveryInfo, TimeSpan? timeout = null) {
+		public Task CreateBroadcastPublication(DeliveryInfo deliveryInfo, TimeSpan? timeout = null) {
 			if (!deliveryItems.IsCompleted) {
 				var tsc = new TaskCompletionSource<object>();
 				var timer = CreateTimer(timeout);

@@ -7,8 +7,8 @@ using System.Text;
 namespace RmqLib.Core {
 	internal class Initializer {
 		private RmqConfig config;
-		private ConnectionWrapper connection;
 		private IRmqLogger logger;
+		private IConnectionManager connectionManager;
 
 		public Initializer(RmqConfig config) {
 			this.config = config;
@@ -20,39 +20,39 @@ namespace RmqLib.Core {
 			logger = loggerFactory.CreateLogger();
 		}
 
-		public IConnectionManager InitConnectionManager() {
+		public void InitConnectionManager() {
 			var channelEventsHandlerFactory = ChannelEventsHandlerFactory.Create(logger);
 			var channelPoolFactory = ChannelPoolFactory.Create(channelEventsHandlerFactory);
-			var responseMessageHandlerFactory = ResponseMessageHandlerFactory.Create();
-
-			return new ConnectionManager(
+			var responseMessageHandlerFactory = ResponseMessageHandlerFactory.Create(logger);
+			
+			connectionManager = new ConnectionManager(
 				config, 
-				channelPoolFactory, 
+				channelPoolFactory,
 				responseMessageHandlerFactory,
 				logger);
 
 		}
 
 		public IPublisherFactory InitPublisherFactory() {
-			IConnectionManager connectionManager = InitConnectionManager();
-			IResponseMessageHandler replyHandler = new ResponseMessageHandler();
-		
 
-			return new PublisherFactory(connectionManager.GetRpcChannelPool(), replyHandler);
+			return new PublisherFactory(connectionManager);
 		}
 
 		public SubscriptionChannel InitSubscriptions() {
-			IModel channel;
+			SubscriptionChannel subscription;
 			try {
-				channel = connection.CreateChannel();
+				var pool = connectionManager.GetSubsChannelPool();
+				var channelWrapper = pool.GetChannel();
+				var channel = channelWrapper.GetDebugChannel();
+				subscription = new SubscriptionChannel(channel);
+
 			} catch (Exception e) {
 					throw new ArgumentNullException(
-						$"Cant create {nameof(SubscriptionChannel)} be cause " +
-						$"{nameof(connection)} could not create {nameof(channel)}." +
+						$"Cant create {nameof(SubscriptionChannel)} " +
 						$"Error: {e.Message} ", e);
 
 			}
-			return new SubscriptionChannel(channel);
+			return subscription;
 		}
 	}
 }

@@ -19,6 +19,7 @@ namespace RmqLib {
 		public RabbitHub(RmqConfig config) {
 			this.config = config;
 			this.initializer = new Initializer(config);
+			initializer.InitConnectionManager();
 			publisherFactory = initializer.InitPublisherFactory();
 		}
 
@@ -49,7 +50,7 @@ namespace RmqLib {
 			byte[] body = request.ToByteArray();
 			var di = new DeliveryInfo(topic, body, null, null);
 			var pub = publisherFactory.GetBasicPublisher();
-			await pub.CreateNotifyPublication(di, timeout);
+			await pub.CreateBroadcastPublication(di, timeout);
 		}
 
 		public Task SetRpcErrorAsync(DeliveredMessage dm, string error, int? statusCode = null) {

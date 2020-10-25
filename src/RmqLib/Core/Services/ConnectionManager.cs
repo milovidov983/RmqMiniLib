@@ -5,17 +5,16 @@ using System.Threading.Tasks;
 
 namespace RmqLib.Core {
 	internal class ConnectionManager : IConnectionManager {
-		private IChannelWrapper rpcChannel;
-
-		private IConnectionWrapper connection;
-
-		private IChannelPoolFactory channelPoolFactory;
 		private readonly IResponseMessageHandlerFactory responseMessageHandlerFactory;
 		private readonly IRmqLogger logger;
+		private readonly RmqConfig config;
+
+		private IConnectionWrapper connection;
+		private IChannelPoolFactory channelPoolFactory;
 		private IChannelPool rpcChannelPool;
 		private IChannelPool subsChannelPool;
+		private IResponseMessageHandler responseMessageHandler;
 		private ChannelGuardService channelGuardService;
-		private readonly RmqConfig config;
 
 		public ConnectionManager(RmqConfig config, 
 			IChannelPoolFactory channelPoolFactory,
@@ -37,7 +36,7 @@ namespace RmqLib.Core {
 			rpcChannelPool = channelPoolFactory.CreateChannelPool(rpcCh);
 			subsChannelPool = channelPoolFactory.CreateChannelPool(subsCh);
 
-			rpcChannel = rpcChannelPool.GetChannel();
+			
 
 			IConsumerFactory consumerFactory = new ConsumerFactory(rpcCh);
 			IConsumerBinder consumerBinder = new ConsumerBinder(rpcCh);
@@ -49,10 +48,11 @@ namespace RmqLib.Core {
 
 			IConsumerEventHandlersFactory consumerEventHandlersFactory 
 				= ConsumerEventHandlersFactory.Create(logger, consumerManager);
+			var consumerEventHandlers = consumerEventHandlersFactory.CreateHandler();
+
+
 			IConnectionEventsHandlerFactory connectionEventsHandlerFactory 
 				= ConnectionEventsHandlerFactory.Create(logger, connection);
-
-			var consumerEventHandlers = consumerEventHandlersFactory.CreateHandler();
 			var connectionEventHandler = connectionEventsHandlerFactory.CreateHandler();
 
 
@@ -64,11 +64,20 @@ namespace RmqLib.Core {
 					connectionEventHandler, 
 					consumerEventHandlers);
 
+			// Подписка на ответы запросов rpc
+			responseMessageHandler = responseMessageHandlerFactory.GetHandler();
+			consumerEventHandlers.AddHandler(responseMessageHandler.HandleMessage);
+
+		}
+
+		public IResponseMessageHandler GetResponseMessageHandler() {
+			return responseMessageHandler;
 		}
 
 		public IChannelPool GetRpcChannelPool() {
 			return rpcChannelPool;
 		}
+
 		public IChannelPool GetSubsChannelPool() {
 			return subsChannelPool;
 		}

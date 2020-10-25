@@ -56,17 +56,16 @@ namespace RmqLib {
 
 			Log($"Создан потребитель для получения ответов от RPC вызовов.");
 
-			//consumerInstance.Received += responseMessageHandler.HandleMessage;
-			//consumerInstance.Registered += connectionManager.ConsumerRegistred;
+			
 			consumerInstance.Registered += Registered;
 			consumerInstance.Shutdown += Shutdown;
 			consumerInstance.Unregistered += Unregistered;
 			consumerInstance.ConsumerCancelled += ConsumerCancelled;
 
 			consumerBinder.Bind(consumerInstance);
-
-			
 		}
+
+
 
 		private Task Registered(object sender, ConsumerEventArgs @event) {
 			Log($"Потребитель ответов RPC успешно подключен к шине.");

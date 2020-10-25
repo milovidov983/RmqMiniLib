@@ -11,6 +11,10 @@ namespace RmqLib.Core {
 	internal class ConsumerEventHandlers : IConsumerEventHandlers {
 		private readonly IConsumerManager consumerManager;
 		private readonly IRmqLogger logger;
+
+		private readonly ConcurrentBag<Action<object, BasicDeliverEventArgs>> consumerReceiveEventHandlers 
+			= new ConcurrentBag<Action<object, BasicDeliverEventArgs>>();
+
 		private readonly ConcurrentBag<Action<object, ConsumerEventArgs>> consumerRegisterEventHandlers
 			= new ConcurrentBag<Action<object, ConsumerEventArgs>>();
 
@@ -26,6 +30,7 @@ namespace RmqLib.Core {
 			consumerManager.BindEventHandlers(c => {
 				try {
 					c.Registered += RegisteredHandler;
+					c.Received += Receivehandler;
 					// TODO перенести все обработчики из consumerManager
 
 					logger.Debug($"{nameof(ConsumerEventHandlers)} binded to connection shutdown event");
@@ -38,8 +43,27 @@ namespace RmqLib.Core {
 				if (this is null) {
 					return;
 				}
+				c.Received -= Receivehandler;
 				c.Registered -= RegisteredHandler;
 			});
+		}
+
+
+		public void AddHandler(Action<object, BasicDeliverEventArgs> handler) {
+			consumerReceiveEventHandlers.Add(handler);
+		}
+
+		private Task Receivehandler(object sender, BasicDeliverEventArgs e) {
+			consumerReceiveEventHandlers.ToList().ForEach(handler => {
+				try {
+					handler.Invoke(sender, e);
+				} catch (Exception ex) {
+					logger.Error($"{nameof(ConsumerEventHandlers)} " +
+						$"Receive handler error: {ex.Message}");
+				}
+			});
+
+			return Task.CompletedTask;
 		}
 
 		public void AddHandler(Action<object, ConsumerEventArgs> handler) {
