@@ -34,19 +34,12 @@ namespace RmqLib {
         /// <summary>
         /// Тайм аут для запроса
         /// </summary>
-        public TimeSpan RequestTimeout { get; set; } = new TimeSpan(0, 0, 0, 30);
+        public TimeSpan RequestTimeout { get; set; } = new TimeSpan(0, 0, 0, 20);
         /// <summary>
         /// PrefetchCount
         /// </summary>
         public ushort PrefetchCount { get; set; } = 32;
-        /// <summary>
-        /// Данные для подключения к плагину менеджмента rabbitmq
-        /// </summary>
-        public ManagamentInfo Managament { get; set; }
-        /// <summary>
-        /// Очищать топики в очереди к которым нет привязанной команды
-        /// </summary>
-        public bool IsClearUnusedRoutingKeys { get; set; }
+       
 
 
         internal void Validate() {
@@ -70,13 +63,6 @@ namespace RmqLib {
 
         private void ThrowArgumentException(string paramName) {
             throw new ArgumentException($"Incorrect RMQ configuration. Configuration parameter \"{paramName}\" is null or empty!");
-        }
-
-        public class ManagamentInfo {
-            public string ManagmentHostName { get; set; } = "localhost";
-            public int Port { get; set; } = 8080;
-            public string Login { get; set; } = "guest";
-            public string Password { get; set; } = "guest";
         }
     }
 }

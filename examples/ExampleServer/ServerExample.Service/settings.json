@@ -6,12 +6,7 @@
         "Exchange": "my_exchange",
         "UserName": "guest",
         "Queue": "q_testQueue",
-        "Managament": {
-            "ManagmentHostName": "localhost",
-            "Port": 8080,
-            "Login": "guest",
-            "Password": "guest"
-        },
-        "IsClearUnusedRoutingKeys": true
+        "RequestTimeout": "00:00:20",
+        "PrefetchCount":  16
     }
 }
