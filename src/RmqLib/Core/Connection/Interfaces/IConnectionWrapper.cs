@@ -5,7 +5,7 @@ namespace RmqLib {
 	internal interface IConnectionWrapper {
 		IModel CreateChannel();
 		bool IsOpen { get; }
-		void BindEventHandlers(Action<IConnection> config);
+		void SetSettings(Action<IConnection> config);
 		void RegisterUnsubscribeAction(Action<IConnection> config);
 	}
 }

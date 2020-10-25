@@ -11,27 +11,17 @@ namespace RmqLib.Core {
 		private readonly IRmqLogger logger;
 
 		public ChannelGuardService(
-			IChannelPool channelPool, 
-			IConnectionWrapper connection,
-			IRmqLogger logger) {
+			IChannelPool channelPool,
+			IRmqLogger logger,
+			IConnectionEventHandlers connectionEventHandlers,
+			IConsumerEventHandlers consumerEventHandlers) {
 
 			this.logger = logger;
 
 			channel = channelPool.GetChannel();
-			connection.BindEventHandlers(c => {
-				try {
-					c.ConnectionShutdown += ConnectionShutdownEventHandler;
-					logger.Debug($"{nameof(ChannelGuardService)} binded to connection shutdown event");
-				} catch(Exception e) {
-					logger.Error($"{nameof(ChannelGuardService)} error to bind to connection shutdown event: {e.Message}");
-				}
-			});
-			connection.RegisterUnsubscribeAction(c => {
-				if(this is null) {
-					return;
-				}
-				c.ConnectionShutdown -= ConnectionShutdownEventHandler;
-			});
+
+			connectionEventHandlers.AddHandler(ConnectionShutdownEventHandler);
+			consumerEventHandlers.AddHandler(ConsumerRegistredEventHandelr);
 		}
 
 
