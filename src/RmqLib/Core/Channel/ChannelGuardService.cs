@@ -21,7 +21,7 @@ namespace RmqLib.Core {
 			channel = channelPool.GetChannelWrapper();
 
 			connectionEventHandlers.AddHandler(ConnectionShutdownEventHandler);
-			consumerEventHandlers.AddHandler(ConsumerRegistredEventHandelr);
+			consumerEventHandlers.AddRegisterHandler(ConsumerRegistredEventHandelr);
 		}
 
 

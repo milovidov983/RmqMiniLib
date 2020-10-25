@@ -1,4 +1,5 @@
-﻿using RabbitMQ.Client.Events;
+﻿using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -15,6 +16,7 @@ namespace RmqLib.Core {
 
 		private readonly IConsumerRegisterEventHandler consumerRegisterEventHandler;
 		private readonly IConsumerReceiveEventHandelr consumerReceiveEventHandelr;
+		private readonly IConsumerCommonEventHandelr consumerCommonEventHandelr;
 
 
 		public ConsumerMainEventHandlers(
@@ -26,6 +28,7 @@ namespace RmqLib.Core {
 
 			consumerRegisterEventHandler = consumerEventHandlersFactory.CreateRegisterEventHandler();
 			consumerReceiveEventHandelr = consumerEventHandlersFactory.CreateReceiveEventHandelr();
+			consumerCommonEventHandelr = consumerEventHandlersFactory.CreateCommonEventHandelr();
 
 			Init();
 		}
@@ -36,6 +39,10 @@ namespace RmqLib.Core {
 					c.Registered += RegisteredHandler;
 					c.Received += Receivehandler;
 					// TODO перенести все обработчики из consumerManager
+
+					c.Shutdown += ShutdownHandler;
+					c.Unregistered += UnregisteredHandler;
+					c.ConsumerCancelled += ConsumerCancelledHandler;
 
 					logger.Debug($"binded event handlers");
 				} catch (Exception e) {
@@ -49,16 +56,25 @@ namespace RmqLib.Core {
 				}
 				c.Received -= Receivehandler;
 				c.Registered -= RegisteredHandler;
+				c.Shutdown -= ShutdownHandler;
+				c.Unregistered -= UnregisteredHandler;
+				c.ConsumerCancelled -= ConsumerCancelledHandler;
 			});
 		}
 
-
-		public void AddHandler(Action<object, BasicDeliverEventArgs> handler) {
-			consumerReceiveEventHandelr.AddHandler(handler);
+		private Task ConsumerCancelledHandler(object sender, ConsumerEventArgs @event) {
+			consumerCommonEventHandelr.ConsumerCancelledHandler(sender, @event);
+			return Task.CompletedTask;
 		}
 
-		public void AddHandler(Action<object, ConsumerEventArgs> handler) {
-			consumerRegisterEventHandler.AddHandler(handler);
+		private Task UnregisteredHandler(object sender, ConsumerEventArgs @event) {
+			consumerCommonEventHandelr.UnregisteredHandler(sender, @event);
+			return Task.CompletedTask;
+		}
+
+		private Task ShutdownHandler(object sender, ShutdownEventArgs @event) {
+			consumerCommonEventHandelr.ShutdownHandler(sender, @event);
+			return Task.CompletedTask;
 		}
 
 		private Task Receivehandler(object sender, BasicDeliverEventArgs e) {
@@ -70,5 +86,16 @@ namespace RmqLib.Core {
 			consumerRegisterEventHandler.RegisteredHandler(sender, e);
 			return Task.CompletedTask;
 		}
+
+
+
+		public void AddReceiveHandler(Action<object, BasicDeliverEventArgs> handler) {
+			consumerReceiveEventHandelr.AddHandler(handler);
+		}
+
+		public void AddRegisterHandler(Action<object, ConsumerEventArgs> handler) {
+			consumerRegisterEventHandler.AddHandler(handler);
+		}
+
 	}
 }

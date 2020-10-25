@@ -73,7 +73,7 @@ namespace RmqLib.Core {
 
 			// Подписка на ответы запросов rpc
 			responseMessageHandler = responseMessageHandlerFactory.GetHandler();
-			rpcConsumerMainEventHandler.AddHandler(responseMessageHandler.HandleMessage);
+			rpcConsumerMainEventHandler.AddReceiveHandler(responseMessageHandler.HandleMessage);
 
 		}
 

@@ -2,5 +2,6 @@
 	internal interface IConsumerEventHandlersFactory {
 		IConsumerRegisterEventHandler CreateRegisterEventHandler();
 		IConsumerReceiveEventHandelr CreateReceiveEventHandelr();
+		IConsumerCommonEventHandelr CreateCommonEventHandelr();
 	}
 }

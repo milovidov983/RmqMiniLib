@@ -60,7 +60,7 @@ namespace RmqLib.Core {
 					commandHandlers,
 					config);
 
-				topicListenerConsumerEventHandlers.AddHandler(subscriptionManager.Handler);
+				topicListenerConsumerEventHandlers.AddReceiveHandler(subscriptionManager.Handler);
 
 			} catch (Exception e) {
 					throw new InvalidOperationException(

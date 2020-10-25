@@ -39,6 +39,14 @@ namespace RmqLib.Core {
 			var logger = loggerFactory.CreateLogger(nameof(ConsumerReceiveEventHandelr));
 			return new ConsumerReceiveEventHandelr(logger);
 		}
+		
+		/// <summary>
+		/// Обработчик для всех остальных типов событий консьюмера
+		/// </summary>
+		public IConsumerCommonEventHandelr CreateCommonEventHandelr() {
+			var logger = loggerFactory.CreateLogger(nameof(ConsumerCommonEventHandelr));
+			return new ConsumerCommonEventHandelr(logger);
+		}
 
 
 		/// <summary>
