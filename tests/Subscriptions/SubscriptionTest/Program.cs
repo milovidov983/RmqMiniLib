@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using RmqLib;
+using SubscriptionTestContract;
 using System;
 using System.Threading.Tasks;
 
@@ -25,10 +26,30 @@ namespace SubscriptionTest {
 			var hub = startup.Init();
 
 			var subs = hub.DefineHandlers()
-				.ForQueue("test", 
-					cfg => cfg
-					.OnTopic(ExampleClass.Topic, new CommandBase()))
-				.Start();
+				.AddHandlers(cfg => 
+								cfg
+								.OnException((exc, dm) => {
+									Console.WriteLine($"Error on MessageProcessor. {exc.Message}");
+
+									if (dm.IsRpcMessage()) {
+										hub.SetRpcErrorAsync(dm, exc.Message, (int)StatusCodes.InternalError);
+									}
+
+									return Task.FromResult(false);
+								})
+								.OnUnexpectedTopic(async dm => {
+									var message = $"{dm.GetTopic()} was unexpected";
+									Console.WriteLine(message);
+
+
+									if (dm.IsRpcMessage()) {
+										await hub.SetRpcErrorAsync(dm, message, (int)StatusCodes.InvalidRequest);
+									}
+
+									return await MessageProcessResult.RejectTask;
+								})
+								.OnTopic(ExampleClass.Topic, new CommandBase()))
+								.Start();
 
 
 

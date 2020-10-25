@@ -134,10 +134,6 @@ namespace RmqLib {
 			return new DeliveredMessage(props, routingKey, body, dt);
 		}
 
-		private void ProcessHandlerException(string routingKey, Exception e) {
-			SetError($"Handler exception for topic {routingKey} {e.Message}");
-		}
-
 
 		private void SetError(string v) {
 			Console.WriteLine($"Rmq error: {v}");
@@ -147,13 +143,13 @@ namespace RmqLib {
 			try {
 				await semaphore.WaitAsync();
 				switch (processResult) {
-					case MessageProcessResult.Ack:
+					case MessageProcessResult _ when processResult == MessageProcessResult.Ack:
 						channel.BasicAck(deliveryTag: dt, multiple: false);
 						break;
-					case MessageProcessResult.Requeue:
+					case MessageProcessResult _ when processResult == MessageProcessResult.Requeue:
 						channel.BasicReject(dt, true);
 						break;
-					case MessageProcessResult.Reject:
+					case MessageProcessResult _ when processResult == MessageProcessResult.Reject:
 						channel.BasicReject(dt, false);
 						break;
 				}

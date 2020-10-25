@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace RmqLib {
 	public static class FluentSubscription {
-		public static IHubHandlersConfig DefineHandlers(this IRabbitHub hub, int prefetchCount = 32) {
+		public static IHubHandlersConfig DefineHandlers(this IRabbitHub hub) {
 			return new HubHandlersConfig((RabbitHub)hub);
 		}
 
@@ -15,7 +15,7 @@ namespace RmqLib {
 	}
 
 	public interface IHubHandlersConfig {
-		IHubHandlersConfig ForQueue(string queue, Func<IQueueHandlersConfig, IQueueHandlersConfig> builder);
+		IHubHandlersConfig AddHandlers(Func<IQueueHandlersConfig, IQueueHandlersConfig> builder);
 		Task<ISubscription> Start();
 	}
 
@@ -28,8 +28,8 @@ namespace RmqLib {
 			this.hub = hub ?? throw new ArgumentNullException(nameof(hub));
 		}
 
-		public IHubHandlersConfig ForQueue(string queue, Func<IQueueHandlersConfig, IQueueHandlersConfig> builder) {
-			Validate(queue, builder);
+		public IHubHandlersConfig AddHandlers(Func<IQueueHandlersConfig, IQueueHandlersConfig> builder) {
+			Validate(builder);
 			queueHandlersConfig = new QueueHandlersConfig(hub);
 			builder.Invoke(queueHandlersConfig);
 
@@ -37,10 +37,7 @@ namespace RmqLib {
 
 		}
 
-		private static void Validate(string queue, Func<IQueueHandlersConfig, IQueueHandlersConfig> builder) {
-			if (queue is null) {
-				throw new ArgumentNullException(nameof(queue));
-			}
+		private static void Validate(Func<IQueueHandlersConfig, IQueueHandlersConfig> builder) {
 			if (builder is null) {
 				throw new ArgumentNullException(nameof(builder));
 			}

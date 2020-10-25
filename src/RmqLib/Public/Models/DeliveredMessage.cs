@@ -43,5 +43,9 @@ namespace RmqLib {
 			return response;
 
 		}
+
+		public string GetTopic() {
+			return RoutingKey;
+		}
 	}
 }

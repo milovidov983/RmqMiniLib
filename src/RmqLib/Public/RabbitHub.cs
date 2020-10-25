@@ -49,11 +49,6 @@ namespace RmqLib {
 		}
 
 
-
-
-
-
-
 		public async Task PublishAsync<TRequest>(string topic, TRequest request, TimeSpan? timeout = null) {
 			byte[] body = request.ToByteArray();
 			var di = new DeliveryInfo(topic, body, null, null);
