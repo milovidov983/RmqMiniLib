@@ -15,7 +15,7 @@ namespace RmqLib {
 		private readonly Initializer initializer;
 		private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
 		private readonly RmqConfig config;
-		private IModel subscriptionChannel;
+		private IChannelWrapper subscriptionChannel;
 
 
 		public RabbitHub(RmqConfig config) {
@@ -26,7 +26,7 @@ namespace RmqLib {
 		}
 
 
-		public SubscriptionManager CreateSubscriptions(Dictionary<string, IRabbitCommand> commandHandlers) {
+		internal SubscriptionManager CreateSubscriptions(Dictionary<string, IRabbitCommand> commandHandlers) {
 			var connectionManager = initializer.connectionManager;
 			connectionManager.CreateSubscriptionChannelPool(config.PrefetchCount);
 			subscriptionChannel = connectionManager.GetSubscriptionChannel();
@@ -61,24 +61,20 @@ namespace RmqLib {
 				throw new InvalidOperationException("Can't reply on non-RPC request");
 			}
 
-			try {
-				await semaphore.WaitAsync();
-				var replyProps = subscriptionChannel.CreateBasicProperties();
-				replyProps.CorrelationId = dm.ReplyProps.CorrelationId;
 
-				replyProps.Headers = replyProps.Headers ?? new Dictionary<string, object>();
-				replyProps.Headers.Add(RmqLib.Core.Headers.Error, error);
-				replyProps.Headers.Add(RmqLib.Core.Headers.StatusCode, statusCode);
+			var replyProps = await subscriptionChannel.CreateBasicProperties();
+			replyProps.CorrelationId = dm.ReplyProps.CorrelationId;
 
-				subscriptionChannel.BasicPublish(
-					exchange: "",
-					routingKey: dm.ReplyProps.ReplyTo,
-					basicProperties: replyProps
-					);
+			replyProps.Headers = replyProps.Headers ?? new Dictionary<string, object>();
+			replyProps.Headers.Add(RmqLib.Core.Headers.Error, error);
+			replyProps.Headers.Add(RmqLib.Core.Headers.StatusCode, statusCode);
 
-			} finally {
-				semaphore.Release();
-			}
+			await subscriptionChannel.BasicPublish(
+				exchange: "",
+				routingKey: dm.ReplyProps.ReplyTo,
+				basicProperties: replyProps
+				);
+
 		}
 
 		public async Task SetRpcResultAsync<T>(DeliveredMessage dm, T payload, int? statusCode = null) {
@@ -88,20 +84,17 @@ namespace RmqLib {
 
 			var resp = JsonSerializer.Serialize(payload);
 			byte[] respBody = Encoding.UTF8.GetBytes(resp);
-			try {
-				await semaphore.WaitAsync();
-				var replyProps = subscriptionChannel.CreateBasicProperties();
-				replyProps.CorrelationId = dm.ReplyProps.CorrelationId;
+		
+			var replyProps = await subscriptionChannel.CreateBasicProperties();
+			replyProps.CorrelationId = dm.ReplyProps.CorrelationId;
 				
-				subscriptionChannel.BasicPublish(
-					exchange: "", 
-					routingKey: dm.ReplyProps.ReplyTo, 
-					basicProperties: replyProps, 
-					body: respBody);
+			await subscriptionChannel.BasicPublish(
+				exchange: "", 
+				routingKey: dm.ReplyProps.ReplyTo, 
+				basicProperties: replyProps, 
+				body: respBody);
 
-			} finally {
-				semaphore.Release();
-			}
+		
 		}
 
 	}

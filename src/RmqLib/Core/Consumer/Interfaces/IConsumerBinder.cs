@@ -1,8 +1,8 @@
 ﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
-namespace RmqLib {
-	public interface IConsumerBinder {
-		void Bind(AsyncEventingBasicConsumer consumerInstance, IModel channel);
+namespace RmqLib.Core {
+	internal interface IConsumerBinder {
+		void Bind(IBasicConsumer consumerInstance, IChannelWrapper channel);
 	}
 }

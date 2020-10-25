@@ -1,13 +1,13 @@
 ﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
-namespace RmqLib {
+namespace RmqLib.Core {
 	internal class RpcConsumerBinder : IConsumerBinder {
 
 		/// <summary>
 		/// Привязка канала обслуживающего RPC
 		/// </summary>
-		public void Bind(AsyncEventingBasicConsumer consumerInstance, IModel channel) {
+		public void Bind(IBasicConsumer consumerInstance, IChannelWrapper channel) {
 			channel.BasicConsume(
 				consumer: consumerInstance,
 				// специальная встроенная в RabbitMQ очередь для получения ответов на RPC запросы

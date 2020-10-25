@@ -14,6 +14,7 @@ namespace RmqLib.Core {
 		private IResponseMessageHandler responseMessageHandler;
 		private ChannelGuardService channelGuardService;
 		private IModel subsCh;
+		private IChannelWrapper subscriptionWrapChannel;
 
 		public ConnectionManager(RmqConfig config, 
 			IChannelPoolFactory channelPoolFactory,
@@ -35,7 +36,9 @@ namespace RmqLib.Core {
 			rpcChannelPool = channelPoolFactory.CreateChannelPool(rpcCh);
 
 			IConsumerBinder rpcConsumerBinder = new RpcConsumerBinder();
-			IConsumerFactory rpcConsumerFactory = new ConsumerFactory(rpcCh, rpcConsumerBinder);
+			IConsumerFactory rpcConsumerFactory = new ConsumerFactory(
+				rpcChannelPool.GetChannelWrapper(), 
+				rpcConsumerBinder);
 			
 			var loggerFactory = LoggerFactory.Create(ConsumerType.Rpc.ToString());
 			var managerLogger = loggerFactory.CreateLogger(nameof(ConsumerManager));
@@ -92,11 +95,13 @@ namespace RmqLib.Core {
 			}
 
 
-			return channelPoolFactory.CreateChannelPool(subsCh);
+			var pool = channelPoolFactory.CreateChannelPool(subsCh);
+			subscriptionWrapChannel = pool.GetChannelWrapper();
+			return pool;
 		}
 
-		public IModel GetSubscriptionChannel() {
-			return subsCh;
+		public IChannelWrapper GetSubscriptionChannel() {
+			return subscriptionWrapChannel;
 		}
 
 

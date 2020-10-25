@@ -9,33 +9,35 @@ using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RmqLib {
+namespace RmqLib.Core {
 
-	public class SubscriptionManager : ISubscriptionManager {
-		private readonly IModel channel;
-		private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
-
-		private readonly ConcurrentDictionary<string, IRabbitCommand> topicHandlers = new ConcurrentDictionary<string, IRabbitCommand>();
+	internal class SubscriptionManager : ISubscriptionManager {
+		private readonly IChannelWrapper wrappedChannel;
+		private readonly ConcurrentDictionary<string, IRabbitCommand> topicHandlers
+			= new ConcurrentDictionary<string, IRabbitCommand>();
 
 		private QueueHandlersConfig queueHandlersConfig;
 
+		private readonly IRmqLogger logger;
+
 		public SubscriptionManager(
-			IModel channel,
+			IChannelWrapper wrappedChannel,
 			IRabbitHub hub,
 			Dictionary<string, IRabbitCommand> commandHandlers,
-			RmqConfig config) { 
+			RmqConfig config,
+			IRmqLogger logger) {
 
-			this.channel = channel;
+			this.wrappedChannel = wrappedChannel;
+			this.logger = logger;
 
 			foreach (var handler in commandHandlers) {
-				channel.QueueBind(queue: config.Queue,
-							exchange: config.Exchange,
-							routingKey: handler.Key);
+				wrappedChannel.QueueBind(queue: config.Queue,
+								exchange: config.Exchange,
+								routingKey: handler.Key);
 
 				topicHandlers.TryAdd(handler.Key, handler.Value);
 				handler.Value.WithHub(hub);
 			}
-
 
 		}
 
@@ -66,11 +68,8 @@ namespace RmqLib {
 					}
 
 				} catch (Exception e) {
-					Console.WriteLine(" [.] " + e.Message);
-					await semaphore.WaitAsync();
-					channel.BasicReject(dt, false);
-				} finally {
-					semaphore.Release();
+					logger.Error($"{nameof(SubscriptionManager)}.{nameof(Handler)} {e.Message}");
+					await wrappedChannel.BasicReject(dt, false);
 				}
 			});
 		}
@@ -80,7 +79,7 @@ namespace RmqLib {
 		}
 
 		private Task<MessageProcessResult> ExecuteUnexpectedTopicHandler(DeliveredMessage deliveredMessage) {
-			if(queueHandlersConfig.OnUnexpectedTopicHandler != null) {
+			if (queueHandlersConfig.OnUnexpectedTopicHandler != null) {
 				return queueHandlersConfig.OnUnexpectedTopicHandler(deliveredMessage);
 			}
 			return Task.FromResult(MessageProcessResult.Ack);
@@ -96,7 +95,7 @@ namespace RmqLib {
 		}
 
 		private Task<MessageProcessResult> ExecuteAfterExecuteHandler(
-			DeliveredMessage deliveredMessage, 
+			DeliveredMessage deliveredMessage,
 			MessageProcessResult processResult) {
 
 			if (queueHandlersConfig.AfterExecuteHandler != null) {
@@ -121,26 +120,18 @@ namespace RmqLib {
 		}
 
 		private async Task Ask(ulong dt, MessageProcessResult processResult) {
-			try {
-				await semaphore.WaitAsync();
-				switch (processResult) {
-					case MessageProcessResult _ when processResult == MessageProcessResult.Ack:
-						// TODO
-						// По хорошему надо все методы IModel обернуть 
-						// ChannelWrapperom и внутри него контролировать доступ к объекту
-						// А то это получается что семафоры раскиданы по всему коду.
-						channel.BasicAck(deliveryTag: dt, multiple: false); 
-						break;
-					case MessageProcessResult _ when processResult == MessageProcessResult.Requeue:
-						channel.BasicReject(dt, true);
-						break;
-					case MessageProcessResult _ when processResult == MessageProcessResult.Reject:
-						channel.BasicReject(dt, false);
-						break;
-				}
-			} finally {
-				semaphore.Release();
+			switch (processResult) {
+				case MessageProcessResult _ when processResult == MessageProcessResult.Ack:
+					await wrappedChannel.BasicAck(deliveryTag: dt, multiple: false);
+					break;
+				case MessageProcessResult _ when processResult == MessageProcessResult.Requeue:
+					await wrappedChannel.BasicReject(dt, true);
+					break;
+				case MessageProcessResult _ when processResult == MessageProcessResult.Reject:
+					await wrappedChannel.BasicReject(dt, false);
+					break;
 			}
+
 		}
 	}
 }

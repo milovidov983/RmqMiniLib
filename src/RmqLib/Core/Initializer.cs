@@ -43,10 +43,10 @@ namespace RmqLib.Core {
 		public SubscriptionManager InitSubscriptions(IRabbitHub hub, Dictionary<string, IRabbitCommand> commandHandlers) {
 			SubscriptionManager subscriptionManager = null;
 			try {
-				var topicManageChannel = connectionManager.GetSubscriptionChannel();
+				var subscriptionWrapChannel = connectionManager.GetSubscriptionChannel();
 
-				IConsumerBinder topicListenerBinder = new TopicListinerConsumerBinder(config.Queue);
-				IConsumerFactory topicListenerConsumerFactory = new ConsumerFactory(topicManageChannel, topicListenerBinder);
+				IConsumerBinder topicListenerBinder = new SubsciptionConsumerBinder(config.Queue);
+				IConsumerFactory topicListenerConsumerFactory = new ConsumerFactory(subscriptionWrapChannel, topicListenerBinder);
 
 
 				var loggerFactory = LoggerFactory.Create(ConsumerType.Subs.ToString());
@@ -61,10 +61,11 @@ namespace RmqLib.Core {
 				var topicListenerConsumerEventHandlers = topicListenerConsumerEventHandlersFactory.CreateMainHandler();
 
 				subscriptionManager = new SubscriptionManager(
-					topicManageChannel,
+					subscriptionWrapChannel,
 					hub,
 					commandHandlers,
-					config);
+					config,
+					logger);
 
 				topicListenerConsumerEventHandlers.AddReceiveHandler(subscriptionManager.Handler);
 

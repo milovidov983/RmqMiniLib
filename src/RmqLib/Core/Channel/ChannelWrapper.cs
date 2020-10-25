@@ -75,6 +75,47 @@ namespace RmqLib.Core {
 			}
 		}
 
+		public async Task BasicPublish(string exchange, string routingKey, IBasicProperties basicProperties, byte[] body) {
+			try {
+				await semaphore.WaitAsync();
+				channel.BasicPublish(
+					exchange: exchange,
+					routingKey: routingKey,
+					basicProperties: basicProperties,
+					body: body);
+			} finally {
+				semaphore.Release();
+			}
+		}
+
+		public async Task BasicAck(ulong deliveryTag, bool multiple) {
+			try {
+				await semaphore.WaitAsync();
+				channel.BasicAck(deliveryTag, multiple);
+			} finally {
+				semaphore.Release();
+			}
+		}		
+		
+		public async Task BasicReject(ulong deliveryTag, bool requeue) {
+			try {
+				await semaphore.WaitAsync();
+				channel.BasicReject(deliveryTag, requeue);
+			} finally {
+				semaphore.Release();
+			}
+		}
+
+		public async Task QueueBind(string queue, string exchange, string routingKey) {
+			try {
+				await semaphore.WaitAsync();
+				channel.QueueBind(queue,exchange,routingKey);
+			} finally {
+				semaphore.Release();
+			}
+		}
+
+
 		public void Close() {
 			try {
 				semaphore.Wait();
@@ -86,5 +127,28 @@ namespace RmqLib.Core {
 			}
 		}
 
+		public async Task BasicConsume(IBasicConsumer consumer, string queue, bool autoAck) {
+			try {
+				await semaphore.WaitAsync();
+				channel.BasicConsume(
+					queue: queue,
+					autoAck: autoAck,
+					consumer: consumer);
+				
+			} finally {
+				semaphore.Release();
+			}
+		}
+
+		public async Task<IBasicProperties> CreateBasicProperties() {
+			try {
+				await semaphore.WaitAsync();
+				return channel.CreateBasicProperties();
+			} finally {
+				semaphore.Release();
+			}
+		}
+
+		
 	}
 }
