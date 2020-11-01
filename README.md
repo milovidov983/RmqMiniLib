@@ -163,4 +163,7 @@ var response = await hub.ExecuteRpcAsync<ExampleCommand.Response, ExampleCommand
 Console.WriteLine($"Получен ответ от микросервиса: {response.Message}");
 ```
 
+***
+
+### Создание подписок на топики RabbitMq
 
