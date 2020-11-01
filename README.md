@@ -10,4 +10,8 @@ RmqMiniLib делает работу с шиной RabbitMQ более прос�
 
 Приведем пример как будет выглядить самая простая публикация сообщения:
 
+<p align="center">
+  <image src="https://github.com/milovidov983/BotKeeper/blob/master/devenv_Q5Irw591QO.png" alt="RmqMiniLib basic publish" width="800px">
+</p>
+
 
