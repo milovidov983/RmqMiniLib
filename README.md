@@ -80,7 +80,7 @@ class Message {
 Task PublishAsync<TRequest>(string topic, TRequest request, TimeSpan? timeout = null);
 ```
 
-`topic` - это ключь маршрутизации на который подписан сервис которому адресовано сообщение
+`topic` - это ключ маршрутизации на который подписан сервис которому адресовано сообщение
 
 `request` - тело сообщения
 
