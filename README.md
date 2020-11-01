@@ -167,3 +167,4 @@ Console.WriteLine($"Получен ответ от микросервиса: {re
 
 ### Создание подписок на топики RabbitMq
 
+Пока нет возможности полностью описать процесс подписок, но я думаю можно без труда разобратся посмотрев на вот этот пример https://github.com/milovidov983/RmqMiniLib/blob/master/examples/ExampleServer/ServerExample.Service/Infrastructure/MessageQueueProcessor.cs
