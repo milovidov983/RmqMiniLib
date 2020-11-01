@@ -146,5 +146,21 @@ public class ExampleCommand {
 
 ```
 
+Теперь имея на руках такой контракт который поддерживают обе стороны можно переходить к самому вызову:
+
+```csharp
+
+// Пример RPC вызова
+
+var response = await hub.ExecuteRpcAsync<ExampleCommand.Response, ExampleCommand.Request>(
+	ExampleCommand.Topic,
+	new ExampleCommand.Request {
+		Message = "Hello RPC!"
+	}
+);
+
+
+Console.WriteLine($"Получен ответ от микросервиса: {response.Message}");
+```
 
 
