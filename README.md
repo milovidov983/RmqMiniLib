@@ -60,4 +60,35 @@ IRabbitHub hub = new RabbitHub(rmqConfigInstance);
   <image src="https://github.com/milovidov983/BotKeeper/blob/master/chrome_mJUHcnFvrn.png" alt="RmqMiniLib basic publish" width="800px">
 </p>
 
-Из этого примера видно что 
+
+Создадим класс который мы хотим отправить 
+
+```csharp
+class Message {
+	public string Body { get; set; }
+}
+```
+
+Отправка данных осуществляется с помощью метода `PublishAsync` класса `RabbitHub`, метод имеет следующую сигнатуру:
+```csharp
+Task PublishAsync<TRequest>(string topic, TRequest request, TimeSpan? timeout = null);
+```
+
+`topic` - это ключь маршрутизации на который подписан сервис которому адресовано сообщение
+
+`request` - тело сообщения
+
+Пример полностью:
+
+
+```csharp
+
+IRabbitHub hub = new RabbitHub(rmqConfigInstance);
+
+
+await hub.PublishAsync("broadcastCommand.serverExample.none",
+	new Message {
+		Body = "Hello world!"
+	}
+);
+```
