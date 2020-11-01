@@ -42,9 +42,9 @@ namespace RmqLib {
 		}
 
 		public void InitConsumer() {
-			logger.Info($"Пробуем создать consumer...");
+			logger.Debug($"Trying to create a consumer...");
 			consumerInstance = consumerFactory.CreateBasicConsumer();
-			logger.Info($"Consumer создан успешно");
+			logger.Debug($"Consumer created successfully.");
 		}
 
 		private void Unsubscribe() {

@@ -1,6 +1,6 @@
 {
     "RmqConfig": {
-        "AppId": "ServerExample",
+        "AppId": "ServerExample-svc",
         "HostName": "localhost",
         "Password": "guest",
         "Exchange": "my_exchange",

@@ -22,13 +22,13 @@ namespace RmqLib.Core {
 		}
 
 		public void RegisteredHandler(object sender, ConsumerEventArgs e) {
-			logger.Debug($"consumer registered event happened");
+			logger.Debug($"Consumer registered event happened.");
 
 			consumerRegisterEventHandlers.ToList().ForEach(handler => {
 				try {
 					handler.Invoke(sender, e);
 				} catch (Exception ex) {
-					logger.Error($"consumer registered event handler error: {ex.Message}");
+					logger.Error($"Consumer registered event handler error: {ex.Message}");
 				}
 			});
 		}

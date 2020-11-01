@@ -26,11 +26,11 @@ namespace RmqLib.Core {
 		}
 
 		public void StartInitialization() {
-			var connectionLoggerFactory = LoggerFactory.Create("");
-			var connectionLogger = connectionLoggerFactory.CreateLogger(nameof(ConnectionWrapper));
+			ILoggerFactory connectionLoggerFactory = LoggerFactory.Create("");
+			IRmqLogger connectionLogger = connectionLoggerFactory.CreateLogger(nameof(ConnectionWrapper));
 			connection = new ConnectionWrapper(config, connectionLogger);
 
-			var rpcCh = connection.CreateChannel();
+			IModel rpcCh = connection.CreateChannel();
 
 
 			rpcChannelPool = channelPoolFactory.CreateChannelPool(rpcCh);
@@ -39,9 +39,9 @@ namespace RmqLib.Core {
 			IConsumerFactory rpcConsumerFactory = new ConsumerFactory(
 				rpcChannelPool.GetChannelWrapper(), 
 				rpcConsumerBinder);
-			
-			var loggerFactory = LoggerFactory.Create(ConsumerType.Rpc.ToString());
-			var managerLogger = loggerFactory.CreateLogger(nameof(ConsumerManager));
+
+			ILoggerFactory loggerFactory = LoggerFactory.Create(ConsumerType.Rpc.ToString());
+			IRmqLogger managerLogger = loggerFactory.CreateLogger(nameof(ConsumerManager));
 
 			IConsumerManager rpcConsumerManager = new ConsumerManager(
 				rpcConsumerFactory, 
@@ -51,17 +51,19 @@ namespace RmqLib.Core {
 
 			IMainConsumerEventHandlerFactory rpcMainEventHandlerFactory 
 				= ConsumerEventHandlersFactory.Create(rpcConsumerManager, loggerFactory);
-			var rpcConsumerMainEventHandler = rpcMainEventHandlerFactory.CreateMainHandler();
+
+			IConsumerMainEventHandlers rpcConsumerMainEventHandler 
+				= rpcMainEventHandlerFactory.CreateMainHandler();
 
 
 
-			var connectionHandlerLogger = loggerFactory.CreateLogger(nameof(ConnectionEventHandlers));
+			IRmqLogger connectionHandlerLogger = loggerFactory.CreateLogger(nameof(ConnectionEventHandlers));
 			IConnectionEventsHandlerFactory connectionEventsHandlerFactory 
 							= ConnectionEventsHandlerFactory.Create(connectionHandlerLogger, connection);
 			IConnectionEventHandlers connectionEventHandler = connectionEventsHandlerFactory.CreateHandler();
 
 
-			var channelGuardLogger = loggerFactory.CreateLogger(nameof(ChannelGuardService));
+			IRmqLogger channelGuardLogger = loggerFactory.CreateLogger(nameof(ChannelGuardService));
 			this.channelGuardService 
 				= new ChannelGuardService(
 					rpcChannelPool, // <--- TODO только rpc?
@@ -95,7 +97,7 @@ namespace RmqLib.Core {
 			}
 
 
-			var pool = channelPoolFactory.CreateChannelPool(subsCh);
+			IChannelPool pool = channelPoolFactory.CreateChannelPool(subsCh);
 			subscriptionWrapChannel = pool.GetChannelWrapper();
 			return pool;
 		}
@@ -108,6 +110,5 @@ namespace RmqLib.Core {
 		public IConnectionWrapper GetConnection() {
 			return connection;
 		}
-
 	}
 }

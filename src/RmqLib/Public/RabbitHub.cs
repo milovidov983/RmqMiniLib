@@ -27,7 +27,7 @@ namespace RmqLib {
 
 
 		internal SubscriptionManager CreateSubscriptions(Dictionary<string, IRabbitCommand> commandHandlers) {
-			var connectionManager = initializer.connectionManager;
+			IConnectionManager connectionManager = initializer.connectionManager;
 			connectionManager.CreateSubscriptionChannelPool(config.PrefetchCount);
 			subscriptionChannel = connectionManager.GetSubscriptionChannel();
 
@@ -39,20 +39,20 @@ namespace RmqLib {
 			var correlationId = Guid.NewGuid().ToString("N");
 			var di = new DeliveryInfo(topic, body, correlationId, ServiceConstants.REPLY_QUEUE_NAME);
 
-			var pub = publisherFactory.GetBasicPublisher();
-			var dm = pub.CreateRpcPublication(di, timeout);
+			IPublisher pub = publisherFactory.GetBasicPublisher();
+			ResponseMessage rm = pub.CreateRpcPublication(di, timeout);
 
-			await dm.WaitResult();
-			if (dm.HasError) {
-				throw new Exception(dm.GetError());
+			await rm.WaitResult();
+			if (rm.HasError) {
+				throw new Exception(rm.GetError());
 			}
-			return dm.GetResponse<TResponse>();
+			return rm.GetResponse<TResponse>();
 		}
 
 		public async Task PublishAsync<TRequest>(string topic, TRequest request, TimeSpan? timeout = null) {
 			byte[] body = request.ToByteArray();
 			var di = new DeliveryInfo(topic, body, null, null);
-			var pub = publisherFactory.GetBasicPublisher();
+			IPublisher pub = publisherFactory.GetBasicPublisher();
 			await pub.CreateBroadcastPublication(di, timeout);
 		}
 
@@ -62,12 +62,12 @@ namespace RmqLib {
 			}
 
 
-			var replyProps = await subscriptionChannel.CreateBasicProperties();
+			IBasicProperties replyProps = await subscriptionChannel.CreateBasicProperties();
 			replyProps.CorrelationId = dm.ReplyProps.CorrelationId;
 
 			replyProps.Headers = replyProps.Headers ?? new Dictionary<string, object>();
-			replyProps.Headers.Add(RmqLib.Core.Headers.Error, error);
-			replyProps.Headers.Add(RmqLib.Core.Headers.StatusCode, statusCode);
+			replyProps.Headers.Add(Core.Headers.Error, error);
+			replyProps.Headers.Add(Core.Headers.StatusCode, statusCode);
 
 			await subscriptionChannel.BasicPublish(
 				exchange: "",
@@ -85,7 +85,7 @@ namespace RmqLib {
 			var resp = JsonSerializer.Serialize(payload);
 			byte[] respBody = Encoding.UTF8.GetBytes(resp);
 		
-			var replyProps = await subscriptionChannel.CreateBasicProperties();
+			IBasicProperties replyProps = await subscriptionChannel.CreateBasicProperties();
 			replyProps.CorrelationId = dm.ReplyProps.CorrelationId;
 				
 			await subscriptionChannel.BasicPublish(

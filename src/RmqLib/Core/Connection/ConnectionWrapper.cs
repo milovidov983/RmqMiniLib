@@ -22,13 +22,14 @@ namespace RmqLib {
 			this.config = config;
 			this.logger = logger;
 
-			logger.Debug($"try to create {nameof(connectionFactory)}...");
+			logger.Debug($"Trying to create a {nameof(connectionFactory)}...");
 			this.connectionFactory = InitConnectionFactory();
+			logger.Debug($"{nameof(connectionFactory)} created.");
 
-			logger.Debug($"try to create {nameof(connection)}...");
+			logger.Debug($"Trying to create a {nameof(connection)}...");
 			connection = connectionFactory.CreateConnection();
 
-			logger.Debug($"{nameof(connection)} created");
+			logger.Debug($"{nameof(connection)} created.");
 
 		}
 
@@ -44,12 +45,12 @@ namespace RmqLib {
 		public IModel CreateChannel() {
 			try {
 				semaphore.WaitOne();
-				logger.Debug($"{nameof(CreateChannel)} try to create channel...");
+				logger.Debug($"{nameof(CreateChannel)} Trying to create a channel...");
 
 				var channel = connection.CreateModel();
 				channel.ExchangeDeclare(config.Exchange, ExchangeType.Topic, durable: true);
 
-				logger.Debug($"{nameof(CreateChannel)} channel created");
+				logger.Debug($"{nameof(CreateChannel)} Channel created.");
 				return channel;
 			} catch(Exception e) {
 				logger.Error($"create channel error: {nameof(e.Message)}");
@@ -68,6 +69,7 @@ namespace RmqLib {
 			};
 			factory.DispatchConsumersAsync = true;
 			factory.AutomaticRecoveryEnabled = true;
+			factory.ClientProvidedName = config.AppId;
 			return factory;
 		}
 
