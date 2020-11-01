@@ -1,4 +1,10 @@
+<p align="center">
+  <image src="https://github.com/milovidov983/BotKeeper/blob/master/RmqMiniLibLogo.png" alt="RmqMiniLib logo" width="600px">
+</p>
+
 # RmqMiniLib
+
+
 
 Обёртка вокруг стандартной библиотеки RabbitMq
 
