@@ -1,5 +1,6 @@
 ﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RmqLib.Helper;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -44,7 +45,7 @@ namespace RmqLib.Core {
 		public void Handler(object model, BasicDeliverEventArgs ea) {
 			var routingKey = ea.RoutingKey;
 			var dt = ea.DeliveryTag;
-			DeliveredMessage deliveredMessage = CreateDeliveredMessage(ea);
+			var deliveredMessage = ea.CreateDeliveredMessage();
 			Task.Factory.StartNew(async () => {
 				try {
 					var acceptMessage =  await RunBeforeExecuteHandler(deliveredMessage);
@@ -61,18 +62,18 @@ namespace RmqLib.Core {
 					}
 
 
-					MessageProcessResult processResult = MessageProcessResult.Reject;
+					var processResult = MessageProcessResult.Reject;
 					try {
 						processResult = await handler.Execute(deliveredMessage);
 					} catch (Exception e) {
-						await ExecuteExceptionHandler(e, deliveredMessage);
+						processResult = await ExecuteExceptionHandler(e, deliveredMessage);
 					} finally {
 						processResult = await RunAfterExecuteHandler(deliveredMessage, processResult);
 						await Ask(dt, processResult);
 					}
 
 				} catch (Exception e) {
-					logger.Error($"{nameof(SubscriptionManager)}.{nameof(Handler)} {e.Message}");
+					logger.Error($"{nameof(SubscriptionManager)}.{nameof(Handler)} {e.Message} {e.InnerException?.Message}");
 					await wrappedChannel.BasicReject(dt, false);
 				}
 			});
@@ -91,11 +92,16 @@ namespace RmqLib.Core {
 
 
 
-		private Task ExecuteExceptionHandler(Exception e, DeliveredMessage deliveredMessage) {
+		private async Task<MessageProcessResult> ExecuteExceptionHandler(Exception e, DeliveredMessage deliveredMessage) {
+			var processResult = MessageProcessResult.Ack;
 			if (queueHandlersConfig.OnExceptionHandler != null) {
-				return queueHandlersConfig.OnExceptionHandler(e, deliveredMessage);
+				var handleResultFlag = await queueHandlersConfig.OnExceptionHandler(e, deliveredMessage);
+
+				processResult = handleResultFlag 
+					? MessageProcessResult.Ack 
+					: MessageProcessResult.Reject;
 			}
-			return Task.CompletedTask;
+			return processResult;
 		}
 
 		private Task<MessageProcessResult> RunAfterExecuteHandler(
@@ -105,23 +111,17 @@ namespace RmqLib.Core {
 			if (queueHandlersConfig.AfterExecuteHandler != null) {
 				return queueHandlersConfig.AfterExecuteHandler(deliveredMessage, processResult);
 			}
-			return Task.FromResult(MessageProcessResult.Ack);
+
+			return Task.FromResult(processResult);
 		}
 
-		private async Task<bool> RunBeforeExecuteHandler(DeliveredMessage deliveredMessage) {
+		private Task<bool> RunBeforeExecuteHandler(DeliveredMessage deliveredMessage) {
 			if (queueHandlersConfig.BeforeExecuteHandler != null) {
-				return await queueHandlersConfig.BeforeExecuteHandler(deliveredMessage);
+				return queueHandlersConfig.BeforeExecuteHandler(deliveredMessage);
 			}
-			return true;
+			return Task.FromResult(true);
 		}
 
-		private DeliveredMessage CreateDeliveredMessage(BasicDeliverEventArgs ea) {
-			var body = ea.Body;
-			var props = ea.BasicProperties;
-			var routingKey = ea.RoutingKey;
-			var dt = ea.DeliveryTag;
-			return new DeliveredMessage(props, routingKey, body, dt);
-		}
 
 		private async Task Ask(ulong dt, MessageProcessResult processResult) {
 			switch (processResult) {

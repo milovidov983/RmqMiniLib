@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace RmqLib {
 	public interface ISubscription : IDisposable {
-		void StopGracefully();
 	}
 
 
@@ -18,10 +17,6 @@ namespace RmqLib {
 		}
 
 		public void Dispose() {
-			hub.Close();
-		}
-
-		public void StopGracefully() {
 			hub.Close();
 		}
 	}
