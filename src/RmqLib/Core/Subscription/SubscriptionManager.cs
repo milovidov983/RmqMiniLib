@@ -14,6 +14,7 @@ namespace RmqLib.Core {
 
 	internal class SubscriptionManager : ISubscriptionManager {
 		private readonly IChannelWrapper wrappedChannel;
+
 		private readonly ConcurrentDictionary<string, IRabbitCommand> topicHandlers
 			= new ConcurrentDictionary<string, IRabbitCommand>();
 
@@ -87,10 +88,8 @@ namespace RmqLib.Core {
 			if (queueHandlersConfig.OnUnexpectedTopicHandler != null) {
 				return queueHandlersConfig.OnUnexpectedTopicHandler(deliveredMessage);
 			}
-			return Task.FromResult(MessageProcessResult.Ack);
+			return Task.FromResult(MessageProcessResult.Reject);
 		}
-
-
 
 		private async Task<MessageProcessResult> ExecuteExceptionHandler(Exception e, DeliveredMessage deliveredMessage) {
 			var processResult = MessageProcessResult.Ack;

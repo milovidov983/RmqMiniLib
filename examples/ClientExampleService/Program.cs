@@ -13,7 +13,7 @@ namespace ClientExampleService {
 
 
 			while (true) {
-				await SendTestRpcRequest(hub);
+				await SendTestBroadcastRequest(hub);
 				Console.ReadKey();
 			}
 		}
@@ -29,6 +29,21 @@ namespace ClientExampleService {
 				);
 
 				Console.WriteLine($"Получен ответ от микросервиса: {response.Message}");
+			} catch (Exception e) {
+				Console.WriteLine(e.Message);
+			}
+		}
+
+		private static async Task SendTestBroadcastRequest(IRabbitHub hub) {
+			try {
+				await hub.PublishAsync<SEC.BroadcastCommand.Message>(
+					SEC.BroadcastCommand.Topic,
+					new SEC.BroadcastCommand.Message {
+						Body = "Hello from ClientExampleService!"
+					}
+				);
+
+				Console.WriteLine($"Широковещательное сообщение опубликовано!");
 			} catch (Exception e) {
 				Console.WriteLine(e.Message);
 			}

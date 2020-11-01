@@ -46,6 +46,7 @@ namespace ServerExample.Service.Infrastructure {
 								return await MessageProcessResult.RejectTask;
 							})
 							.OnTopic(SEC.ExampleCommand.Topic, new Commands.ExampleCommand(context))
+							.OnTopic(SEC.BroadcastCommand.Topic, new Commands.BroadcastCommand(context))
 				)
 				.Start();
 		}
