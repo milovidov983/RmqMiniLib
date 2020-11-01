@@ -1,4 +1,5 @@
-﻿using RabbitMQ.Client;
+﻿using Microsoft.Extensions.Logging;
+using RabbitMQ.Client;
 using RmqLib.Core;
 using RmqLib.Helper;
 using System;
@@ -13,13 +14,12 @@ namespace RmqLib {
 	public class RabbitHub : IRabbitHub {
 		private readonly IPublisherFactory publisherFactory;
 		private readonly Initializer initializer;
-		private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
 		private readonly RmqConfig config;
 		private IChannelWrapper subscriptionChannel;
 
 
-		public RabbitHub(RmqConfig config) {
-			this.initializer = new Initializer(config);
+		public RabbitHub(RmqConfig config, ILogger externalLogger = null) {
+			this.initializer = new Initializer(config, externalLogger);
 			initializer.InitConnectionManager();
 			publisherFactory = initializer.InitPublisherFactory();
 			this.config = config;

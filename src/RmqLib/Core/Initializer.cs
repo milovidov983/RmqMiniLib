@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 
 namespace RmqLib.Core {
@@ -7,11 +8,16 @@ namespace RmqLib.Core {
 		private IRmqLogger logger;
 		public IConnectionManager connectionManager;
 
-		public Initializer(RmqConfig config) {
+		public Initializer(RmqConfig config, ILogger externalLogger = null) {
 			this.config = config;
 
 			DeliveryInfo.AppId = config.AppId;
 			DeliveryInfo.ExhangeName = config.Exchange;
+
+			if(externalLogger != null) {
+				LoggerFactory.SetupExternalLogger(externalLogger);
+			}
+
 
 			var loggerFactory = LoggerFactory.Create("");
 			logger = loggerFactory.CreateLogger();

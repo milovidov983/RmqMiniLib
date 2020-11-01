@@ -8,15 +8,6 @@ using System.Threading.Tasks;
 
 namespace RmqLib.Core {
 
-	internal class PublishStatus {
-		public bool IsSuccess { get; set; }
-		public Exception Error { get; set; }
-
-		public static PublishStatus SuccessStatus = new PublishStatus {
-			IsSuccess = true
-		};
-	}
-
 
 	internal class ChannelWrapper : IChannelWrapper {
 		private readonly IModel channel;

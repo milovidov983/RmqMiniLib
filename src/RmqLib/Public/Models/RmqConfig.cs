@@ -39,6 +39,8 @@ namespace RmqLib {
         /// PrefetchCount
         /// </summary>
         public ushort PrefetchCount { get; set; } = 32;
+
+         
        
 
 
