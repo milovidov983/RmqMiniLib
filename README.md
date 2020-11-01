@@ -109,5 +109,6 @@ await hub.PublishAsync("broadcastCommand.serverExample.none",
 
 Для выполнения RPC вызывов используется библиотченый метод
 ```csharp
-Task<TResponse> ExecuteRpcAsync<TResponse, TRequest>(string topic, TRequest request, TimeSpan? timeout = null) where TResponse : class;
+Task<TResponse> ExecuteRpcAsync<TResponse, TRequest>(string topic, TRequest request, TimeSpan? timeout = null) 
+where TResponse : class;
 ```
