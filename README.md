@@ -33,29 +33,27 @@ RmqMiniLib делает работу с шиной RabbitMQ более прос�
 
 
 ```csharp
-	class Startup {
-		private RmqConfig rmqConfigInstance;
 
-		public IRabbitHub CreateHub() {
-			var builder = new ConfigurationBuilder()
-					.AddJsonFile("settings.json", true, true);
+// Стандартные дейсвтия для получения настроек из settings.json
+var builder = new ConfigurationBuilder()
+		.AddJsonFile("settings.json", true, true);
 
-			var configuration = builder.Build();
-			rmqConfigInstance = new RmqConfig();
-			var settingsSection = configuration.GetSection(nameof(RmqConfig));
-			settingsSection.Bind(rmqConfigInstance);
+var configuration = builder.Build();
+var rmqConfigInstance = new RmqConfig();
+var settingsSection = configuration.GetSection(nameof(RmqConfig));
+settingsSection.Bind(rmqConfigInstance);
 
-
-			return new RabbitHub(rmqConfigInstance);
-		}
-	}
+// Создание экземпляра класса для работы с шиной
+IRabbitHub hub = new RabbitHub(rmqConfigInstance);
 
 
 ```
 
+Если все сконфигурировано корректно то после запуска приложения библиотека сама должан подключится к шине, о чем она напишет в консоли, после этого ее можно использовать для публикации сообщений и вызовов RPC
 
 
 
+### Пример публикации
 #### Публикация сообщения всем кто подписан на topic
 
 <p align="center">
