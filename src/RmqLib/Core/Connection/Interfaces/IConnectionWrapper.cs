@@ -7,5 +7,6 @@ namespace RmqLib {
 		bool IsOpen { get; }
 		void BindEventHandler(Action<IConnection> config);
 		void RegisterUnsubscribeHandler(Action<IConnection> config);
+		void Abort();
 	}
 }

@@ -6,18 +6,23 @@ using System.Threading.Tasks;
 
 namespace RmqLib {
 	public interface ISubscription : IDisposable {
-		Task StopGracefully(CancellationToken gracefulToken);
+		void StopGracefully();
 	}
 
 
 	public class Subscription : ISubscription {
-		public void Dispose() {
-			//TODO
+		private readonly RabbitHub hub;
+
+		public Subscription(RabbitHub hub) {
+			this.hub = hub;
 		}
 
-		public Task StopGracefully(CancellationToken gracefulToken) {
-			//TODO
-			return Task.CompletedTask;
+		public void Dispose() {
+			hub.Close();
+		}
+
+		public void StopGracefully() {
+			hub.Close();
 		}
 	}
 }

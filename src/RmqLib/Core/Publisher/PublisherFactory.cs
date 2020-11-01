@@ -8,10 +8,10 @@ namespace RmqLib.Core {
 
 		public PublisherFactory(IConnectionManager connectionManager, RmqConfig rmqConfig, IRmqLogger logger) {
 
-			IChannelPool channelPool = connectionManager.GetRpcChannelPool();
+			IChannelWrapper channel = connectionManager.GetRpcChannel();
 			IResponseMessageHandler replyHandler = connectionManager.GetResponseMessageHandler();
 			
-			basicPublisher = new BasicPublisher(channelPool.GetChannelWrapper(), replyHandler, rmqConfig, logger);
+			basicPublisher = new BasicPublisher(channel, replyHandler, rmqConfig, logger);
 		}
 
 		/// <summary>
@@ -19,10 +19,7 @@ namespace RmqLib.Core {
 		/// </summary>
 		/// <returns></returns>
 		public IPublisher GetBasicPublisher() {
-			
 			return basicPublisher;
-		}
-
-		
+		}	
 	}
 }

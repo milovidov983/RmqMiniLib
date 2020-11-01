@@ -83,5 +83,10 @@ namespace RmqLib {
 				connection.Close();
 			}
 		}
+
+
+		public void Abort() {
+			connection.Abort();
+		}
 	}
 }

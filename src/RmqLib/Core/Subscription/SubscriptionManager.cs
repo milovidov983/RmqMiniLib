@@ -47,7 +47,11 @@ namespace RmqLib.Core {
 			DeliveredMessage deliveredMessage = CreateDeliveredMessage(ea);
 			Task.Factory.StartNew(async () => {
 				try {
-					await ExecuteBeforeExecuteHandler(deliveredMessage);
+					var acceptMessage =  await RunBeforeExecuteHandler(deliveredMessage);
+					if (!acceptMessage) {
+						await Ask(dt, MessageProcessResult.Reject);
+						return;
+					}
 
 					var handlerExists = topicHandlers.TryGetValue(routingKey, out var handler);
 					if (!handlerExists) {
@@ -63,7 +67,7 @@ namespace RmqLib.Core {
 					} catch (Exception e) {
 						await ExecuteExceptionHandler(e, deliveredMessage);
 					} finally {
-						processResult = await ExecuteAfterExecuteHandler(deliveredMessage, processResult);
+						processResult = await RunAfterExecuteHandler(deliveredMessage, processResult);
 						await Ask(dt, processResult);
 					}
 
@@ -94,7 +98,7 @@ namespace RmqLib.Core {
 			return Task.CompletedTask;
 		}
 
-		private Task<MessageProcessResult> ExecuteAfterExecuteHandler(
+		private Task<MessageProcessResult> RunAfterExecuteHandler(
 			DeliveredMessage deliveredMessage,
 			MessageProcessResult processResult) {
 
@@ -104,11 +108,11 @@ namespace RmqLib.Core {
 			return Task.FromResult(MessageProcessResult.Ack);
 		}
 
-		private Task ExecuteBeforeExecuteHandler(DeliveredMessage deliveredMessage) {
+		private async Task<bool> RunBeforeExecuteHandler(DeliveredMessage deliveredMessage) {
 			if (queueHandlersConfig.BeforeExecuteHandler != null) {
-				return queueHandlersConfig.BeforeExecuteHandler(deliveredMessage);
+				return await queueHandlersConfig.BeforeExecuteHandler(deliveredMessage);
 			}
-			return Task.CompletedTask;
+			return true;
 		}
 
 		private DeliveredMessage CreateDeliveredMessage(BasicDeliverEventArgs ea) {

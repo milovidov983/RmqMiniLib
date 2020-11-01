@@ -111,7 +111,7 @@ namespace RmqLib.Core {
 			try {
 				semaphore.Wait();
 				if (!channel.IsClosed) {
-					channel.Close();
+					channel.Abort();
 				}
 			} finally {
 				semaphore.Release();

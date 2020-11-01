@@ -49,22 +49,24 @@ namespace RmqLib.Core {
 		public SubscriptionManager InitSubscriptions(IRabbitHub hub, Dictionary<string, IRabbitCommand> commandHandlers) {
 			SubscriptionManager subscriptionManager = null;
 			try {
-				var subscriptionWrapChannel = connectionManager.GetSubscriptionChannel();
+				IChannelWrapper subscriptionWrapChannel = connectionManager.GetSubscriptionChannel();
 
-				IConsumerBinder topicListenerBinder = new SubsciptionConsumerBinder(config.Queue);
-				IConsumerFactory topicListenerConsumerFactory = new ConsumerFactory(subscriptionWrapChannel, topicListenerBinder);
+				IConsumerBinder subscriptionConsumerBinder = new SubsciptionConsumerBinder(config.Queue);
+				IConsumerFactory subscriptionConsumerFactory = new ConsumerFactory(subscriptionWrapChannel, subscriptionConsumerBinder);
+
+				var consumerManagerFactory = ConsumerManagerFactory.Create(ConsumerType.Subs);
+
+
+				IConsumerManager subscriptionConsumerManager 
+					= consumerManagerFactory.CreateConsumerManager(subscriptionConsumerFactory);
 
 
 				var loggerFactory = LoggerFactory.Create(ConsumerType.Subs.ToString());
-				var managerLogger = loggerFactory.CreateLogger(nameof(ConsumerManager));
-
-				IConsumerManager topicListenerConsumerManager = new ConsumerManager(topicListenerConsumerFactory, managerLogger);
-				topicListenerConsumerManager.InitConsumer();
-
 				IMainConsumerEventHandlerFactory topicListenerConsumerEventHandlersFactory
-					= ConsumerEventHandlersFactory.Create(topicListenerConsumerManager, loggerFactory);
+					= ConsumerEventHandlersFactory.Create(subscriptionConsumerManager, loggerFactory);
 
-				var topicListenerConsumerEventHandlers = topicListenerConsumerEventHandlersFactory.CreateMainHandler();
+				IConsumerMainEventHandlers topicListenerConsumerEventHandlers 
+					= topicListenerConsumerEventHandlersFactory.CreateMainHandler();
 
 				subscriptionManager = new SubscriptionManager(
 					subscriptionWrapChannel,

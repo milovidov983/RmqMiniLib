@@ -44,9 +44,7 @@ namespace RmqLib {
 		public Task<ISubscription> Start() {
 			var subscriptionManager = hub.CreateSubscriptions(queueHandlersConfig.commandHandlers);
 			subscriptionManager.AddHandler(queueHandlersConfig);
-
-			// TODO потом что то тут сделать типо корректного закрытия соединения
-			return Task.FromResult<ISubscription>(new Subscription());
+			return Task.FromResult<ISubscription>(new Subscription(hub));
 		}
 	}
 

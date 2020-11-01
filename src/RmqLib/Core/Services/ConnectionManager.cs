@@ -81,8 +81,8 @@ namespace RmqLib.Core {
 			return responseMessageHandler;
 		}
 
-		public IChannelPool GetRpcChannelPool() {
-			return rpcChannelPool;
+		public IChannelWrapper GetRpcChannel() {
+			return rpcChannelPool.GetChannelWrapper();
 		}
 
 		public IChannelPool CreateSubscriptionChannelPool(ushort prefechCount) {

@@ -16,7 +16,7 @@ namespace RmqLib {
 		private readonly Initializer initializer;
 		private readonly RmqConfig config;
 		private IChannelWrapper subscriptionChannel;
-
+		private IConnectionManager connectionManager;
 
 		public RabbitHub(RmqConfig config, ILogger externalLogger = null) {
 			this.initializer = new Initializer(config, externalLogger);
@@ -27,7 +27,7 @@ namespace RmqLib {
 
 
 		internal SubscriptionManager CreateSubscriptions(Dictionary<string, IRabbitCommand> commandHandlers) {
-			IConnectionManager connectionManager = initializer.connectionManager;
+			this.connectionManager = initializer.connectionManager;
 			connectionManager.CreateSubscriptionChannelPool(config.PrefetchCount);
 			subscriptionChannel = connectionManager.GetSubscriptionChannel();
 
@@ -95,6 +95,16 @@ namespace RmqLib {
 				body: respBody);
 
 		
+		}
+
+
+		public void Close() {
+			var channelOne = connectionManager.GetRpcChannel();
+			channelOne.Close();
+			var channelTwo = connectionManager.GetSubscriptionChannel();
+			channelTwo.Close();
+			var conn = connectionManager.GetConnection();
+			conn.Abort();
 		}
 
 	}
