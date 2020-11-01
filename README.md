@@ -102,7 +102,7 @@ await hub.PublishAsync("broadcastCommand.serverExample.none",
 
 
 
-
+***
 
 
 ### RPC вызовы
@@ -114,3 +114,37 @@ await hub.PublishAsync("broadcastCommand.serverExample.none",
 Task<TResponse> ExecuteRpcAsync<TResponse, TRequest>(string topic, TRequest request, TimeSpan? timeout = null) 
 where TResponse : class;
 ```
+
+
+Что бы разобрать пример с RPC вызовом допустим у клиента и сервера к которому мы хотим послать запрос есть общий класс с описанием класса запроса и класса ответа а так же с названием топика по которому будет сделана публикация в rabbitMq. Опишем клаcс подобным образом:
+
+```csharp
+
+/// <summary>
+/// Класс "контракт" описывающий данные участвующие в клиент/серверном взаимодействии
+/// </summary>
+public class ExampleCommand {
+	/// <summary>
+	/// topic или по другому routingKey на который подписан сервер ожидающий наше сообщение
+	/// </summary>
+	public const string Topic = "exampleCommand.serverExample.rpc";
+
+	public class Request {
+		/// <summary>
+		/// Сообщение от клиента
+		/// </summary>
+		public string Message { get; set; }
+	}
+
+	public class Response {
+		/// <summary>
+		/// Ответ от сервера
+		/// </summary>
+		public string Message { get; set; }
+	}
+}
+
+```
+
+
+
