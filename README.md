@@ -95,4 +95,4 @@ await hub.PublishAsync("broadcastCommand.serverExample.none",
 
 
 ### RPC вызовы
-
+#### Выполнение команд запрос/ответ с посредником в виде rabbitMq
