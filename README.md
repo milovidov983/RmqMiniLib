@@ -105,3 +105,9 @@ await hub.PublishAsync("broadcastCommand.serverExample.none",
 
 ### RPC вызовы
 #### Выполнение команд запрос/ответ с посредником в виде rabbitMq
+
+
+Для выполнения RPC вызывов используется библиотченый метод
+```csharp
+Task<TResponse> ExecuteRpcAsync<TResponse, TRequest>(string topic, TRequest request, TimeSpan? timeout = null) where TResponse : class;
+```
