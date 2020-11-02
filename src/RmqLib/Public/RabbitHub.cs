@@ -34,7 +34,10 @@ namespace RmqLib {
 			return initializer.InitSubscriptions(this, commandHandlers);
 		}
 
-		public async Task<TResponse> ExecuteRpcAsync<TResponse, TRequest>(string topic, TRequest request, TimeSpan? timeout = null) where TResponse : class {
+		public async Task<TResponse> ExecuteRpcAsync<TResponse, TRequest>(string topic, TRequest request, TimeSpan? timeout = null) 
+			where TResponse : class 
+			where TRequest : class 	{
+
 			byte[] body = request.ToByteArray();
 			var correlationId = Guid.NewGuid().ToString("N");
 			var di = new DeliveryInfo(topic, body, correlationId, ServiceConstants.REPLY_QUEUE_NAME);
@@ -49,7 +52,7 @@ namespace RmqLib {
 			return rm.GetResponse<TResponse>();
 		}
 
-		public async Task PublishAsync<TRequest>(string topic, TRequest request, TimeSpan? timeout = null) {
+		public async Task PublishAsync<TRequest>(string topic, TRequest request, TimeSpan? timeout = null) where TRequest : class {
 			byte[] body = request.ToByteArray();
 			var di = new DeliveryInfo(topic, body, null, null);
 			IPublisher pub = publisherFactory.GetBasicPublisher();

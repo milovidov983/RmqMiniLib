@@ -77,7 +77,7 @@ class Message {
 
 Отправка данных осуществляется с помощью метода `PublishAsync` класса `RabbitHub`, метод имеет следующую сигнатуру:
 ```csharp
-Task PublishAsync<TRequest>(string topic, TRequest request, TimeSpan? timeout = null);
+Task PublishAsync<TRequest>(string topic, TRequest request, TimeSpan? timeout = null) where TRequest : class;
 ```
 
 `topic` - это ключ маршрутизации на который подписан сервис которому адресовано сообщение
@@ -146,8 +146,9 @@ public class ExampleCommand {
 
 Для выполнения RPC вызывов используется библиотченый метод
 ```csharp
-Task<TResponse> ExecuteRpcAsync<TResponse, TRequest>(string topic, TRequest request, TimeSpan? timeout = null) 
-where TResponse : class;
+Task<TResponse> ExecuteRpcAsync<TResponse,TRequest>(string topic, TRequest request, TimeSpan? timeout = null) 
+where TResponse : class
+where TRequest : class;
 ```
 `topic` - это ключ маршрутизации на который подписан сервис которому адресовано сообщение
 
