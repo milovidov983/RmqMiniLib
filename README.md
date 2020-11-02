@@ -85,6 +85,7 @@ Task PublishAsync<TRequest>(string topic, TRequest request, TimeSpan? timeout = 
 `request` - тело сообщения
 
 
+
 Пример полностью:
 
 
@@ -109,11 +110,6 @@ await hub.PublishAsync("broadcastCommand.serverExample.none",
 #### Выполнение команд запрос/ответ с посредником rabbitMq
 
 
-Для выполнения RPC вызывов используется библиотченый метод
-```csharp
-Task<TResponse> ExecuteRpcAsync<TResponse, TRequest>(string topic, TRequest request, TimeSpan? timeout = null) 
-where TResponse : class;
-```
 
 
 Что бы разобрать пример с RPC вызовом допустим у клиента и сервера к которому мы хотим послать запрос есть общий класс с описанием класса запроса и класса ответа а так же с названием топика по которому будет сделана публикация в rabbitMq. Опишем клаcс подобным образом:
@@ -147,6 +143,18 @@ public class ExampleCommand {
 ```
 
 Теперь имея на руках такой контракт который поддерживают обе стороны можно переходить к самому вызову:
+
+Для выполнения RPC вызывов используется библиотченый метод
+```csharp
+Task<TResponse> ExecuteRpcAsync<TResponse, TRequest>(string topic, TRequest request, TimeSpan? timeout = null) 
+where TResponse : class;
+```
+`topic` - это ключ маршрутизации на который подписан сервис которому адресовано сообщение
+
+`request` - тело сообщения
+
+`timeout` - отрезок времени после которого будет создан эксепшн если ответа не было
+
 
 ```csharp
 
