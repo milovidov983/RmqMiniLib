@@ -58,7 +58,7 @@ IRabbitHub hub = new RabbitHub(rmqConfigInstance);
 
 
 ### Пример публикации
-#### Публикация сообщения всем кто подписан на topic
+#### Публикация сообщения всем кто подписан на topic "broadcastCommand.serverExample.none"
 
 
 <p align="center">
