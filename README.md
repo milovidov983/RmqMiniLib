@@ -1,5 +1,5 @@
 <p align="center">
-  <image src="https://github.com/milovidov983/BotKeeper/blob/master/logo_full.png" alt="RmqMiniLib logo" width="1200px">
+  <image src="https://github.com/milovidov983/BotKeeper/blob/master/logo_full2.png" alt="RmqMiniLib logo" width="1200px">
 </p>
 
 ### RmqMiniLib это dotnet библиотека для удобной работы с RabbitMQ написанная поверх официальной библиотеки
