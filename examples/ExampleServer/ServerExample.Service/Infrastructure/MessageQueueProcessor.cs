@@ -48,7 +48,9 @@ namespace ServerExample.Service.Infrastructure {
 
 								return await MessageProcessResult.RejectTask;
 							})
-							// Регистрация обработчика топика, 1. Аргумент топик rabbitMq 2. Команда обработчик
+							// Регистрация обработчика топика, 
+							// 1. Аргумент топик rabbitMq 
+							// 2. Функция обработчик
 							.OnTopic(SEC.ExampleCommand.Topic, new Commands.ExampleCommand(context))
 							.OnTopic(SEC.BroadcastCommand.Topic, new Commands.BroadcastCommand(context))
 				)
