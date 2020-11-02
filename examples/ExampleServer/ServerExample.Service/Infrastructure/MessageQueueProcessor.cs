@@ -19,12 +19,14 @@ namespace ServerExample.Service.Infrastructure {
 
 		public async Task Start() {
 			var context = new Context(hub, logger);
-
+			
+			// Определение подписчиков на топики rabbitMq
 			subscriptions = await hub
 				.DefineHandlers()
 				.AddHandlers(
 					cfg =>
 						cfg
+							// Перехватчик исключений вызванных выполнением команд обработчиков топиков
 							.OnException((exc, dm) => {
 								logger.Fatal(exc, "Error on MessageProcessor.");
 
@@ -34,6 +36,7 @@ namespace ServerExample.Service.Infrastructure {
 
 								return Task.FromResult(false);
 							})
+							// Перехватчик сообщений с топиком на которые нет обработчика
 							.OnUnexpectedTopic(async dm => {
 								var message = $"{dm.GetTopic()} was unexpected";
 								logger.Warn(message);
@@ -45,6 +48,7 @@ namespace ServerExample.Service.Infrastructure {
 
 								return await MessageProcessResult.RejectTask;
 							})
+							// Регистрация обработчика топика, 1. Аргумент топик rabbitMq 2. Команда обработчик
 							.OnTopic(SEC.ExampleCommand.Topic, new Commands.ExampleCommand(context))
 							.OnTopic(SEC.BroadcastCommand.Topic, new Commands.BroadcastCommand(context))
 				)
