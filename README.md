@@ -77,7 +77,8 @@ class Message {
 
 Отправка данных осуществляется с помощью метода `PublishAsync` класса `RabbitHub`, метод имеет следующую сигнатуру:
 ```csharp
-Task PublishAsync<TRequest>(string topic, TRequest request, TimeSpan? timeout = null) where TRequest : class;
+Task PublishAsync<TRequest>(string topic, TRequest request, TimeSpan? timeout = null) 
+where TRequest : class;
 ```
 
 `topic` - это ключ маршрутизации на который подписан сервис которому адресовано сообщение
@@ -176,12 +177,19 @@ Console.WriteLine($"Получен ответ от микросервиса: {re
 
 ### Создание подписок на топики RabbitMq
 
+
 Пока нет возможности полностью описать процесс подписок, но я думаю можно без труда разобратся посмотрев на пример:
 
 https://github.com/milovidov983/RmqMiniLib/blob/master/examples/ExampleServer/ServerExample.Service/Infrastructure/MessageQueueProcessor.cs
 
 
-Пример создания микросервиса на основе этой библиотеки находится тут:
+
+Пример микросервиса на основе этой библиотеки:
 
 https://github.com/milovidov983/RmqMiniLib/tree/master/examples/ExampleServer
+
+
+Пример клиента: 
+
+https://github.com/milovidov983/RmqMiniLib/blob/master/examples/ClientExampleService
 
