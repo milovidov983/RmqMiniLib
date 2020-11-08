@@ -40,18 +40,20 @@ namespace RmqLib.Core {
 			while (!deliveryItems.IsCompleted) {
 				var item = deliveryItems.Take();
 
-				var status = await channel.BasicPublish(item);
+				var status = await channel.BasicPublish(new BasicPublishCommand { Payload = item });
 
-				
-				if (status.IsSuccess) {
-					item.PublishSuccessAction?.Invoke();
+				Task.Factory.StartNew(async () => {
+					var resultStatus = await status;
+					if (resultStatus.IsSuccess) {
+						item.PublishSuccessAction?.Invoke();
 
-				} else {
-					// debug
-					logger.Debug($"{nameof(BasicPublisher)}{nameof(RequestHandlerStartMainLoop)} {item.DeliveryInfo.Topic}" +
-						$"{status.Error}");
+					} else {
+						// debug
+						logger.Debug($"{nameof(BasicPublisher)}{nameof(RequestHandlerStartMainLoop)} {item.DeliveryInfo.Topic}" +
+							$"{resultStatus.Error}");
 
-					item.PublishErrorAction?.Invoke(status.Error);
+						item.PublishErrorAction?.Invoke(resultStatus.Error);
+					}
 				}
 
 			}

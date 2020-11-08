@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 
 namespace RmqLib.Core {
 	internal interface IChannelWrapper {
+
+		Task<Task<PublishStatus>> BasicPublish(BasicPublishCommand command);
 		Task<PublishStatus> BasicPublish(PublishItem deliveryInfo);
 		void Close();
 		void UnlockChannel();
@@ -14,6 +16,7 @@ namespace RmqLib.Core {
 		Task QueueBind(string queue, string exchange, string routingKey);
 		Task BasicConsume(IBasicConsumer consumer, string queue, bool autoAck);
 		Task<IBasicProperties> CreateBasicProperties();
+
 		Task BasicPublish(string exchange, string routingKey, IBasicProperties basicProperties, byte[] body = null);
 	}
 }

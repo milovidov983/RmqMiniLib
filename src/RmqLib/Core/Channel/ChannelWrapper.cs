@@ -4,21 +4,165 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace RmqLib.Core {
+	internal interface IChannelCommand {
+
+	}
+	internal class BasicPublishCommand: IChannelCommand {
+		public PublishItem Payload { get; set; }
+	
+		public TaskCompletionSource<PublishStatus> Status { get; set; }
+	}
 
 
 	internal class ChannelWrapper : IChannelWrapper {
-		private readonly IModel channel;
+		private readonly IModel rmqchannel;
 		private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
 
+		public Channel<IChannelCommand> channel { get; set; }
+
 		public IModel GetTrueChannel() {
-			return channel;
+			return rmqchannel;
 		}
 
 		public ChannelWrapper(IModel channel) {
-			this.channel = channel;
+			this.rmqchannel = channel;
+			this.channel = Channel.CreateUnbounded<IChannelCommand>();
+		}
+
+		public async Task Start() {
+			while (await channel.Reader.WaitToReadAsync()) {
+				var command = await channel.Reader.ReadAsync();
+
+				switch(command)
+				{
+					case BasicPublishCommand cmd {
+						Handle(cmd);
+						break;
+					}
+					default:
+						throw new NotImplementedException("")
+				};
+			}
+		}
+
+		private void Handle(BasicPublishCommand command) {
+			var publishItem = command.Payload;
+
+			if (publishItem.IsCanceled) {
+				command.Status?.TrySetResult(PublishStatus.SuccessStatus);
+				return;
+			}
+			try {
+				var props = rmqchannel.CreateBasicProperties();
+				props.CorrelationId = publishItem.CorrelationId;
+				props.ReplyTo = publishItem.ReplyTo;
+				props.AppId = publishItem.AppId;
+
+				rmqchannel.BasicPublish(
+					exchange: publishItem.Exchange,
+					routingKey: publishItem.RoutingKey,
+					basicProperties: props,
+					body: publishItem.Body
+					);
+
+				command.Status?.TrySetResult(PublishStatus.SuccessStatus);
+				return;
+			} catch (Exception ex) {
+				command.Status?.TrySetResult(new PublishStatus {
+					IsSuccess = false,
+					Error = ex
+				}) ?? throw new Exception(ex);
+				return;
+			} 
+		}
+
+		public async Task<Task<PublishStatus>> BasicPublish(BasicPublishCommand command) {
+			command.Status = new TaskCompletionSource<PublishStatus>();
+			await channel.Writer.WriteAsync(command);
+			return command.Status.Task;
+		}
+
+
+
+		public async Task BasicPublish(string exchange, string routingKey, IBasicProperties basicProperties, byte[] body) {
+			try {
+				await semaphore.WaitAsync();
+				rmqchannel.BasicPublish(
+					exchange: exchange,
+					routingKey: routingKey,
+					basicProperties: basicProperties,
+					body: body);
+			} finally {
+				semaphore.Release();
+			}
+		}
+
+		public async Task BasicAck(ulong deliveryTag, bool multiple) {
+			try {
+				await semaphore.WaitAsync();
+				rmqchannel.BasicAck(deliveryTag, multiple);
+			} finally {
+				semaphore.Release();
+			}
+		}		
+		
+		public async Task BasicReject(ulong deliveryTag, bool requeue) {
+			try {
+				await semaphore.WaitAsync();
+				rmqchannel.BasicReject(deliveryTag, requeue);
+			} finally {
+				semaphore.Release();
+			}
+		}
+
+		public async Task QueueBind(string queue, string exchange, string routingKey) {
+			try {
+				await semaphore.WaitAsync();
+				rmqchannel.QueueBind(queue,exchange,routingKey);
+			} finally {
+				semaphore.Release();
+			}
+		}
+
+
+
+
+		public async Task BasicConsume(IBasicConsumer consumer, string queue, bool autoAck) {
+			try {
+				await semaphore.WaitAsync();
+				rmqchannel.BasicConsume(
+					queue: queue,
+					autoAck: autoAck,
+					consumer: consumer);
+				
+			} finally {
+				semaphore.Release();
+			}
+		}
+
+		public async Task<IBasicProperties> CreateBasicProperties() {
+			try {
+				await semaphore.WaitAsync();
+				return rmqchannel.CreateBasicProperties();
+			} finally {
+				semaphore.Release();
+			}
+		}
+
+
+		public void Close() {
+			try {
+				semaphore.Wait();
+				if (!rmqchannel.IsClosed) {
+					rmqchannel.Abort();
+				}
+			} finally {
+				semaphore.Release();
+			}
 		}
 
 		/// <summary>
@@ -35,111 +179,6 @@ namespace RmqLib.Core {
 			semaphore.Release();
 		}
 
-		public async Task<PublishStatus> BasicPublish(PublishItem publishItem) {
-			await semaphore.WaitAsync();
-			if (publishItem.IsCanceled) {
-				return PublishStatus.SuccessStatus;
-			}
-			try {
-				var deliveryInfo = publishItem.DeliveryInfo;
 
-				var props = channel.CreateBasicProperties();
-				props.CorrelationId = deliveryInfo.CorrelationId;
-				props.ReplyTo = deliveryInfo.ReplyTo;
-				props.AppId = DeliveryInfo.AppId;
-
-				channel.BasicPublish(
-					exchange: DeliveryInfo.ExhangeName,
-					routingKey: deliveryInfo.Topic,
-					basicProperties: props,
-					body: deliveryInfo.Body
-					);
-
-				return PublishStatus.SuccessStatus;
-			} catch (Exception ex) {
-				return new PublishStatus {
-					IsSuccess = false,
-					Error = ex
-				};
-			} finally {
-				semaphore.Release();
-			}
-		}
-
-		public async Task BasicPublish(string exchange, string routingKey, IBasicProperties basicProperties, byte[] body) {
-			try {
-				await semaphore.WaitAsync();
-				channel.BasicPublish(
-					exchange: exchange,
-					routingKey: routingKey,
-					basicProperties: basicProperties,
-					body: body);
-			} finally {
-				semaphore.Release();
-			}
-		}
-
-		public async Task BasicAck(ulong deliveryTag, bool multiple) {
-			try {
-				await semaphore.WaitAsync();
-				channel.BasicAck(deliveryTag, multiple);
-			} finally {
-				semaphore.Release();
-			}
-		}		
-		
-		public async Task BasicReject(ulong deliveryTag, bool requeue) {
-			try {
-				await semaphore.WaitAsync();
-				channel.BasicReject(deliveryTag, requeue);
-			} finally {
-				semaphore.Release();
-			}
-		}
-
-		public async Task QueueBind(string queue, string exchange, string routingKey) {
-			try {
-				await semaphore.WaitAsync();
-				channel.QueueBind(queue,exchange,routingKey);
-			} finally {
-				semaphore.Release();
-			}
-		}
-
-
-		public void Close() {
-			try {
-				semaphore.Wait();
-				if (!channel.IsClosed) {
-					channel.Abort();
-				}
-			} finally {
-				semaphore.Release();
-			}
-		}
-
-		public async Task BasicConsume(IBasicConsumer consumer, string queue, bool autoAck) {
-			try {
-				await semaphore.WaitAsync();
-				channel.BasicConsume(
-					queue: queue,
-					autoAck: autoAck,
-					consumer: consumer);
-				
-			} finally {
-				semaphore.Release();
-			}
-		}
-
-		public async Task<IBasicProperties> CreateBasicProperties() {
-			try {
-				await semaphore.WaitAsync();
-				return channel.CreateBasicProperties();
-			} finally {
-				semaphore.Release();
-			}
-		}
-
-		
 	}
 }
