@@ -12,9 +12,10 @@ using System.Timers;
 
 namespace RmqLib {
 	public class RabbitHub : IRabbitHub {
+		public RmqConfig Config { get; }
+
 		private readonly IPublisherFactory publisherFactory;
 		private readonly Initializer initializer;
-		private readonly RmqConfig config;
 		private IChannelWrapper subscriptionChannel;
 		private IConnectionManager connectionManager;
 
@@ -22,13 +23,13 @@ namespace RmqLib {
 			this.initializer = new Initializer(config, externalLogger);
 			initializer.InitConnectionManager();
 			publisherFactory = initializer.InitPublisherFactory();
-			this.config = config;
+			this.Config = config;
 		}
 
 
 		internal SubscriptionManager CreateSubscriptions(Dictionary<string, IRabbitCommand> commandHandlers) {
 			this.connectionManager = initializer.connectionManager;
-			connectionManager.CreateSubscriptionChannelPool(config.PrefetchCount);
+			connectionManager.CreateSubscriptionChannelPool(Config.PrefetchCount);
 			subscriptionChannel = connectionManager.GetSubscriptionChannel();
 
 			return initializer.InitSubscriptions(this, commandHandlers);

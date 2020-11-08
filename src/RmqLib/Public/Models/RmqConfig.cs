@@ -39,9 +39,13 @@ namespace RmqLib {
         /// PrefetchCount
         /// </summary>
         public ushort PrefetchCount { get; set; } = 32;
+        /// <summary>
+        /// Вызывать исключение если количество зарегистрированных обработчиков 
+        /// меньше чем количество классов наследников IRabbitCommand
+        /// </summary>
+        public bool ControlHandlersNumber { get; set; } = true;
 
-         
-       
+
 
 
         internal void Validate() {
