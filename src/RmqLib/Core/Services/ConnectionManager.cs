@@ -1,7 +1,5 @@
 ﻿using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
-using System;
-using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace RmqLib.Core {
 	internal class ConnectionManager : IConnectionManager {
@@ -16,7 +14,7 @@ namespace RmqLib.Core {
 		private IModel subsCh;
 		private IChannelWrapper subscriptionWrapChannel;
 
-		public ConnectionManager(RmqConfig config, 
+		public ConnectionManager(RmqConfig config,
 			IChannelPoolFactory channelPoolFactory,
 			IResponseMessageHandlerFactory responseMessageHandlerFactory) {
 			this.config = config;
@@ -37,38 +35,38 @@ namespace RmqLib.Core {
 
 			IConsumerBinder rpcConsumerBinder = new RpcConsumerBinder();
 			IConsumerFactory rpcConsumerFactory = new ConsumerFactory(
-				rpcChannelPool.GetChannelWrapper(), 
+				rpcChannelPool.GetChannelWrapper(),
 				rpcConsumerBinder);
 
 			ILoggerFactory loggerFactory = LoggerFactory.Create(ConsumerType.Rpc.ToString());
 			IRmqLogger managerLogger = loggerFactory.CreateLogger(nameof(ConsumerManager));
 
 			IConsumerManager rpcConsumerManager = new ConsumerManager(
-				rpcConsumerFactory, 
+				rpcConsumerFactory,
 				managerLogger);
 			rpcConsumerManager.InitConsumer();
 
 
-			IMainConsumerEventHandlerFactory rpcMainEventHandlerFactory 
+			IMainConsumerEventHandlerFactory rpcMainEventHandlerFactory
 				= ConsumerEventHandlersFactory.Create(rpcConsumerManager, loggerFactory);
 
-			IConsumerMainEventHandlers rpcConsumerMainEventHandler 
+			IConsumerMainEventHandlers rpcConsumerMainEventHandler
 				= rpcMainEventHandlerFactory.CreateMainHandler();
 
 
 
 			IRmqLogger connectionHandlerLogger = loggerFactory.CreateLogger(nameof(ConnectionEventHandlers));
-			IConnectionEventsHandlerFactory connectionEventsHandlerFactory 
+			IConnectionEventsHandlerFactory connectionEventsHandlerFactory
 							= ConnectionEventsHandlerFactory.Create(connectionHandlerLogger, connection);
 			IConnectionEventHandlers connectionEventHandler = connectionEventsHandlerFactory.CreateHandler();
 
 
 			IRmqLogger channelGuardLogger = loggerFactory.CreateLogger(nameof(ChannelGuardService));
-			this.channelGuardService 
+			this.channelGuardService
 				= new ChannelGuardService(
 					rpcChannelPool, // <--- TODO только rpc?
-					channelGuardLogger, 
-					connectionEventHandler, 
+					channelGuardLogger,
+					connectionEventHandler,
 					rpcConsumerMainEventHandler);
 
 			// Подписка на ответы запросов rpc
@@ -93,7 +91,11 @@ namespace RmqLib.Core {
 					config.Queue,
 					durable: true,
 					exclusive: false,
-					autoDelete: false);
+					autoDelete: false,
+					arguments: new Dictionary<string, object> {
+						["x-dead-letter-exchange"] = "",
+						["x-dead-letter-routing-key"] = "_q_dead"
+					});
 			}
 
 

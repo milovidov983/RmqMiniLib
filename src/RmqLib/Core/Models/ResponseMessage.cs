@@ -26,7 +26,7 @@ namespace RmqLib {
 		}
 
 		public TResponse GetResponse<TResponse>() where TResponse : class {
-			TResponse response = JsonSerializer.Deserialize<TResponse>(responseBody.Span);
+			TResponse response = JsonSerializer.Deserialize<TResponse>(responseBody.Span, JsonOptions.Default);
 			return response;
 
 		}

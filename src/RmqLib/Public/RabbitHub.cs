@@ -6,9 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Timers;
 
 namespace RmqLib {
 	public class RabbitHub : IRabbitHub {
@@ -35,9 +33,9 @@ namespace RmqLib {
 			return initializer.InitSubscriptions(this, commandHandlers);
 		}
 
-		public async Task<TResponse> ExecuteRpcAsync<TResponse, TRequest>(string topic, TRequest request, TimeSpan? timeout = null) 
-			where TResponse : class 
-			where TRequest : class 	{
+		public async Task<TResponse> ExecuteRpcAsync<TResponse, TRequest>(string topic, TRequest request, TimeSpan? timeout = null)
+			where TResponse : class
+			where TRequest : class {
 
 			byte[] body = request.ToByteArray();
 			var correlationId = Guid.NewGuid().ToString("N");
@@ -86,19 +84,19 @@ namespace RmqLib {
 				throw new InvalidOperationException("Can't reply on non-RPC request");
 			}
 
-			var resp = JsonSerializer.Serialize(payload);
+			var resp = JsonSerializer.Serialize(payload, JsonOptions.Default);
 			byte[] respBody = Encoding.UTF8.GetBytes(resp);
-		
+
 			IBasicProperties replyProps = await subscriptionChannel.CreateBasicProperties();
 			replyProps.CorrelationId = dm.ReplyProps.CorrelationId;
-				
+
 			await subscriptionChannel.BasicPublish(
-				exchange: "", 
-				routingKey: dm.ReplyProps.ReplyTo, 
-				basicProperties: replyProps, 
+				exchange: "",
+				routingKey: dm.ReplyProps.ReplyTo,
+				basicProperties: replyProps,
 				body: respBody);
 
-		
+
 		}
 
 

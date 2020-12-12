@@ -1,27 +1,25 @@
 ﻿using RabbitMQ.Client;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Text.Json;
 
 namespace RmqLib {
 	public class DeliveredMessage {
 		public DeliveredMessage(
-			IBasicProperties replyProps, 
-			string routingKey, 
+			IBasicProperties replyProps,
+			string routingKey,
 			ReadOnlyMemory<byte> body,
 			ulong deliveryTag) {
 
 
-			ReplyProps = replyProps; 
-			RoutingKey = routingKey; 
-			Body = body; 
+			ReplyProps = replyProps;
+			RoutingKey = routingKey;
+			Body = body;
 			DeliveryTag = deliveryTag;
 		}
 
 
 
-		public ReadOnlyMemory<byte> Body { get; private  set; }
+		public ReadOnlyMemory<byte> Body { get; private set; }
 		public string RoutingKey { get; private set; }
 		public ulong DeliveryTag { get; private set; }
 		public IBasicProperties ReplyProps { get; private set; }
@@ -39,7 +37,7 @@ namespace RmqLib {
 		}
 
 		public TResponse GetContent<TResponse>() where TResponse : class {
-			TResponse response = JsonSerializer.Deserialize<TResponse>(Body.Span);
+			TResponse response = JsonSerializer.Deserialize<TResponse>(Body.Span, JsonOptions.Default);
 			return response;
 
 		}

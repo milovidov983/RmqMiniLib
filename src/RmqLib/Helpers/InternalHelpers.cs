@@ -12,7 +12,7 @@ namespace RmqLib.Helper {
 	internal static class InternalHelpers {
 
 		public static byte[] ToByteArray<TRequest>(this TRequest request) {
-			var json = JsonSerializer.Serialize(request);
+			var json = JsonSerializer.Serialize(request, JsonOptions.Default);
 			return Encoding.UTF8.GetBytes(json);
 		}
 
