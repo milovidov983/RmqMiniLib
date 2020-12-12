@@ -2,6 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Description>RmqMiniLib is a dotnet library for easy working with RabbitMQ, written on top of the official C # RabbitMQ.Client library</Description>
+    <PackageId>RmqMiniLib</PackageId>
+    <Product>RmqMiniLib</Product>
+    <Authors>Milovidov Vasiliy</Authors>
+    <PackageProjectUrl>https://github.com/milovidov983/RmqMiniLib</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
