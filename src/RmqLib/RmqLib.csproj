@@ -8,6 +8,7 @@
     <Authors>Milovidov Vasiliy</Authors>
     <PackageProjectUrl>https://github.com/milovidov983/RmqMiniLib</PackageProjectUrl>
     <PackageIcon></PackageIcon>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
