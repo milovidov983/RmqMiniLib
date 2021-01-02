@@ -10,20 +10,20 @@ namespace RmqLib.Core {
 	internal class ConsumerReceiveEventHandelr : IConsumerReceiveEventHandelr {
 		private readonly IRmqLogger logger;
 
-		private readonly ConcurrentBag<Action<object, BasicDeliverEventArgs>> handlers
-			= new ConcurrentBag<Action<object, BasicDeliverEventArgs>>();
+		private readonly ConcurrentQueue<Action<object, BasicDeliverEventArgs>> handlers
+			= new ConcurrentQueue<Action<object, BasicDeliverEventArgs>>();
 
 		public ConsumerReceiveEventHandelr(IRmqLogger logger) {
 			this.logger = logger;
 		}
 
 		public void AddHandler(Action<object, BasicDeliverEventArgs> handler) {
-			handlers.Add(handler);
+			handlers.Enqueue(handler);
 		}
 
 		public void ReceiveHandler(object sender, BasicDeliverEventArgs e) {
 			// Асинхронно потому что трудоёмкая задача по обработке запроса
-			Task.Factory.StartNew(() => {
+			Task.Run(() => {
 				handlers.ToList().ForEach(handler => {
 					try {
 						handler.Invoke(sender, e);

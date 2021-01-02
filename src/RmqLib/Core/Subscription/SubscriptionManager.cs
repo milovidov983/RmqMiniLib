@@ -47,7 +47,7 @@ namespace RmqLib.Core {
 			var routingKey = ea.RoutingKey;
 			var dt = ea.DeliveryTag;
 			var deliveredMessage = ea.CreateDeliveredMessage();
-			Task.Factory.StartNew(async () => {
+			Task.Run(async () => {
 				try {
 					var acceptMessage =  await RunBeforeExecuteHandler(deliveredMessage);
 					if (!acceptMessage) {
