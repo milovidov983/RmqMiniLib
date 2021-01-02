@@ -46,8 +46,8 @@ namespace RmqLib.Core {
 			return new PublisherFactory(connectionManager, config, logger);
 		}
 
-		public SubscriptionManager InitSubscriptions(IRabbitHub hub, Dictionary<string, IRabbitCommand> commandHandlers) {
-			SubscriptionManager subscriptionManager = null;
+		public SubscriptionHandler InitSubscriptions(IRabbitHub hub, Dictionary<string, IRabbitCommand> commandHandlers, QueueHandlersConfig handlersConfig) {
+			SubscriptionHandler subscriptionHandler = null;
 			try {
 				IChannelWrapper subscriptionWrapChannel = connectionManager.GetSubscriptionChannel();
 
@@ -68,22 +68,24 @@ namespace RmqLib.Core {
 				IConsumerMainEventHandlers topicListenerConsumerEventHandlers 
 					= topicListenerConsumerEventHandlersFactory.CreateMainHandler();
 
-				subscriptionManager = new SubscriptionManager(
+				subscriptionHandler = new SubscriptionHandler(
 					subscriptionWrapChannel,
 					hub,
 					commandHandlers,
 					config,
 					logger);
 
-				topicListenerConsumerEventHandlers.AddReceiveHandler(subscriptionManager.Handler);
+				subscriptionHandler.AddHandler(handlersConfig);
+
+				topicListenerConsumerEventHandlers.AddReceiveHandler(subscriptionHandler.Handle);
 
 			} catch (Exception e) {
 					throw new InvalidOperationException(
-						$"Cant create {nameof(SubscriptionManager)} " +
+						$"Cant create {nameof(SubscriptionHandler)} " +
 						$"Error: {e.Message} ", e);
 
 			}
-			return subscriptionManager;
+			return subscriptionHandler;
 		}
 	}
 }

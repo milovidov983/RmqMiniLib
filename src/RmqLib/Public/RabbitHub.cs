@@ -25,12 +25,13 @@ namespace RmqLib {
 		}
 
 
-		internal SubscriptionManager CreateSubscriptions(Dictionary<string, IRabbitCommand> commandHandlers) {
+		internal SubscriptionHandler CreateSubscriptions(QueueHandlersConfig handlersConfig) {
+			Dictionary<string, IRabbitCommand> commandHandlers = handlersConfig.commandHandlers;
 			this.connectionManager = initializer.connectionManager;
 			connectionManager.CreateSubscriptionChannelPool(Config.PrefetchCount);
 			subscriptionChannel = connectionManager.GetSubscriptionChannel();
 
-			return initializer.InitSubscriptions(this, commandHandlers);
+			return initializer.InitSubscriptions(this, commandHandlers, handlersConfig);
 		}
 
 		public async Task<TResponse> ExecuteRpcAsync<TResponse, TRequest>(string topic, TRequest request, TimeSpan? timeout = null)

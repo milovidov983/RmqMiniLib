@@ -55,8 +55,8 @@ namespace RmqLib {
 				}
 			}
 
-			var subscriptionManager = hub.CreateSubscriptions(queueHandlersConfig.commandHandlers);
-			subscriptionManager.AddHandler(queueHandlersConfig);
+			var subscriptionHandler = hub.CreateSubscriptions(queueHandlersConfig);
+			
 			return Task.FromResult<ISubscription>(new Subscription(hub));
 		}
 	}

@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace RmqLib.Core {
 
-	internal class SubscriptionManager : ISubscriptionManager {
+	internal class SubscriptionHandler : ISubscriptionHandler {
 		private readonly IChannelWrapper wrappedChannel;
 
 		private readonly ConcurrentDictionary<string, IRabbitCommand> topicHandlers
@@ -22,7 +22,7 @@ namespace RmqLib.Core {
 
 		private readonly IRmqLogger logger;
 
-		public SubscriptionManager(
+		public SubscriptionHandler(
 			IChannelWrapper wrappedChannel,
 			IRabbitHub hub,
 			Dictionary<string, IRabbitCommand> commandHandlers,
@@ -43,7 +43,7 @@ namespace RmqLib.Core {
 
 		}
 
-		public void Handler(object model, BasicDeliverEventArgs ea) {
+		public void Handle(object model, BasicDeliverEventArgs ea) {
 			var routingKey = ea.RoutingKey;
 			var dt = ea.DeliveryTag;
 			var deliveredMessage = ea.CreateDeliveredMessage();
@@ -74,7 +74,7 @@ namespace RmqLib.Core {
 					}
 
 				} catch (Exception e) {
-					logger.Error($"{nameof(SubscriptionManager)}.{nameof(Handler)} {e.Message} {e.InnerException?.Message}");
+					logger.Error($"{nameof(SubscriptionHandler)}.{nameof(Handle)} {e.Message} {e.InnerException?.Message}");
 					await wrappedChannel.BasicReject(dt, false);
 				}
 			});
