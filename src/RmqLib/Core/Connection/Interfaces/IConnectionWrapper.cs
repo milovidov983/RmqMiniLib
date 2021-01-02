@@ -8,5 +8,6 @@ namespace RmqLib {
 		void BindEventHandler(Action<IConnection> config);
 		void RegisterUnsubscribeHandler(Action<IConnection> config);
 		void Abort();
+		void ExchangeDeclare(IModel channel);
 	}
 }

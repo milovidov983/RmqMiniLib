@@ -48,7 +48,6 @@ namespace RmqLib {
 				logger.Debug($"{nameof(CreateChannel)} Trying to create a channel...");
 
 				var channel = connection.CreateModel();
-				channel.ExchangeDeclare(config.Exchange, ExchangeType.Topic, durable: true);
 
 				logger.Debug($"{nameof(CreateChannel)} Channel created.");
 				return channel;
@@ -58,6 +57,10 @@ namespace RmqLib {
 			} finally {
 				semaphore.Release();
 			}
+		}
+
+		public void ExchangeDeclare(IModel channel) {
+			channel.ExchangeDeclare(config.Exchange, ExchangeType.Topic, durable: true);
 		}
 
 

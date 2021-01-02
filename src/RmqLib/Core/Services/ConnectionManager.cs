@@ -86,6 +86,7 @@ namespace RmqLib.Core {
 		public IChannelPool CreateSubscriptionChannelPool(ushort prefechCount) {
 			if (subsCh is null) {
 				subsCh = connection.CreateChannel();
+				connection.ExchangeDeclare(subsCh);
 				subsCh.BasicQos(0, prefechCount, false);
 				subsCh.QueueDeclare(
 					config.Queue,
